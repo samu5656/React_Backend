@@ -41,15 +41,21 @@ export const Navbar = () => {
           flex items-center justify-between transition-all duration-500 ease-in-out
           ${isScrolled
             ? 'mt-4 w-[95%] max-w-7xl rounded-full border border-black/5 bg-white/70 backdrop-blur-xl shadow-xl px-6 py-3'
-            : 'w-full rounded-none border-b border-black/5 bg-white/70 backdrop-blur-2xl px-8 py-6'
+            : 'w-full rounded-none border-b border-black/5 bg-white/70 backdrop-blur-2xl px-8 py-3'
           }
         `}
       >
 
         {/* Logo */}
         <Link to="/" className="flex items-center flex-shrink-0">
-          <div className="flex h-10 w-auto items-center justify-center">
-            <img src={Logo} alt="Logo" width={80} height={70} className=" object-contain brightness-0" />
+          <div className={`flex w-auto items-center justify-center ${isScrolled ? 'h-10' : 'h-8'}`}>
+            <img
+              src={Logo}
+              alt="Logo"
+              width={isScrolled ? 80 : 72}
+              height={isScrolled ? 70 : 56}
+              className="object-contain brightness-0"
+            />
           </div>
         </Link>
 
@@ -84,7 +90,7 @@ export const Navbar = () => {
 
       {/* Mobile Menu */}
       <div
-        className={`lg:hidden fixed top-[72px] left-0 right-0 bg-white/95 backdrop-blur-xl border-t border-black/10 shadow-xl transition-all duration-300 ${isOpen ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-4 pointer-events-none"
+        className={`lg:hidden fixed top-[58px] left-0 right-0 bg-white/95 backdrop-blur-xl border-t border-black/10 shadow-xl transition-all duration-300 ${isOpen ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-4 pointer-events-none"
           }`}
       >
         <div className="flex flex-col items-center py-6 gap-5 text-sm uppercase tracking-widest font-medium text-black">

@@ -25,7 +25,7 @@ const Footer = () => {
               <Link to='https://kumaraguru.in/'>
                 <img src={KILogo} alt="KI Logo" className="h-12 w-auto object-contain" />
               </Link>
-              
+
 
               <div className="h-10 w-[1px] bg-white/20" /> {/* Vertical Divider */}
               <img src={Logo} alt="React Logo" className="h-10 w-22 object-contain" />
@@ -53,25 +53,25 @@ const Footer = () => {
             <div>
               <h4 className="text-lg font-semibold mb-6">Explore</h4>
               <ul className="space-y-3 text-gray-400">
-                  {[
-                    { name: "About", path: "/about" },
-                    { name: "People", path: "/people" },
-                    { name: "Programmes", path: "/programmes-&-projects" },
-                    { name: "Why India?", path: "/why-india?" },
-                    { name: "Explore Us", path: "/explore-us" },
-                    { name: "Work With Us", path: "/work" },
-                    { name: "Contact", path: "/contact" },
-                  ].map((item) => (
-                    <li key={item.name} className="text-sm">
-                      <Link
-                        to={item.path}
-                        className="hover:text-white transition-colors cursor-pointer"
-                      >
-                        {item.name}
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
+                {[
+                  { name: "About", path: "/about" },
+                  { name: "People", path: "/people" },
+                  { name: "Programmes", path: "/programmes-&-projects" },
+                  { name: "Why India?", path: "/why-india?" },
+                  { name: "Explore Us", path: "/explore-us" },
+                  { name: "Work With Us", path: "/work" },
+                  { name: "Contact", path: "/contact" },
+                ].map((item) => (
+                  <li key={item.name} className="text-sm">
+                    <Link
+                      to={item.path}
+                      className="hover:text-white transition-colors cursor-pointer"
+                    >
+                      {item.name}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
 
             </div>
 
@@ -98,11 +98,11 @@ const Footer = () => {
 
         {/* BOTTOM BAR: LOGO SET 2 */}
 
-          
-          <div className="text-gray-500 text-xs text-center p-10 ">
-            © 2026 <span className="text-white font-medium  ">REACT</span> Kumaraguru Institutions. 
-            <span className="ml-2">All rights reserved.</span>
-          </div>
+
+        <div className="text-gray-500 text-xs text-center p-10 ">
+          © 2026 <span className="text-white font-medium  ">REACT</span> Kumaraguru Institutions.
+          <span className="ml-2">All rights reserved.</span>
+        </div>
 
       </div>
     </footer>
