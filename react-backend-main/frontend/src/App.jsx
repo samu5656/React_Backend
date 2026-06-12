@@ -24,6 +24,7 @@ import FellowshipTrackPage from './pages/FellowshipTrackPage';
 import FellowshipTrackFormPage from './pages/FellowshipTrackFormPage';
 import Error404 from './pages/Error';
 import { EntrepreneurIndex } from './pages/EntrepreneurIndex';
+import { Journey } from './pages/Journey';
 import HackathonLanding from './hackathon-pages/Landing';
 import Solve4PurposeProblems from './hackathon-pages/Solve4PurposeProblems';
 import Solve4PurposeForm from './hackathon-pages/Solve4PurposeForm';
@@ -135,6 +136,7 @@ function AppContent() {
         <Route path="/announcements" element={<Announcement />} />
         <Route path="/work" element={<Work />} />
         <Route path="/entrepreneur-index" element={<EntrepreneurIndex />} />
+        <Route path="/journey" element={<Journey />} />
         <Route path="/enterpernur-index" element={<Navigate to="/entrepreneur-index" replace />} />
 
         <Route path="/admin/programmes" element={<Navigate to="/workplace/admin/programmes" replace />} />
