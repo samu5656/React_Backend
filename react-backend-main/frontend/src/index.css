@@ -134,6 +134,52 @@ html {
   --shadow-earth: 0 0 46px rgba(184, 121, 69, 0.22);
 }
 
+/* =========================================================================
+   Modern custom scrollbars — modal panels
+   ========================================================================= */
+
+/* Thin scrollbar for dark-background panels (left modal panel) */
+.scroll-modern-light {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255,255,255,0.22) transparent;
+}
+.scroll-modern-light::-webkit-scrollbar {
+  width: 4px;
+}
+.scroll-modern-light::-webkit-scrollbar-track {
+  background: transparent;
+  border-radius: 99px;
+}
+.scroll-modern-light::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,0.22);
+  border-radius: 99px;
+  transition: background 0.2s;
+}
+.scroll-modern-light::-webkit-scrollbar-thumb:hover {
+  background: rgba(255,255,255,0.42);
+}
+
+/* Thin scrollbar for light-background panels (right modal panel) */
+.scroll-modern-dark {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0,0,0,0.12) transparent;
+}
+.scroll-modern-dark::-webkit-scrollbar {
+  width: 4px;
+}
+.scroll-modern-dark::-webkit-scrollbar-track {
+  background: transparent;
+  border-radius: 99px;
+}
+.scroll-modern-dark::-webkit-scrollbar-thumb {
+  background: rgba(0,0,0,0.12);
+  border-radius: 99px;
+  transition: background 0.2s;
+}
+.scroll-modern-dark::-webkit-scrollbar-thumb:hover {
+  background: rgba(0,0,0,0.26);
+}
+
 /* Animations */
 @keyframes vertical-scroll {
   from { transform: translateY(0); }
