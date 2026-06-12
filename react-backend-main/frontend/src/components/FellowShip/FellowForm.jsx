@@ -162,7 +162,7 @@ const handleSubmit = async (e) => {
 };
 
   return (
-    <main className="min-h-screen bg-white p-8 max-w-2xl mx-auto text-black">
+    <main className="min-h-screen bg-white px-8 pb-8 pt-28 max-w-2xl mx-auto text-black">
 
       <h1 className="text-3xl font-bold mb-6 text-center">
         Apply to REACT Fellowship
