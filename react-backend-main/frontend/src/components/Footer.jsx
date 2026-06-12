@@ -42,7 +42,7 @@ const Footer = () => {
             </div>
 
             <div className="text-gray-400 text-sm space-y-1">
-              <p>Email: <span className="text-white">react@kct.ac.in</span></p>
+              <p>Email: <span className="text-white">info.react@kumaraguru.in</span></p>
               <p>Phone: <span className="text-white">+91 93856 95977</span></p>
             </div>
           </div>
