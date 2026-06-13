@@ -1,6 +1,13 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { motion, AnimatePresence, useInView } from 'framer-motion';
+import {
+  motion,
+  AnimatePresence,
+  useInView,
+  useReducedMotion,
+  useScroll,
+  useTransform,
+} from 'framer-motion';
 import {
   ArrowRight,
   Mail,
@@ -30,14 +37,14 @@ const programmes = [
     openTo: 'UG and PG students at Kumaraguru Institutions',
     applicationWindow: 'February to July · Once a year',
     summary:
-      'The flagship programme. Two years embedded inside a degree at Kumaraguru Institutions — engineering, management, or social work. You graduate with a credential and a venture, not one or the other.',
+      'The flagship programme. Two years embedded inside a degree at Kumaraguru Institutions — engineering, management, or social work. The degree gives you disciplinary depth. REACT gives you the architecture to act on it. Both are built simultaneously. You graduate with a credential and a venture, not one or the other.',
     accent: '#E76758',
     gradientFrom: '#E76758',
     gradientTo: '#0F2A44',
     details: [
       {
         heading: 'Who this is for',
-        body: 'UG students from second year onward and PG students at KCT, KCTBS, and KCLAS — any branch, any discipline. Students already enrolled at Kumaraguru apply directly.',
+        body: 'UG students from second year onward and PG students at KCT, KCTBS, and KCLAS — any branch, any discipline. Students already enrolled at Kumaraguru apply directly. Applicants from outside institutions are admitted to the degree programme as part of the same process.',
       },
       {
         heading: 'Available degree tracks',
@@ -76,14 +83,14 @@ const programmes = [
     openTo: 'Any graduate, anywhere in the world',
     applicationWindow: 'February to July · Once a year',
     summary:
-      'The gap year with a permanent outcome. One year, full-time, intensive. For graduates who want to go deep on a real problem before their next chapter. Open to any graduate from any institution.',
+      'The gap year with a permanent outcome. One year, full-time, intensive. The complete REACT methodology from field immersion to venture registration — for graduates who want to go deep on a real problem before their next chapter. Open to any graduate from any institution anywhere in the world. No host degree required.',
     accent: '#0F2A44',
     gradientFrom: '#0F2A44',
     gradientTo: '#1e4a6e',
     details: [
       {
         heading: 'Who this is for',
-        body: 'Any graduate from any discipline, any institution, anywhere in the world. Designed for graduates between a first degree and doctoral research, or at the point of deciding which direction their work takes.',
+        body: 'Any graduate from any discipline, any institution, anywhere in the world. Designed for graduates between a first degree and doctoral research, between education and building something, or at the point of deciding which direction their work takes.',
       },
       { heading: 'Credits', body: '40 credits · Full-time · Immersive' },
       {
@@ -111,16 +118,16 @@ const programmes = [
     duration: 'One Semester',
     credential: 'Certification in Social Innovation',
     openTo: 'Any current student at any institution',
-    applicationWindow: 'May–July · Dec–Jan · Twice a year',
+    applicationWindow: 'May to July · December to January · Twice a year',
     summary:
-      'The foundational skill every programme here is built on. One semester. Four gap types. One validated problem statement you carry back to wherever you came from.',
+      'The foundational skill every programme here is built on — understanding a problem so completely that the solution becomes inevitable. One semester. Four gap types. One validated problem statement you carry back to wherever you came from.',
     accent: '#C06840',
     gradientFrom: '#C06840',
     gradientTo: '#E76758',
     details: [
       {
         heading: 'Who this is for',
-        body: 'Any current UG, PG, or PhD student at any institution. You return with a validated problem statement, a structured gap analysis, and a documented community understanding.',
+        body: 'Any current UG, PG, or PhD student at any institution. You return to your own institution after the certification with a validated problem statement, a structured gap analysis, and a documented community understanding. A credential in its own right and the natural entry point for anyone considering the full Diploma.',
       },
       {
         heading: 'The four gaps you learn to map',
@@ -128,7 +135,7 @@ const programmes = [
           'Community Gap — what the community needs that current systems do not provide',
           'Solution Gap — where existing solutions fall short and why they fail at scale',
           'Market Gap — the unserved population and the viable economic model to reach them',
-          'User Gap — the distance between what a user says they need and what they will actually adopt',
+          'User Gap — the distance between what a user says they need and what they will actually adopt and sustain',
         ],
       },
       {
@@ -149,12 +156,12 @@ const programmes = [
     id: 'field-internship',
     number: '04',
     title: 'Field Internship',
-    duration: 'Variable',
+    duration: 'Variable duration',
     credential: 'No formal credential',
     openTo: 'Students and early-career professionals',
     applicationWindow: 'Rolling intake · Write to us',
     summary:
-      'Immersive, short-term placement inside live programme work. Every position has real stakes and a real deliverable. This is not observation — every intern contributes to active fellow projects.',
+      'Immersive, short-term placement inside live programme work. Every intern contributes to active fellow projects and field partner activities. This is not observation. Every position has real stakes and a real deliverable.',
     accent: '#374151',
     gradientFrom: '#374151',
     gradientTo: '#101827',
@@ -247,31 +254,64 @@ const cohortLinks = [
 function FadeUp({ children, delay = 0, className = '' }) {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: '-60px' });
+  const shouldReduce = useReducedMotion();
+
   return (
     <motion.div
       ref={ref}
       className={className}
-      initial={{ opacity: 0, y: 40 }}
+      initial={{ opacity: 0, y: shouldReduce ? 0 : 40 }}
       animate={isInView ? { opacity: 1, y: 0 } : {}}
-      transition={{ duration: 0.7, delay, ease: [0.22, 1, 0.36, 1] }}
+      transition={{
+        duration: shouldReduce ? 0.15 : 0.72,
+        delay: shouldReduce ? 0 : delay,
+        ease: [0.22, 1, 0.36, 1],
+      }}
     >
       {children}
     </motion.div>
   );
 }
 
+// Large faded watermark text sitting behind section content
+function SectionWatermark({ text, light = false }) {
+  return (
+    <div
+      className="pointer-events-none absolute inset-0 flex items-center justify-center select-none"
+      aria-hidden="true"
+    >
+      <span
+        className={`text-[clamp(2.5rem,10vw,10rem)] font-black uppercase leading-none tracking-[0.04em] whitespace-nowrap ${
+          light ? 'text-white/[0.07]' : 'text-slate-900/[0.06]'
+        }`}
+      >
+        {text}
+      </span>
+    </div>
+  );
+}
+
+// Stack offsets — each card's initial position relative to its grid cell,
+// chosen so all four cards converge toward the visual center of the 2×2 grid.
+const STACK_OFFSETS = [
+  { x: 210,  y:  140, rotate: -4 },  // top-left  → shift right + down
+  { x: -210, y:  140, rotate:  3 },  // top-right → shift left  + down
+  { x: 210,  y: -140, rotate: -2 },  // bot-left  → shift right + up
+  { x: -210, y: -140, rotate:  4 },  // bot-right → shift left  + up
+];
+
 // ─────────────────────────────────────────────────────────────
-// PROGRAMME CARD  (3-D tilt, equal sizing, slide-in)
+// PROGRAMME CARD — grouped-stack-to-grid reveal + 3-D hover tilt
 // ─────────────────────────────────────────────────────────────
-function ProgrammeCard({ programme, index, onClick }) {
+function ProgrammeCard({ programme, index, onClick, isGridInView }) {
   const outerRef = useRef(null);
   const innerRef = useRef(null);
-  const ref = useRef(null);
-  const isInView = useInView(ref, { once: true, margin: '-80px' });
+  const shouldReduce = useReducedMotion();
 
-  const slideX = index % 2 === 0 ? -70 : 70;
+  const offset = STACK_OFFSETS[index];
 
   function onMouseMove(e) {
+    if (shouldReduce) return;
     const el = outerRef.current;
     const inner = innerRef.current;
     if (!el || !inner) return;
@@ -279,10 +319,7 @@ function ProgrammeCard({ programme, index, onClick }) {
     const x = ((e.clientX - r.left) / r.width - 0.5) * 2;
     const y = ((e.clientY - r.top) / r.height - 0.5) * 2;
     inner.style.transform = `perspective(1100px) rotateX(${-y * 9}deg) rotateY(${x * 9}deg) scale(1.025)`;
-    inner.style.boxShadow = `
-      ${x * -12}px ${y * -12}px 40px rgba(0,0,0,0.08),
-      0 24px 48px rgba(0,0,0,0.10)
-    `;
+    inner.style.boxShadow = `${x * -14}px ${y * -14}px 48px rgba(0,0,0,0.09), 0 28px 56px rgba(0,0,0,0.11)`;
   }
 
   function onMouseLeave() {
@@ -294,10 +331,22 @@ function ProgrammeCard({ programme, index, onClick }) {
 
   return (
     <motion.div
-      ref={ref}
-      initial={{ opacity: 0, x: slideX, y: 30 }}
-      animate={isInView ? { opacity: 1, x: 0, y: 0 } : {}}
-      transition={{ duration: 0.8, delay: index * 0.1, ease: [0.22, 1, 0.36, 1] }}
+      initial={
+        shouldReduce
+          ? { opacity: 0 }
+          : { opacity: 0.35, x: offset.x, y: offset.y, scale: 0.82, rotate: offset.rotate }
+      }
+      animate={
+        isGridInView
+          ? { opacity: 1, x: 0, y: 0, scale: 1, rotate: 0 }
+          : {}
+      }
+      transition={
+        shouldReduce
+          ? { duration: 0.2 }
+          : { type: 'spring', stiffness: 62, damping: 18, mass: 1.1, delay: index * 0.09 }
+      }
+      style={{ transformPerspective: 1200, position: 'relative', zIndex: 4 - index }}
       className="h-full"
     >
       <div
@@ -312,7 +361,7 @@ function ProgrammeCard({ programme, index, onClick }) {
           ref={innerRef}
           className="h-full flex flex-col rounded-2xl border border-slate-200/80 bg-white overflow-hidden group"
           style={{
-            transition: 'transform 0.18s ease, box-shadow 0.18s ease',
+            transition: 'transform 0.22s cubic-bezier(0.22,1,0.36,1), box-shadow 0.22s cubic-bezier(0.22,1,0.36,1)',
             boxShadow: '0 4px 24px rgba(0,0,0,0.07), 0 1px 3px rgba(0,0,0,0.04)',
             transformStyle: 'preserve-3d',
           }}
@@ -364,7 +413,7 @@ function ProgrammeCard({ programme, index, onClick }) {
               </div>
             </dl>
 
-            {/* Summary — grows to fill */}
+            {/* Summary */}
             <p className="flex-1 text-[14px] leading-relaxed text-slate-500 line-clamp-3">
               {programme.summary}
             </p>
@@ -388,11 +437,12 @@ function ProgrammeCard({ programme, index, onClick }) {
 }
 
 // ─────────────────────────────────────────────────────────────
-// FULL-SCREEN POPUP MODAL  — wide two-panel layout
+// MODAL — spring scale + blur backdrop
 // ─────────────────────────────────────────────────────────────
 function ProgrammeModal({ programme, onClose }) {
   const applyHref = programme.applyHref || '/apply';
   const applyExternal = applyHref.startsWith('mailto:');
+  const shouldReduce = useReducedMotion();
 
   useEffect(() => {
     const handler = (e) => { if (e.key === 'Escape') onClose(); };
@@ -410,28 +460,32 @@ function ProgrammeModal({ programme, onClose }) {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      transition={{ duration: 0.22 }}
+      transition={{ duration: 0.2 }}
     >
-      {/* Backdrop */}
+      {/* Backdrop — blur + dark overlay */}
       <motion.div
-        className="absolute inset-0 bg-[#0a1628]/80 backdrop-blur-md"
+        className="absolute inset-0 bg-[#0a1628]/85 backdrop-blur-md"
         onClick={onClose}
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        transition={{ duration: 0.28 }}
+        transition={{ duration: 0.3 }}
       />
 
-      {/* Modal — wide, two-panel */}
+      {/* Modal panel — spring entrance */}
       <motion.div
         className="relative z-10 w-full max-w-5xl max-h-[92vh] flex flex-col lg:flex-row overflow-hidden rounded-3xl"
-        initial={{ opacity: 0, scale: 0.86, y: 50 }}
+        initial={{ opacity: 0, scale: shouldReduce ? 1 : 0.84, y: shouldReduce ? 0 : 60 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
-        exit={{ opacity: 0, scale: 0.92, y: 28 }}
-        transition={{ duration: 0.48, ease: [0.22, 1, 0.36, 1] }}
+        exit={{ opacity: 0, scale: shouldReduce ? 1 : 0.93, y: shouldReduce ? 0 : 24 }}
+        transition={
+          shouldReduce
+            ? { duration: 0.2 }
+            : { type: 'spring', stiffness: 320, damping: 26, mass: 0.8 }
+        }
         style={{
           boxShadow:
-            '0 0 0 1px rgba(255,255,255,0.07), 0 48px 96px rgba(0,0,0,0.52), 0 8px 24px rgba(0,0,0,0.28)',
+            '0 0 0 1px rgba(255,255,255,0.07), 0 56px 100px rgba(0,0,0,0.55), 0 8px 24px rgba(0,0,0,0.30)',
         }}
       >
         {/* ── LEFT PANEL — identity + meta */}
@@ -441,7 +495,7 @@ function ProgrammeModal({ programme, onClose }) {
             background: `linear-gradient(160deg, ${programme.gradientFrom} 0%, ${programme.gradientTo} 100%)`,
           }}
         >
-          {/* Decorative blobs — clipped to this panel only */}
+          {/* Decorative blobs clipped to panel */}
           <div className="absolute inset-0 overflow-hidden rounded-tl-3xl rounded-bl-3xl pointer-events-none" aria-hidden="true">
             <div
               className="absolute -top-16 -right-16 h-64 w-64 rounded-full opacity-10"
@@ -462,7 +516,6 @@ function ProgrammeModal({ programme, onClose }) {
             <X className="h-4 w-4" />
           </button>
 
-          {/* Scrollable content area */}
           <div className="relative flex-1 overflow-y-auto min-h-0 px-7 pt-8 pb-4 scroll-modern-light">
             <span className="text-white/50 text-[10px] font-bold uppercase tracking-[0.3em]">
               Programme {programme.number}
@@ -476,7 +529,6 @@ function ProgrammeModal({ programme, onClose }) {
               {programme.summary}
             </p>
 
-            {/* Meta table */}
             <dl className="mt-5 space-y-3.5">
               {[
                 { label: 'Duration', value: programme.duration },
@@ -494,7 +546,7 @@ function ProgrammeModal({ programme, onClose }) {
             </dl>
           </div>
 
-          {/* CTA buttons — always pinned at bottom, never clipped */}
+          {/* CTA buttons — pinned at bottom */}
           <div className="relative shrink-0 px-7 pb-7 pt-4 flex flex-col gap-2.5 border-t border-white/10">
             {applyExternal ? (
               <a
@@ -528,7 +580,6 @@ function ProgrammeModal({ programme, onClose }) {
 
         {/* ── RIGHT PANEL — details (scrollable) */}
         <div className="flex-1 flex flex-col overflow-hidden bg-white">
-          {/* Close — top-right on desktop */}
           <div className="hidden lg:flex shrink-0 items-center justify-between px-8 pt-6 pb-4 border-b border-slate-100">
             <span className="text-xs font-bold uppercase tracking-[0.22em] text-slate-400">
               Programme details
@@ -542,17 +593,19 @@ function ProgrammeModal({ programme, onClose }) {
             </button>
           </div>
 
-          {/* Scrollable details */}
           <div className="flex-1 overflow-y-auto px-7 sm:px-8 py-7 scroll-modern-dark">
             <div className="space-y-8">
               {programme.details.map((detail, i) => (
                 <motion.section
                   key={detail.heading}
-                  initial={{ opacity: 0, y: 14 }}
+                  initial={{ opacity: 0, y: shouldReduce ? 0 : 16 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.15 + i * 0.07, ease: [0.22, 1, 0.36, 1], duration: 0.45 }}
+                  transition={{
+                    delay: 0.18 + i * 0.08,
+                    ease: [0.22, 1, 0.36, 1],
+                    duration: shouldReduce ? 0.1 : 0.48,
+                  }}
                 >
-                  {/* Section heading */}
                   <div className="flex items-center gap-3 mb-3">
                     <span
                       className="h-0.5 w-6 rounded-full shrink-0"
@@ -601,36 +654,42 @@ function ProgrammeModal({ programme, onClose }) {
 }
 
 // ─────────────────────────────────────────────────────────────
-// STAGE CARD
+// STAGE CARD — hover tilt + scroll reveal
 // ─────────────────────────────────────────────────────────────
 function StageCard({ stage, index }) {
   const ref = useRef(null);
   const articleRef = useRef(null);
   const isInView = useInView(ref, { once: true, margin: '-60px' });
+  const shouldReduce = useReducedMotion();
 
   function onMouseMove(e) {
+    if (shouldReduce) return;
     const el = articleRef.current;
     if (!el) return;
     const r = el.getBoundingClientRect();
     const x = ((e.clientX - r.left) / r.width - 0.5) * 2;
     const y = ((e.clientY - r.top) / r.height - 0.5) * 2;
-    el.style.transform = `perspective(900px) rotateX(${-y * 6}deg) rotateY(${x * 6}deg) translateY(-5px)`;
-    el.style.boxShadow = '0 20px 48px rgba(0,0,0,0.12), 0 4px 12px rgba(0,0,0,0.06)';
+    el.style.transform = `perspective(900px) rotateX(${-y * 7}deg) rotateY(${x * 7}deg) translateY(-6px) scale(1.01)`;
+    el.style.boxShadow = '0 24px 56px rgba(0,0,0,0.13), 0 4px 12px rgba(0,0,0,0.06)';
   }
 
   function onMouseLeave() {
     const el = articleRef.current;
     if (!el) return;
-    el.style.transform = 'perspective(900px) rotateX(0deg) rotateY(0deg) translateY(0px)';
+    el.style.transform = 'perspective(900px) rotateX(0deg) rotateY(0deg) translateY(0px) scale(1)';
     el.style.boxShadow = '0 4px 20px rgba(0,0,0,0.06), 0 1px 3px rgba(0,0,0,0.04)';
   }
 
   return (
     <motion.div
       ref={ref}
-      initial={{ opacity: 0, y: 65 }}
+      initial={{ opacity: 0, y: shouldReduce ? 0 : 65 }}
       animate={isInView ? { opacity: 1, y: 0 } : {}}
-      transition={{ duration: 0.7, delay: index * 0.13, ease: [0.22, 1, 0.36, 1] }}
+      transition={{
+        duration: shouldReduce ? 0.15 : 0.72,
+        delay: index * 0.14,
+        ease: [0.22, 1, 0.36, 1],
+      }}
       onMouseMove={onMouseMove}
       onMouseLeave={onMouseLeave}
       className="h-full"
@@ -639,11 +698,10 @@ function StageCard({ stage, index }) {
         ref={articleRef}
         className="relative h-full overflow-hidden rounded-2xl border border-slate-100 bg-white p-7"
         style={{
-          transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+          transition: 'transform 0.22s cubic-bezier(0.22,1,0.36,1), box-shadow 0.22s cubic-bezier(0.22,1,0.36,1)',
           boxShadow: '0 4px 20px rgba(0,0,0,0.06), 0 1px 3px rgba(0,0,0,0.04)',
         }}
       >
-        {/* Icon */}
         <div
           className="w-12 h-12 rounded-2xl flex items-center justify-center mb-5"
           style={{ background: stage.bg }}
@@ -728,7 +786,18 @@ function CohortLink({ item }) {
 // ─────────────────────────────────────────────────────────────
 export const Programmes = () => {
   const cardsRef = useRef(null);
+  const gridRef = useRef(null);
   const [selectedProgramme, setSelectedProgramme] = useState(null);
+  const shouldReduce = useReducedMotion();
+
+  // Shared trigger for the stack-to-grid reveal — all 4 cards animate together
+  const isGridInView = useInView(gridRef, { once: true, amount: 0.15 });
+
+  // Parallax scroll values for hero orbs and floating cards
+  const { scrollY } = useScroll();
+  const orb1Y = useTransform(scrollY, [0, 600], [0, -100]);
+  const orb2Y = useTransform(scrollY, [0, 600], [0, -60]);
+  const floatCardsY = useTransform(scrollY, [0, 400], [0, -44]);
 
   function scrollToCards() {
     cardsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -739,36 +808,52 @@ export const Programmes = () => {
 
       {/* ── HERO ── */}
       <section className="relative overflow-hidden bg-white px-6 pb-24 pt-24 sm:pb-28 sm:pt-36">
-        {/* Floating gradient orbs */}
+        <SectionWatermark text="PROGRAMMES" />
+
+        {/* Orb 1 — top right, parallax */}
         <motion.div
-          className="pointer-events-none absolute -top-24 -right-24 h-[32rem] w-[32rem] rounded-full"
+          className="pointer-events-none absolute -top-24 -right-24 h-[36rem] w-[36rem] rounded-full"
           style={{
-            background: 'radial-gradient(circle, rgba(231,103,88,0.12) 0%, transparent 70%)',
+            background: 'radial-gradient(circle, rgba(231,103,88,0.14) 0%, transparent 70%)',
+            y: shouldReduce ? 0 : orb1Y,
           }}
-          animate={{ scale: [1, 1.12, 1], opacity: [0.7, 1, 0.7] }}
+          animate={shouldReduce ? {} : { scale: [1, 1.14, 1], opacity: [0.7, 1, 0.7] }}
           transition={{ duration: 7, repeat: Infinity, ease: 'easeInOut' }}
           aria-hidden="true"
         />
+
+        {/* Orb 2 — bottom left, parallax */}
         <motion.div
           className="pointer-events-none absolute -bottom-16 -left-16 h-80 w-80 rounded-full"
           style={{
             background: 'radial-gradient(circle, rgba(15,42,68,0.09) 0%, transparent 70%)',
+            y: shouldReduce ? 0 : orb2Y,
           }}
-          animate={{ scale: [1, 1.15, 1], opacity: [0.5, 0.85, 0.5] }}
+          animate={shouldReduce ? {} : { scale: [1, 1.18, 1], opacity: [0.5, 0.9, 0.5] }}
           transition={{ duration: 9, repeat: Infinity, ease: 'easeInOut', delay: 2.5 }}
           aria-hidden="true"
         />
 
-        {/* 3-D floating card visual (desktop) */}
-        <div
+        {/* Orb 3 — mid-left accent */}
+        <motion.div
+          className="pointer-events-none absolute top-1/2 left-1/4 h-48 w-48 rounded-full -translate-y-1/2"
+          style={{ background: 'radial-gradient(circle, rgba(192,104,64,0.07) 0%, transparent 70%)' }}
+          animate={shouldReduce ? {} : { scale: [1, 1.3, 1], opacity: [0.3, 0.75, 0.3] }}
+          transition={{ duration: 11, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
+          aria-hidden="true"
+        />
+
+        {/* 3-D layered floating cards (desktop) — parallax on scroll */}
+        <motion.div
           className="pointer-events-none absolute inset-y-0 right-0 hidden w-[38vw] max-w-[28rem] items-center justify-center lg:flex"
+          style={{ y: shouldReduce ? 0 : floatCardsY }}
           aria-hidden="true"
         >
           <div style={{ perspective: '900px' }}>
             {[0, 1, 2].map((i) => (
               <motion.div
                 key={i}
-                className="absolute rounded-2xl border border-slate-200/60"
+                className="absolute rounded-2xl border border-slate-300/70"
                 style={{
                   width: `${16 - i * 2.6}rem`,
                   height: `${10 - i * 1.6}rem`,
@@ -776,28 +861,33 @@ export const Programmes = () => {
                   left: `${i * 1.6}rem`,
                   background:
                     i === 2
-                      ? 'rgba(231,103,88,0.10)'
-                      : 'linear-gradient(135deg, rgba(15,42,68,0.06), rgba(231,103,88,0.06))',
-                  backdropFilter: 'blur(2px)',
+                      ? 'rgba(231,103,88,0.22)'
+                      : i === 1
+                      ? 'linear-gradient(135deg, rgba(15,42,68,0.14), rgba(231,103,88,0.14))'
+                      : 'linear-gradient(135deg, rgba(15,42,68,0.10), rgba(231,103,88,0.10))',
+                  backdropFilter: 'blur(3px)',
                   transform: `rotateX(52deg) rotateZ(-14deg) translateZ(${i * 30}px)`,
-                  boxShadow: '0 20px 60px rgba(15,42,68,0.09)',
+                  boxShadow: '0 24px 56px rgba(15,42,68,0.16), 0 4px 12px rgba(0,0,0,0.07)',
                 }}
-                animate={{ y: [0, -8, 0] }}
+                animate={shouldReduce ? {} : {
+                  y: [0, -(26 - i * 6), 0],
+                  x: i === 2 ? [0, 8, 0] : [0, 0, 0],
+                }}
                 transition={{
                   duration: 4 + i * 1.2,
                   repeat: Infinity,
                   ease: 'easeInOut',
-                  delay: i * 0.6,
+                  delay: i * 0.7,
                 }}
               />
             ))}
           </div>
-        </div>
+        </motion.div>
 
         <div className="relative z-10 mx-auto max-w-6xl">
           <motion.p
             className="text-[11px] font-semibold uppercase tracking-[0.28em] text-slate-400"
-            initial={{ opacity: 0, y: 12 }}
+            initial={{ opacity: 0, y: 14 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.1 }}
           >
@@ -807,17 +897,17 @@ export const Programmes = () => {
           <h1 className="mt-6 max-w-4xl text-5xl font-semibold leading-[1.02] tracking-tight sm:text-6xl lg:text-7xl">
             <motion.span
               className="block text-[#0F2A44]"
-              initial={{ opacity: 0, x: -80 }}
+              initial={{ opacity: 0, x: shouldReduce ? 0 : -80 }}
               animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.85, delay: 0.28, ease: [0.22, 1, 0.36, 1] }}
+              transition={{ duration: 0.88, delay: 0.28, ease: [0.22, 1, 0.36, 1] }}
             >
               One standard.
             </motion.span>
             <motion.span
               className="block text-[#E76758]"
-              initial={{ opacity: 0, x: -80 }}
+              initial={{ opacity: 0, x: shouldReduce ? 0 : -80 }}
               animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.85, delay: 0.46, ease: [0.22, 1, 0.36, 1] }}
+              transition={{ duration: 0.88, delay: 0.46, ease: [0.22, 1, 0.36, 1] }}
             >
               Four ways to meet it.
             </motion.span>
@@ -825,20 +915,21 @@ export const Programmes = () => {
 
           <motion.p
             className="mt-8 max-w-2xl text-lg leading-relaxed text-slate-600 sm:text-xl"
-            initial={{ opacity: 0, y: 28 }}
+            initial={{ opacity: 0, y: shouldReduce ? 0 : 28 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.75, delay: 0.66, ease: [0.22, 1, 0.36, 1] }}
+            transition={{ duration: 0.78, delay: 0.66, ease: [0.22, 1, 0.36, 1] }}
           >
             The REACT methodology is the same across every programme — the field immersion, the
             frameworks, the real-world output. What changes is your entry point, your duration, and
-            the credential you carry out. Choose the one that fits where you stand today.
+            the credential you carry out. The standard never moves. Choose the one that fits where
+            you stand today.
           </motion.p>
 
           <motion.div
             className="mt-9 flex flex-col gap-3 sm:flex-row"
-            initial={{ opacity: 0, y: 24 }}
+            initial={{ opacity: 0, y: shouldReduce ? 0 : 24 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, delay: 0.84, ease: [0.22, 1, 0.36, 1] }}
+            transition={{ duration: 0.72, delay: 0.84, ease: [0.22, 1, 0.36, 1] }}
           >
             <button
               type="button"
@@ -859,8 +950,9 @@ export const Programmes = () => {
       </section>
 
       {/* ── PROGRAMME CARDS ── */}
-      <section ref={cardsRef} id="programmes" className="px-6 py-16 sm:py-24">
-        <div className="mx-auto max-w-6xl">
+      <section ref={cardsRef} id="programmes" className="relative overflow-hidden px-6 py-16 sm:py-24">
+        <SectionWatermark text="FOUR" />
+        <div className="mx-auto max-w-6xl relative z-10">
           <FadeUp>
             <h2 className="text-3xl font-semibold tracking-tight text-slate-950 sm:text-4xl">
               Four programmes. Every one built on REACT.
@@ -868,18 +960,18 @@ export const Programmes = () => {
             <p className="mt-4 max-w-2xl text-lg leading-relaxed text-slate-600">
               From a two-year fellowship with a degree to a semester-long certification — every
               programme runs on the same methodology, demands the same rigour, and produces people
-              with something real to show for it.
+              who have worked on real problems with something real to show for it.
             </p>
           </FadeUp>
 
-          {/* 2 × 2 grid — all cards same height */}
-          <div className="mt-10 grid grid-cols-1 gap-6 sm:grid-cols-2">
+          <div ref={gridRef} className="mt-10 grid grid-cols-1 gap-6 sm:grid-cols-2">
             {programmes.map((programme, index) => (
               <ProgrammeCard
                 key={programme.id}
                 programme={programme}
                 index={index}
                 onClick={setSelectedProgramme}
+                isGridInView={isGridInView}
               />
             ))}
           </div>
@@ -897,8 +989,19 @@ export const Programmes = () => {
       </AnimatePresence>
 
       {/* ── REACT FELLOW ── */}
-      <section className="bg-[#0F2A44] px-6 py-20 text-white sm:py-24">
-        <div className="mx-auto max-w-6xl">
+      <section className="relative overflow-hidden bg-[#0F2A44] px-6 py-20 text-white sm:py-24">
+        <SectionWatermark text="FELLOW" light />
+
+        {/* Accent orb */}
+        <motion.div
+          className="pointer-events-none absolute -top-32 -right-32 h-[28rem] w-[28rem] rounded-full"
+          style={{ background: 'radial-gradient(circle, rgba(231,103,88,0.12) 0%, transparent 70%)' }}
+          animate={shouldReduce ? {} : { scale: [1, 1.1, 1], opacity: [0.6, 1, 0.6] }}
+          transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
+          aria-hidden="true"
+        />
+
+        <div className="mx-auto max-w-6xl relative z-10">
           <FadeUp>
             <div className="grid gap-10 lg:grid-cols-[0.82fr_1.18fr] lg:items-start">
               <div>
@@ -922,12 +1025,17 @@ export const Programmes = () => {
                 <p>
                   Two years of the REACT methodology — living inside a real problem, building under
                   field conditions, producing verified evidence that something changed for real people
-                  — does not leave a person unchanged.
+                  — does not leave a person unchanged. The centre's belief is that anyone who
+                  genuinely goes through it will not stop when the programme ends. They will still be
+                  working on social problems through innovative means. Still striving. Still finding
+                  ways to create change that lasts.
                 </p>
                 <p>The REACT Fellow designation is awarded to the people who prove that belief correct.</p>
                 <p>
-                  The first proof is registering a venture during the final semester. What the
-                  designation truly recognises is what comes after. Whether the person continues.
+                  The first proof is registering a venture during the final semester — a startup or
+                  NGO directly connected to their REACT project, built for the community they spent
+                  two years understanding. That act shows the work was real enough to formalise. What
+                  the designation truly recognises is what comes after. Whether the person continues.
                   Whether they thrive in it.
                 </p>
               </div>
@@ -960,8 +1068,9 @@ export const Programmes = () => {
       </section>
 
       {/* ── THREE STAGES ── */}
-      <section className="bg-white px-6 py-16 sm:py-24">
-        <div className="mx-auto max-w-6xl">
+      <section className="relative overflow-hidden bg-white px-6 py-16 sm:py-24">
+        <SectionWatermark text="SELECT" />
+        <div className="mx-auto max-w-6xl relative z-10">
           <FadeUp>
             <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-[#E76758] mb-3">
               Selection Process
@@ -985,8 +1094,19 @@ export const Programmes = () => {
       </section>
 
       {/* ── COHORT 2 CTA ── */}
-      <section className="bg-[#101827] px-6 py-16 text-white sm:py-24">
-        <div className="mx-auto max-w-6xl">
+      <section className="relative overflow-hidden bg-[#101827] px-6 py-16 text-white sm:py-24">
+        <SectionWatermark text="COHORT" light />
+
+        {/* Accent orb */}
+        <motion.div
+          className="pointer-events-none absolute -bottom-24 -left-24 h-72 w-72 rounded-full"
+          style={{ background: 'radial-gradient(circle, rgba(231,103,88,0.10) 0%, transparent 70%)' }}
+          animate={shouldReduce ? {} : { scale: [1, 1.2, 1], opacity: [0.5, 0.9, 0.5] }}
+          transition={{ duration: 9, repeat: Infinity, ease: 'easeInOut' }}
+          aria-hidden="true"
+        />
+
+        <div className="mx-auto max-w-6xl relative z-10">
           <FadeUp>
             <h2 className="text-4xl font-semibold tracking-tight sm:text-5xl">
               Cohort 2 is forming now.
@@ -1012,7 +1132,6 @@ export const Programmes = () => {
               </Link>
             </div>
 
-            {/* Contact / site links as CTAs */}
             <div className="mt-9 flex flex-wrap gap-3">
               {cohortLinks.map((item) => (
                 <CohortLink key={item.label} item={item} />
