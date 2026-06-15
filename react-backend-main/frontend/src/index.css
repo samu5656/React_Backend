@@ -218,3 +218,35 @@ html {
   0%, 100% { transform: translateY(0) translateX(-50%); opacity: 0.6; }
   50% { transform: translateY(8px) translateX(-50%); opacity: 1; }
 }
+
+/* ── Journey page animations ── */
+@keyframes journey-pulse-ring {
+  0%   { transform: scale(1);   opacity: 0.5; }
+  100% { transform: scale(0.5); opacity: 0.1; }
+}
+@keyframes journey-pulse-dot {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.5; }
+}
+@keyframes journey-marquee {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+.journey-pulse-ring {
+  animation: journey-pulse-ring 2s ease-in-out infinite alternate;
+}
+.journey-pulse-dot {
+  animation: journey-pulse-dot 2s ease-in-out infinite;
+}
+.journey-marquee-inner {
+  display: flex;
+  animation: journey-marquee 28s linear infinite;
+}
+.journey-marquee-inner:hover {
+  animation-play-state: paused;
+}
+@media (prefers-reduced-motion: reduce) {
+  .journey-pulse-ring,
+  .journey-pulse-dot,
+  .journey-marquee-inner { animation: none; }
+}
