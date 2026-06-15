@@ -1,9 +1,16 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, ChevronDown } from 'lucide-react';
+import { ArrowRight, ChevronDown, Globe, Mail, Copy, Check, ExternalLink } from 'lucide-react';
+import { motion, AnimatePresence, useInView } from 'framer-motion';
+import gsap from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import Lenis from 'lenis';
+import { Renderer, Geometry, Program, Mesh } from 'ogl';
+
+gsap.registerPlugin(ScrollTrigger);
 
 /* ─────────────────────────────────────────────
-   DATA
+   DATA  (unchanged)
 ───────────────────────────────────────────── */
 
 const frameworks = [
@@ -334,20 +341,368 @@ const cohortTypes = [
   },
 ];
 
+const domainKeywords = [
+  'AgriTech', 'Health Access', 'Water Systems', 'Education', 'Informal Labour',
+  'Food Security', 'Sanitation', 'Rural Mobility', 'Livelihood', 'Primary Care',
+  'Climate Resilience', 'Micro-Finance', 'Waste Management', 'Digital Inclusion',
+  'Urban Governance',
+];
+
 /* ─────────────────────────────────────────────
    UTILITY: smooth-scroll to element
 ───────────────────────────────────────────── */
 function scrollTo(id) {
   const el = document.getElementById(id);
   if (el) {
-    const offset = 88; // navbar height
+    const offset = 88;
     const top = el.getBoundingClientRect().top + window.pageYOffset - offset;
     window.scrollTo({ top, behavior: 'smooth' });
   }
 }
 
 /* ─────────────────────────────────────────────
-   SECTION WRAPPER — consistent section padding
+   WEBGL WAVE BACKGROUND (OGL)
+───────────────────────────────────────────── */
+function WaveBackground() {
+  const canvasRef = useRef(null);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (prefersReduced) return;
+
+    const renderer = new Renderer({ canvas, alpha: true, antialias: false });
+    const gl = renderer.gl;
+    gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+    gl.enable(gl.BLEND);
+
+    function resize() {
+      const w = canvas.parentElement?.clientWidth || window.innerWidth;
+      const h = canvas.parentElement?.clientHeight || window.innerHeight;
+      renderer.setSize(w, h);
+      if (program) {
+        program.uniforms.uResolution.value = [w, h];
+      }
+    }
+
+    const geometry = new Geometry(gl, {
+      position: { size: 2, data: new Float32Array([-1, -1, 3, -1, -1, 3]) },
+    });
+
+    const program = new Program(gl, {
+      vertex: /* glsl */`
+        attribute vec2 position;
+        void main() {
+          gl_Position = vec4(position, 0.0, 1.0);
+        }
+      `,
+      fragment: /* glsl */`
+        precision highp float;
+        uniform float uTime;
+        uniform vec3 uColor;
+        uniform float uAmplitude;
+        uniform vec2 uResolution;
+        uniform vec2 uMouse;
+        uniform float uDistance;
+
+        vec2 hash2(vec2 p) {
+          p = vec2(dot(p, vec2(127.1, 311.7)), dot(p, vec2(269.5, 183.3)));
+          return -1.0 + 2.0 * fract(sin(p) * 43758.5453123);
+        }
+        float noise(vec2 p) {
+          vec2 i = floor(p);
+          vec2 f = fract(p);
+          vec2 u = f * f * (3.0 - 2.0 * f);
+          return mix(
+            mix(dot(hash2(i + vec2(0,0)), f - vec2(0,0)),
+                dot(hash2(i + vec2(1,0)), f - vec2(1,0)), u.x),
+            mix(dot(hash2(i + vec2(0,1)), f - vec2(0,1)),
+                dot(hash2(i + vec2(1,1)), f - vec2(1,1)), u.x), u.y
+          );
+        }
+
+        void main() {
+          vec2 uv = gl_FragCoord.xy / uResolution;
+          float aspectX = uResolution.x / uResolution.y;
+          float uvx = uv.x * aspectX;
+
+          float amp = uAmplitude * (1.0 + (uMouse.y - 0.5) * 0.2);
+          float alpha = 0.0;
+
+          for (int i = 0; i < 40; i++) {
+            float fi = float(i) / 40.0;
+            float n1 = noise(vec2(uvx * 2.5 + uTime * 0.0003, fi * 10.0 + uTime * 0.001));
+            float n2 = noise(vec2(uvx * 3.5 - uTime * 0.0002, fi * 7.0 + uTime * 0.0013));
+            float lineY = fi + uDistance + (n1 * 0.5 + n2 * 0.3) * amp * 0.085;
+
+            float pixH = 7.0 / uResolution.y;
+            float blurH = 10.0 / uResolution.y;
+            float dist = abs(uv.y - lineY);
+            float line = smoothstep(pixH + blurH, pixH, dist);
+            alpha = max(alpha, line * 0.55);
+          }
+
+          gl_FragColor = vec4(uColor, alpha);
+        }
+      `,
+      uniforms: {
+        uTime:       { value: 0 },
+        uColor:      { value: [0.72, 0.72, 0.78] },
+        uAmplitude:  { value: 2.1 },
+        uResolution: { value: [1, 1] },
+        uMouse:      { value: [0.5, 0.5] },
+        uDistance:   { value: 0 },
+      },
+      transparent: true,
+    });
+
+    const mesh = new Mesh(gl, { geometry, program });
+
+    resize();
+    window.addEventListener('resize', resize);
+
+    const mouse = { tx: 0.5, ty: 0.5, cx: 0.5, cy: 0.5 };
+
+    function onMouseMove(e) {
+      const rect = canvas.getBoundingClientRect();
+      mouse.tx = (e.clientX - rect.left) / rect.width;
+      mouse.ty = (e.clientY - rect.top) / rect.height;
+    }
+    function onMouseLeave() { mouse.tx = 0.5; mouse.ty = 0.5; }
+
+    canvas.parentElement?.addEventListener('mousemove', onMouseMove);
+    canvas.parentElement?.addEventListener('mouseleave', onMouseLeave);
+
+    let rafId;
+    function animate(t) {
+      rafId = requestAnimationFrame(animate);
+      mouse.cx += (mouse.tx - mouse.cx) * 0.05;
+      mouse.cy += (mouse.ty - mouse.cy) * 0.05;
+      program.uniforms.uTime.value = t;
+      program.uniforms.uMouse.value = [mouse.cx, mouse.cy];
+      renderer.render({ scene: mesh });
+    }
+    rafId = requestAnimationFrame(animate);
+
+    return () => {
+      cancelAnimationFrame(rafId);
+      window.removeEventListener('resize', resize);
+      canvas.parentElement?.removeEventListener('mousemove', onMouseMove);
+      canvas.parentElement?.removeEventListener('mouseleave', onMouseLeave);
+      try { gl.getExtension('WEBGL_lose_context')?.loseContext(); } catch (_) {}
+    };
+  }, []);
+
+  return (
+    <canvas
+      ref={canvasRef}
+      aria-hidden
+      style={{
+        position: 'absolute',
+        inset: 0,
+        width: '100%',
+        height: '100%',
+        pointerEvents: 'none',
+        opacity: 0.7,
+      }}
+    />
+  );
+}
+
+/* ─────────────────────────────────────────────
+   FADE-UP (GSAP ScrollTrigger reusable wrapper)
+───────────────────────────────────────────── */
+function FadeUp({ children, delay = 0, className = '', as: Tag = 'div' }) {
+  const ref = useRef(null);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const mm = gsap.matchMedia();
+    mm.add('(prefers-reduced-motion: no-preference)', () => {
+      gsap.fromTo(
+        el,
+        { opacity: 0, y: 28, willChange: 'transform, opacity' },
+        {
+          opacity: 1,
+          y: 0,
+          duration: 0.8,
+          delay,
+          ease: 'power3.out',
+          scrollTrigger: {
+            trigger: el,
+            start: 'top 88%',
+            toggleActions: 'play none none none',
+            invalidateOnRefresh: true,
+          },
+          clearProps: 'willChange',
+        }
+      );
+    });
+    mm.add('(prefers-reduced-motion: reduce)', () => {
+      gsap.set(el, { opacity: 1, y: 0 });
+    });
+    return () => mm.revert();
+  }, [delay]);
+
+  return (
+    <Tag ref={ref} className={className}>
+      {children}
+    </Tag>
+  );
+}
+
+/* ─────────────────────────────────────────────
+   SECTION HEADING (Framer Motion spring + useInView)
+───────────────────────────────────────────── */
+function SectionHeading({ eyebrow, eyebrowColor = '#E05C3A', title, subtitle, dark = false, children }) {
+  const ref = useRef(null);
+  const inView = useInView(ref, { once: true, amount: 0.3 });
+
+  const headingSpring = {
+    type: 'spring',
+    damping: 60,
+    stiffness: 350,
+    mass: 1,
+  };
+
+  return (
+    <div ref={ref}>
+      {eyebrow && (
+        <motion.p
+          initial={{ opacity: 0, y: 30 }}
+          animate={inView ? { opacity: 1, y: 0 } : {}}
+          transition={{ ...headingSpring, delay: 0.05 }}
+          style={{ fontFamily: 'Arial, sans-serif', letterSpacing: '0.15em', color: eyebrowColor }}
+          className="text-xs uppercase font-semibold mb-4 tracking-widest"
+        >
+          {eyebrow}
+        </motion.p>
+      )}
+      <motion.h2
+        initial={{ opacity: 0, y: 140 }}
+        animate={inView ? { opacity: 1, y: 0 } : {}}
+        transition={{ ...headingSpring, delay: 0.1 }}
+        className={`text-3xl md:text-4xl font-bold mb-4 leading-tight ${dark ? 'text-white' : 'text-[#1a2c4e]'}`}
+        style={{ willChange: 'transform, opacity' }}
+      >
+        {title}
+      </motion.h2>
+      {subtitle && (
+        <motion.p
+          initial={{ opacity: 0, y: 40 }}
+          animate={inView ? { opacity: 1, y: 0 } : {}}
+          transition={{ ...headingSpring, delay: 0.18 }}
+          className={`text-base md:text-lg max-w-3xl mb-16 leading-relaxed ${dark ? 'text-white/55' : 'text-[#1a2c4e]/65'}`}
+        >
+          {subtitle}
+        </motion.p>
+      )}
+      {children}
+    </div>
+  );
+}
+
+/* ─────────────────────────────────────────────
+   ROTATING TEXT (Framer Motion character animation)
+───────────────────────────────────────────── */
+function RotatingText({ words, className = '' }) {
+  const [index, setIndex] = useState(0);
+
+  useEffect(() => {
+    const id = setInterval(() => setIndex((i) => (i + 1) % words.length), 2200);
+    return () => clearInterval(id);
+  }, [words.length]);
+
+  const word = words[index];
+
+  return (
+    <AnimatePresence mode="wait">
+      <motion.span
+        key={index}
+        layout
+        className={className}
+        style={{ display: 'inline-flex', overflow: 'hidden', verticalAlign: 'bottom' }}
+      >
+        {word.split('').map((char, i) => {
+          const staggerDelay = (word.length - 1 - i) * 0.025;
+          return (
+            <motion.span
+              key={i}
+              initial={{ y: '100%', opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: '-120%', opacity: 0 }}
+              transition={{ type: 'spring', damping: 30, stiffness: 400, delay: staggerDelay }}
+              style={{ display: 'inline-block', willChange: 'transform, opacity' }}
+            >
+              {char === ' ' ? ' ' : char}
+            </motion.span>
+          );
+        })}
+      </motion.span>
+    </AnimatePresence>
+  );
+}
+
+/* ─────────────────────────────────────────────
+   STATUS BADGE (animated pulse indicator)
+───────────────────────────────────────────── */
+function StatusBadge({ children }) {
+  return (
+    <div
+      className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-[#E05C3A]/30 bg-[#E05C3A]/5 mb-10"
+      style={{ fontFamily: 'Arial, sans-serif', letterSpacing: '0.12em' }}
+    >
+      {/* Pulse indicator */}
+      <span className="relative inline-flex items-center justify-center w-3 h-3">
+        <span
+          className="journey-pulse-ring absolute inline-block w-3 h-3 rounded-full bg-[#E05C3A]"
+          style={{ opacity: 0.5 }}
+        />
+        <span
+          className="journey-pulse-dot relative inline-block w-1.5 h-1.5 rounded-full bg-[#E05C3A]"
+        />
+      </span>
+      <span className="text-[10px] uppercase font-semibold text-[#E05C3A]">
+        {children}
+      </span>
+    </div>
+  );
+}
+
+/* ─────────────────────────────────────────────
+   DOMAIN MARQUEE
+───────────────────────────────────────────── */
+function DomainMarquee() {
+  const doubled = [...domainKeywords, ...domainKeywords];
+  return (
+    <div
+      className="relative overflow-hidden py-5"
+      style={{
+        maskImage: 'linear-gradient(to right, white 0px, transparent 0px, transparent calc(100% - 80px), white 100%), linear-gradient(to right, #fff 0%, transparent 80px), linear-gradient(to left, #fff 0%, transparent 80px)',
+        WebkitMaskImage: 'linear-gradient(to right, transparent 0px, white 80px, white calc(100% - 80px), transparent 100%)',
+      }}
+    >
+      <div className="journey-marquee-inner gap-0" style={{ width: 'max-content' }}>
+        {doubled.map((word, i) => (
+          <span
+            key={i}
+            className="inline-flex items-center gap-4 px-6 py-2 text-xs font-semibold uppercase tracking-widest text-[#1a2c4e]/40 whitespace-nowrap"
+            style={{ fontFamily: 'Arial, sans-serif' }}
+          >
+            {word}
+            <span className="inline-block w-1 h-1 rounded-full bg-[#E05C3A]/40" />
+          </span>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/* ─────────────────────────────────────────────
+   SECTION WRAPPER
 ───────────────────────────────────────────── */
 function Section({ id, className = '', children }) {
   return (
@@ -358,34 +713,361 @@ function Section({ id, className = '', children }) {
 }
 
 /* ─────────────────────────────────────────────
-   SECTION LABEL — small uppercase eyebrow
+   CTA BUTTON (enhanced with Framer Motion)
 ───────────────────────────────────────────── */
-function EyeBrow({ children }) {
+function CTAButton({ to, variant = 'primary', children }) {
+  const base =
+    'inline-flex items-center gap-2 px-7 py-3.5 rounded-full text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-[#E05C3A]/60 cursor-pointer';
+  const styles =
+    variant === 'primary'
+      ? 'bg-[#E05C3A] text-white shadow-lg'
+      : 'border border-[#1a2c4e] text-[#1a2c4e]';
+
   return (
-    <p
-      style={{ fontFamily: 'Arial, sans-serif', letterSpacing: '0.15em' }}
-      className="text-xs uppercase font-semibold text-[#E05C3A] mb-4 tracking-widest"
+    <motion.div
+      whileHover={{
+        y: -2,
+        scale: 1.035,
+        boxShadow:
+          variant === 'primary'
+            ? '0 12px 30px rgba(224,92,58,0.30), 0 1px 0 rgba(255,255,255,0.95) inset'
+            : '0 12px 30px rgba(0,0,0,0.13)',
+      }}
+      whileTap={{ scale: 0.985 }}
+      transition={{ type: 'spring', stiffness: 260, damping: 20 }}
+      style={{ display: 'inline-block', willChange: 'transform' }}
     >
-      {children}
-    </p>
+      <Link to={to} className={`${base} ${styles}`}>
+        {children}
+        <motion.span
+          className="inline-flex"
+          whileHover={{ x: 2, y: -2 }}
+          transition={{ duration: 0.2 }}
+        >
+          <ArrowRight size={15} />
+        </motion.span>
+      </Link>
+    </motion.div>
   );
 }
 
 /* ─────────────────────────────────────────────
-   CTA BUTTON
+   3D PHASE CARD (used in scroll pipeline)
 ───────────────────────────────────────────── */
-function CTAButton({ to, variant = 'primary', children }) {
-  const base =
-    'inline-flex items-center gap-2 px-7 py-3.5 rounded-full text-sm font-semibold transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-[#E05C3A]/60';
-  const styles =
-    variant === 'primary'
-      ? 'bg-[#E05C3A] text-white hover:bg-[#c94d2e] shadow-lg hover:shadow-[#E05C3A]/30 hover:-translate-y-0.5'
-      : 'border border-[#1a2c4e] text-[#1a2c4e] hover:bg-[#1a2c4e] hover:text-white hover:-translate-y-0.5';
+function PhaseBlock({ phase, index }) {
+  const cardRef = useRef(null);
+  const [hovered, setHovered] = useState(false);
+
+  useEffect(() => {
+    const el = cardRef.current;
+    if (!el) return;
+    const mm = gsap.matchMedia();
+    mm.add('(prefers-reduced-motion: no-preference)', () => {
+      gsap.fromTo(
+        el,
+        {
+          y: 110,
+          scale: 0.94,
+          rotateX: 14,
+          rotateY: index % 2 === 0 ? 6 : -6,
+          transformPerspective: 1200,
+          opacity: 0.8,
+          willChange: 'transform, opacity',
+        },
+        {
+          y: 0,
+          scale: 1,
+          rotateX: 0,
+          rotateY: 0,
+          opacity: 1,
+          ease: 'power2.out',
+          scrollTrigger: {
+            trigger: el,
+            start: 'top 90%',
+            end: 'bottom 18%',
+            scrub: 0.8,
+            invalidateOnRefresh: true,
+          },
+          clearProps: 'willChange',
+        }
+      );
+    });
+    mm.add('(prefers-reduced-motion: reduce)', () => {
+      gsap.set(el, { opacity: 1, y: 0, scale: 1 });
+    });
+    return () => mm.revert();
+  }, [index]);
+
   return (
-    <Link to={to} className={`${base} ${styles}`}>
-      {children}
-      <ArrowRight size={15} />
-    </Link>
+    <div
+      ref={cardRef}
+      id={phase.id}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      className="scroll-mt-24 bg-white rounded-2xl p-8 md:p-12 border border-black/5 relative overflow-hidden"
+      style={{
+        transformStyle: 'preserve-3d',
+        backfaceVisibility: 'hidden',
+        WebkitBackfaceVisibility: 'hidden',
+        transition: 'box-shadow 0.3s ease, transform 0.3s ease',
+        boxShadow: hovered
+          ? '0 28px 60px rgba(0,0,0,0.13), 0 4px 8px rgba(0,0,0,0.07)'
+          : '0 2px 12px rgba(0,0,0,0.05)',
+        transform: hovered ? 'translateY(-4px) scale(1.005)' : 'translateY(0) scale(1)',
+      }}
+    >
+      {/* Glassmorphism frost overlay that fades on exit */}
+      <div
+        aria-hidden
+        style={{
+          position: 'absolute',
+          inset: 0,
+          backdropFilter: 'blur(9px)',
+          WebkitBackdropFilter: 'blur(9px)',
+          WebkitMaskImage: 'linear-gradient(to top, rgba(0,0,0,1) 0%, rgba(0,0,0,1) 26%, rgba(0,0,0,0) 52%)',
+          maskImage: 'linear-gradient(to top, rgba(0,0,0,1) 0%, rgba(0,0,0,1) 26%, rgba(0,0,0,0) 52%)',
+          opacity: 0,
+          pointerEvents: 'none',
+          zIndex: 0,
+        }}
+      />
+      <div style={{ position: 'relative', zIndex: 1 }}>
+        {/* Phase header */}
+        <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4 mb-8">
+          <div>
+            <div
+              className="text-xs font-bold text-[#E05C3A] mb-2"
+              style={{ fontFamily: 'Arial, sans-serif', letterSpacing: '0.15em' }}
+            >
+              {phase.tag}
+            </div>
+            <h3 className="text-2xl md:text-3xl font-bold text-[#1a2c4e] leading-tight">
+              {phase.designation}
+            </h3>
+            <p className="text-[#1a2c4e]/55 text-sm mt-1 font-medium">{phase.subtitle}</p>
+          </div>
+          <div
+            className="flex-shrink-0 w-12 h-12 rounded-2xl flex items-center justify-center font-bold text-white text-lg"
+            style={{ background: 'linear-gradient(135deg, #1a2c4e 0%, #2d4a7a 100%)' }}
+          >
+            {phase.number}
+          </div>
+        </div>
+
+        {/* Description paragraphs */}
+        <div className="space-y-4 mb-10">
+          {phase.paragraphs.map((para, pi2) => (
+            <p key={pi2} className="text-[#1a2c4e]/70 leading-relaxed text-[0.95rem]">
+              {para}
+            </p>
+          ))}
+        </div>
+
+        {/* Courses */}
+        <div className="mb-8">
+          <div
+            className="text-xs font-bold uppercase tracking-widest text-[#1a2c4e]/40 mb-4"
+            style={{ fontFamily: 'Arial, sans-serif' }}
+          >
+            {phase.coursesLabel}
+          </div>
+          <div className="space-y-3">
+            {phase.courses.map((course, ci) => (
+              <div
+                key={ci}
+                className="flex gap-4 p-4 rounded-xl bg-[#f8f6f3] border border-black/5 transition-all duration-300 hover:shadow-sm hover:-translate-y-0.5"
+                style={{ willChange: 'transform' }}
+              >
+                <div
+                  className="flex-shrink-0 w-5 h-5 rounded-full mt-0.5 flex items-center justify-center"
+                  style={{ background: '#E05C3A' }}
+                >
+                  <span className="text-white text-[9px] font-bold">{ci + 1}</span>
+                </div>
+                <div>
+                  <p className="font-semibold text-[#1a2c4e] text-sm mb-0.5">{course.name}</p>
+                  <p className="text-[#1a2c4e]/60 text-xs leading-relaxed">{course.description}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Gate outputs */}
+        <div
+          className="rounded-xl p-6 border-l-4"
+          style={{ background: 'rgba(26,44,78,0.03)', borderColor: '#E05C3A' }}
+        >
+          <div
+            className="text-xs font-bold uppercase tracking-widest text-[#E05C3A] mb-4"
+            style={{ fontFamily: 'Arial, sans-serif' }}
+          >
+            {phase.gateLabel}
+          </div>
+          <ul className="space-y-2.5">
+            {phase.gates.map((gate, gi) => (
+              <li key={gi} className="flex gap-3 text-sm text-[#1a2c4e]/75 leading-relaxed">
+                <span className="flex-shrink-0 text-[#E05C3A] font-bold mt-0.5">→</span>
+                {gate}
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ─────────────────────────────────────────────
+   VENTURE CARD (hover: white → navy, text adapts)
+───────────────────────────────────────────── */
+function VentureCard({ vt, delay }) {
+  const [hovered, setHovered] = useState(false);
+  return (
+    <FadeUp delay={delay} className="h-full">
+      <motion.div
+        onHoverStart={() => setHovered(true)}
+        onHoverEnd={() => setHovered(false)}
+        whileHover={{ y: -10, scale: 1.03 }}
+        transition={{ type: 'spring', stiffness: 260, damping: 20 }}
+        className="rounded-2xl p-8 flex flex-col cursor-pointer h-full"
+        style={{
+          background: hovered ? '#1a2c4e' : '#fff',
+          border: hovered ? '1px solid #1a2c4e' : '1px solid rgba(0,0,0,0.08)',
+          boxShadow: hovered
+            ? '0 24px 56px rgba(26,44,78,0.28), 0 4px 12px rgba(0,0,0,0.10)'
+            : '0 2px 8px rgba(0,0,0,0.04)',
+          transition: 'background 0.35s ease, border-color 0.35s ease, box-shadow 0.35s ease',
+          willChange: 'transform',
+          backfaceVisibility: 'hidden',
+          WebkitBackfaceVisibility: 'hidden',
+        }}
+      >
+        <h3
+          className="text-xl font-bold mb-4"
+          style={{ color: hovered ? '#fff' : '#1a2c4e', transition: 'color 0.35s ease' }}
+        >
+          {vt.name}
+        </h3>
+        <p
+          className="text-sm leading-relaxed mb-6 flex-1"
+          style={{
+            color: hovered ? 'rgba(255,255,255,0.72)' : 'rgba(26,44,78,0.65)',
+            transition: 'color 0.35s ease',
+          }}
+        >
+          {vt.definition}
+        </p>
+        <div className="space-y-3">
+          <div>
+            <span
+              className="text-[10px] font-bold uppercase tracking-widest text-[#E05C3A]"
+              style={{ fontFamily: 'Arial, sans-serif' }}
+            >
+              Registered as
+            </span>
+            <p
+              className="text-xs mt-0.5"
+              style={{
+                color: hovered ? 'rgba(255,255,255,0.82)' : 'rgba(26,44,78,0.70)',
+                transition: 'color 0.35s ease',
+              }}
+            >
+              {vt.registeredAs}
+            </p>
+          </div>
+          <div>
+            <span
+              className="text-[10px] font-bold uppercase tracking-widest text-[#E05C3A]"
+              style={{ fontFamily: 'Arial, sans-serif' }}
+            >
+              Examples
+            </span>
+            <p
+              className="text-xs mt-0.5"
+              style={{
+                color: hovered ? 'rgba(255,255,255,0.65)' : 'rgba(26,44,78,0.60)',
+                transition: 'color 0.35s ease',
+              }}
+            >
+              {vt.examples.join(' · ')}
+            </p>
+          </div>
+        </div>
+      </motion.div>
+    </FadeUp>
+  );
+}
+
+/* ─────────────────────────────────────────────
+   CONTACT LINKS (same behaviour as Programmes page)
+───────────────────────────────────────────── */
+const contactItems = [
+  {
+    label: 'reactfellowship.kumaraguru.in',
+    href: 'https://reactfellowship.kumaraguru.in',
+    Icon: Globe,
+    action: 'link',
+  },
+  {
+    label: 'react.kct.ac.in',
+    href: 'https://react.kct.ac.in',
+    Icon: Globe,
+    action: 'link',
+  },
+  {
+    label: 'info.react@kumaraguru.in',
+    href: 'mailto:info.react@kumaraguru.in',
+    Icon: Mail,
+    action: 'copy',
+    copyText: 'info.react@kumaraguru.in',
+  },
+];
+
+function ContactLink({ item }) {
+  const [copied, setCopied] = useState(false);
+
+  async function handleCopy(e) {
+    e.preventDefault();
+    try {
+      await navigator.clipboard.writeText(item.copyText);
+    } catch {
+      const el = document.createElement('textarea');
+      el.value = item.copyText;
+      document.body.appendChild(el);
+      el.select();
+      document.execCommand('copy');
+      document.body.removeChild(el);
+    }
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2800);
+  }
+
+  const base =
+    'inline-flex items-center gap-2.5 rounded-full border border-white/20 bg-white/10 px-5 py-2.5 text-sm font-medium text-white transition-all duration-200 hover:bg-white/20 hover:scale-105 active:scale-95 backdrop-blur-sm cursor-pointer';
+
+  if (item.action === 'link') {
+    return (
+      <a href={item.href} target="_blank" rel="noopener noreferrer" className={base}>
+        <item.Icon className="h-4 w-4 opacity-75" aria-hidden="true" />
+        <span>{item.label}</span>
+        <ExternalLink className="h-3 w-3 opacity-45" aria-hidden="true" />
+      </a>
+    );
+  }
+
+  return (
+    <button onClick={handleCopy} className={base} aria-label={`Copy ${item.label} to clipboard`}>
+      {copied ? (
+        <Check className="h-4 w-4 text-emerald-400" aria-hidden="true" />
+      ) : (
+        <item.Icon className="h-4 w-4 opacity-75" aria-hidden="true" />
+      )}
+      <span className="transition-all">
+        {copied ? 'Copied to clipboard!' : item.label}
+      </span>
+      {!copied && <Copy className="h-3 w-3 opacity-45" aria-hidden="true" />}
+    </button>
   );
 }
 
@@ -394,35 +1076,74 @@ function CTAButton({ to, variant = 'primary', children }) {
 ───────────────────────────────────────────── */
 export function Journey() {
   const [activePhaseCard, setActivePhaseCard] = useState(null);
-  const [visibleSections, setVisibleSections] = useState({});
 
-  // Intersection observer for scroll-in animations
+  const heroRef     = useRef(null);
+  const heroTextRef = useRef(null);
+
+  /* ── Lenis smooth scrolling ── */
   useEffect(() => {
-    const targets = document.querySelectorAll('[data-animate]');
-    const io = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((e) => {
-          if (e.isIntersecting) {
-            setVisibleSections((prev) => ({ ...prev, [e.target.dataset.animate]: true }));
-          }
-        });
-      },
-      { threshold: 0.08 }
-    );
-    targets.forEach((t) => io.observe(t));
-    return () => io.disconnect();
+    const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (prefersReduced) return;
+
+    const lenis = new Lenis({
+      lerp: 0.075,
+      syncTouch: true,
+      wheelMultiplier: 0.82,
+      touchMultiplier: 0.9,
+    });
+
+    lenis.on('scroll', ScrollTrigger.update);
+
+    function raf(time) {
+      lenis.raf(time);
+      requestAnimationFrame(raf);
+    }
+    const rafId = requestAnimationFrame(raf);
+
+    function onResize() { ScrollTrigger.refresh(); }
+    window.addEventListener('resize', onResize);
+    window.addEventListener('load', onResize);
+
+    return () => {
+      cancelAnimationFrame(rafId);
+      lenis.destroy();
+      window.removeEventListener('resize', onResize);
+      window.removeEventListener('load', onResize);
+    };
   }, []);
 
-  function fadeIn(key, delay = 0) {
-    return {
-      'data-animate': key,
-      style: {
-        transition: `opacity 0.7s ease ${delay}ms, transform 0.7s ease ${delay}ms`,
-        opacity: visibleSections[key] ? 1 : 0,
-        transform: visibleSections[key] ? 'translateY(0)' : 'translateY(28px)',
-      },
-    };
-  }
+  /* Hero reveal: handled inline via Framer Motion animate on each hero element. */
+
+  /* ── Hero: Mouse parallax ── */
+  useEffect(() => {
+    const mm = gsap.matchMedia();
+    mm.add('(prefers-reduced-motion: no-preference)', () => {
+      const textEl = heroTextRef.current;
+      if (!textEl) return;
+
+      let inHero = true;
+      const heroST = ScrollTrigger.create({
+        trigger: heroRef.current,
+        start: 'top top',
+        end: 'bottom top',
+        onToggle: (self) => { inHero = self.isActive; },
+      });
+
+      function onMouseMove(e) {
+        if (!inHero) return;
+        const px = e.clientX / window.innerWidth - 0.5;
+        const py = e.clientY / window.innerHeight - 0.5;
+        gsap.to(textEl, { x: px * -8, y: py * -5, duration: 0.55, ease: 'power3.out' });
+      }
+
+      window.addEventListener('mousemove', onMouseMove);
+      return () => {
+        window.removeEventListener('mousemove', onMouseMove);
+        heroST.kill();
+      };
+    });
+    return () => mm.revert();
+  }, []);
 
   return (
     <div
@@ -433,10 +1154,11 @@ export function Journey() {
           SECTION 00  ·  HERO
       ═══════════════════════════════════ */}
       <section
+        ref={heroRef}
         id="journey-hero"
         className="relative min-h-screen flex flex-col justify-center pt-28 pb-20 px-6 md:px-12 lg:px-20 overflow-hidden"
       >
-        {/* Background pattern */}
+        {/* Background radial */}
         <div
           aria-hidden
           className="absolute inset-0 pointer-events-none"
@@ -455,31 +1177,51 @@ export function Journey() {
             backgroundSize: '60px 60px',
           }}
         />
+        {/* Gradient overlay bottom fade */}
+        <div
+          aria-hidden
+          className="absolute bottom-0 left-0 right-0 h-40 pointer-events-none"
+          style={{
+            background: 'linear-gradient(to top, rgba(255,255,255,0.9), transparent)',
+          }}
+        />
 
-        <div className="relative z-10 max-w-5xl">
-          {/* Eyebrow */}
-          <div
-            className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-[#E05C3A]/30 bg-[#E05C3A]/5 mb-10"
-            style={{ fontFamily: 'Arial, sans-serif', letterSpacing: '0.12em' }}
+        <div ref={heroTextRef} className="relative z-10 max-w-5xl" style={{ willChange: 'transform' }}>
+          {/* Eyebrow with status badge */}
+          <motion.div
+            initial={{ opacity: 0, y: 26, filter: 'blur(10px)' }}
+            animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+            transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1], delay: 0.1 }}
           >
-            <span className="w-1.5 h-1.5 rounded-full bg-[#E05C3A] inline-block" />
-            <span className="text-[10px] uppercase font-semibold text-[#E05C3A]">
-              Centre for REACT  ·  Journey
-            </span>
-          </div>
+            <StatusBadge>Centre for REACT  ·  Journey</StatusBadge>
+          </motion.div>
 
-          {/* Headline */}
-          <h1
-            className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-bold text-[#1a2c4e] leading-[1.05] mb-10"
-            style={{ letterSpacing: '-0.02em' }}
+          {/* Headline with rotating text */}
+          <motion.h1
+            initial={{ opacity: 0, y: 26, filter: 'blur(10px)' }}
+            animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+            transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1], delay: 0.18 }}
+            className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-[#1a2c4e] leading-[1.05] mb-10"
+            style={{ letterSpacing: '-0.02em', willChange: 'transform, opacity, filter' }}
           >
             Two years.<br />
-            <span className="text-[#E05C3A]">The structure that turns</span><br className="hidden md:block" />
-            <span>a student into a founder.</span>
-          </h1>
+            <span className="text-[#E05C3A]">The structure that turns</span>
+            <br className="hidden md:block" />
+            <span>a student into a </span>
+            <RotatingText
+              words={['Researcher.', 'Engineer.', 'Builder.', 'Founder.']}
+              className="text-[#E05C3A]"
+            />
+          </motion.h1>
 
-          {/* Sub-heading — three lines */}
-          <div className="mb-12 space-y-3 max-w-2xl">
+          {/* Sub-heading lines */}
+          <motion.div
+            initial={{ opacity: 0, y: 26, filter: 'blur(10px)' }}
+            animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+            transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1], delay: 0.26 }}
+            className="mb-12 space-y-3 max-w-2xl"
+            style={{ willChange: 'transform, opacity, filter' }}
+          >
             {[
               'Five phases. Three proprietary frameworks. Domain expertise built course by course.',
               'A gate at the end of every phase — real assessment, real standards, real consequences.',
@@ -493,68 +1235,93 @@ export function Journey() {
                 {line}
               </p>
             ))}
-          </div>
+          </motion.div>
 
           {/* CTAs */}
-          <div className="flex flex-wrap gap-4">
+          <motion.div
+            initial={{ opacity: 0, y: 26, filter: 'blur(10px)' }}
+            animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+            transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1], delay: 0.34 }}
+            className="flex flex-wrap gap-4"
+            style={{ willChange: 'transform, opacity, filter' }}
+          >
             <CTAButton to="/apply" variant="primary">
               Apply Now
             </CTAButton>
             <CTAButton to="/programme" variant="secondary">
               See the Programmes
             </CTAButton>
-          </div>
+          </motion.div>
         </div>
 
         {/* Scroll indicator */}
-        <button
+        <motion.button
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 0.5, y: 0 }}
+          transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1], delay: 0.5 }}
           onClick={() => scrollTo('section-01')}
           aria-label="Scroll to next section"
-          className="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 opacity-50 hover:opacity-100 transition-opacity"
+          className="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 hover:opacity-100 transition-opacity cursor-pointer"
         >
           <ChevronDown size={22} className="text-[#1a2c4e] animate-bounce" />
-        </button>
+        </motion.button>
       </section>
+
+      {/* Domain marquee strip */}
+      <div className="bg-[#f8f6f3] border-y border-black/5">
+        <DomainMarquee />
+      </div>
 
       {/* ═══════════════════════════════════
           SECTION 01  ·  THREE FRAMEWORKS
       ═══════════════════════════════════ */}
       <Section id="section-01" className="bg-[#f8f6f3]">
-        <div {...fadeIn('fw-head')}>
-          <EyeBrow>Three Frameworks</EyeBrow>
-          <h2 className="text-3xl md:text-4xl font-bold text-[#1a2c4e] mb-4 leading-tight">
-            Three frameworks.<br />The methodology made operational.
-          </h2>
-          <p className="text-[#1a2c4e]/65 text-base md:text-lg max-w-3xl mb-16 leading-relaxed">
-            The REACT methodology is built on three proprietary frameworks that run through the programme from the first day of field immersion to the final venture registration. Every fellow uses all three. They are what separates a REACT-trained problem solver from everyone else.
-          </p>
-        </div>
+        <SectionHeading
+          eyebrow="Three Frameworks"
+          title={<>Three frameworks.<br />The methodology made operational.</>}
+          subtitle="The REACT methodology is built on three proprietary frameworks that run through the programme from the first day of field immersion to the final venture registration. Every fellow uses all three. They are what separates a REACT-trained problem solver from everyone else."
+        />
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div
+          className="grid grid-cols-1 md:grid-cols-3 gap-6"
+          style={{ perspective: '1400px' }}
+        >
           {frameworks.map((fw, i) => (
-            <div
-              key={fw.id}
-              {...fadeIn(`fw-${fw.id}`, i * 120)}
-              className="bg-white rounded-2xl p-8 border border-black/5 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 flex flex-col"
-            >
-              <div
-                className="w-10 h-10 rounded-xl flex items-center justify-center mb-6"
-                style={{ background: 'rgba(224,92,58,0.1)' }}
+            <FadeUp key={fw.id} delay={i * 0.1} className="h-full">
+              <motion.div
+                whileHover={{ y: -8, scale: 1.03, boxShadow: '0 20px 50px rgba(26,44,78,0.14), 0 4px 12px rgba(0,0,0,0.07)' }}
+                transition={{ type: 'spring', stiffness: 260, damping: 20 }}
+                className="bg-white rounded-2xl p-8 border border-black/5 shadow-sm flex flex-col cursor-pointer h-full"
+                style={{
+                  willChange: 'transform',
+                  backfaceVisibility: 'hidden',
+                  WebkitBackfaceVisibility: 'hidden',
+                  transformStyle: 'preserve-3d',
+                  boxShadow: '0 2px 12px rgba(0,0,0,0.05)',
+                }}
+                whileHover-extra={{
+                  boxShadow: '0 14px 28px rgba(0,0,0,0.10), 0 4px 8px rgba(0,0,0,0.07)',
+                }}
               >
-                <span className="text-[#E05C3A] font-bold text-sm">{String(i + 1).padStart(2, '0')}</span>
-              </div>
-              <h3 className="text-lg font-bold text-[#1a2c4e] mb-3 leading-snug">{fw.name}</h3>
-              <p className="text-[#1a2c4e]/65 text-sm leading-relaxed flex-1">{fw.description}</p>
-              <div className="mt-6 pt-5 border-t border-black/5">
-                <span
-                  className="text-xs font-semibold uppercase tracking-widest"
-                  style={{ fontFamily: 'Arial, sans-serif', color: '#E05C3A' }}
+                <div
+                  className="w-10 h-10 rounded-xl flex items-center justify-center mb-6"
+                  style={{ background: 'rgba(224,92,58,0.1)' }}
                 >
-                  Active in:
-                </span>
-                <p className="text-[#1a2c4e] text-sm font-medium mt-0.5">{fw.active}</p>
-              </div>
-            </div>
+                  <span className="text-[#E05C3A] font-bold text-sm">{String(i + 1).padStart(2, '0')}</span>
+                </div>
+                <h3 className="text-lg font-bold text-[#1a2c4e] mb-3 leading-snug">{fw.name}</h3>
+                <p className="text-[#1a2c4e]/65 text-sm leading-relaxed flex-1">{fw.description}</p>
+                <div className="mt-6 pt-5 border-t border-black/5">
+                  <span
+                    className="text-xs font-semibold uppercase tracking-widest"
+                    style={{ fontFamily: 'Arial, sans-serif', color: '#E05C3A' }}
+                  >
+                    Active in:
+                  </span>
+                  <p className="text-[#1a2c4e] text-sm font-medium mt-0.5">{fw.active}</p>
+                </div>
+              </motion.div>
+            </FadeUp>
           ))}
         </div>
       </Section>
@@ -563,24 +1330,19 @@ export function Journey() {
           SECTION 02  ·  IDENTITY ARC
       ═══════════════════════════════════ */}
       <Section id="section-02" className="bg-white">
-        <div {...fadeIn('arc-head')}>
-          <EyeBrow>The Identity Arc</EyeBrow>
-          <h2 className="text-3xl md:text-4xl font-bold text-[#1a2c4e] mb-4 leading-tight">
-            Five phases. Five identities. One arc.
-          </h2>
-          <p className="text-[#1a2c4e]/65 text-base md:text-lg max-w-3xl mb-16 leading-relaxed">
-            Fellows do not just complete tasks across two years. They earn designations that mark a real shift in capability. Each phase has its own focus, its own courses, its own outputs, and its own gate. The arc moves from unlearning to founding.
-          </p>
-        </div>
+        <SectionHeading
+          eyebrow="The Identity Arc"
+          title="Five phases. Five identities. One arc."
+          subtitle="Fellows do not just complete tasks across two years. They earn designations that mark a real shift in capability. Each phase has its own focus, its own courses, its own outputs, and its own gate. The arc moves from unlearning to founding."
+        />
 
         {/* Phase cards arc */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
           {phaseCards.map((card, i) => {
-            // Arc elevation effect: centre card is highest
             const arcElevations = ['lg:mt-6', 'lg:mt-3', 'lg:mt-0', 'lg:mt-3', 'lg:mt-6'];
             const isActive = activePhaseCard === i;
             return (
-              <button
+              <motion.button
                 key={card.id}
                 id={`arc-card-${card.number}`}
                 onClick={() => {
@@ -588,16 +1350,29 @@ export function Journey() {
                   scrollTo(card.id);
                 }}
                 aria-label={`Go to Phase ${card.number}: ${card.designation}`}
+                initial={{ opacity: 0, y: 24 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, amount: 0.2 }}
+                transition={{ type: 'spring', stiffness: 150, damping: 24, mass: 0.9, delay: i * 0.07 }}
+                whileHover={{ y: -6, scale: 1.03, boxShadow: '0 20px 40px rgba(26,44,78,0.22)' }}
+                whileTap={{ scale: 0.97 }}
                 className={`
-                  group text-left rounded-2xl p-6 border transition-all duration-300 cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#E05C3A]/50
+                  group text-left rounded-2xl p-6 border transition-colors duration-300 cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#E05C3A]/50
                   ${arcElevations[i]}
                   ${isActive
-                    ? 'bg-[#1a2c4e] border-[#1a2c4e] shadow-xl shadow-[#1a2c4e]/20 text-white'
-                    : 'bg-[#f8f6f3] border-black/5 hover:bg-[#1a2c4e] hover:border-[#1a2c4e] hover:shadow-xl hover:shadow-[#1a2c4e]/20 hover:text-white'
+                    ? 'bg-[#1a2c4e] border-[#1a2c4e] shadow-xl text-white'
+                    : 'bg-[#f8f6f3] border-black/5 hover:bg-[#1a2c4e] hover:border-[#1a2c4e] hover:text-white'
                   }
                 `}
+                style={{
+                  willChange: 'transform',
+                  backfaceVisibility: 'hidden',
+                  WebkitBackfaceVisibility: 'hidden',
+                  transformStyle: 'preserve-3d',
+                }}
               >
-                <div className={`text-xs font-bold mb-4 ${isActive ? 'text-[#E05C3A]' : 'text-[#E05C3A] group-hover:text-[#E05C3A]'}`}
+                <div
+                  className={`text-xs font-bold mb-4 text-[#E05C3A]`}
                   style={{ fontFamily: 'Arial, sans-serif', letterSpacing: '0.1em' }}
                 >
                   PHASE {card.number}
@@ -605,7 +1380,8 @@ export function Journey() {
                 <div className={`text-lg font-bold mb-1 leading-snug ${isActive ? 'text-white' : 'text-[#1a2c4e] group-hover:text-white'}`}>
                   {card.designation}
                 </div>
-                <div className={`text-xs mb-3 ${isActive ? 'text-white/60' : 'text-[#1a2c4e]/50 group-hover:text-white/60'}`}
+                <div
+                  className={`text-xs mb-3 ${isActive ? 'text-white/60' : 'text-[#1a2c4e]/50 group-hover:text-white/60'}`}
                   style={{ fontFamily: 'Arial, sans-serif' }}
                 >
                   {card.duration}
@@ -616,118 +1392,25 @@ export function Journey() {
                 >
                   {card.focus}
                 </div>
-              </button>
+              </motion.button>
             );
           })}
         </div>
-        <p className="text-center text-xs text-[#1a2c4e]/40 mt-6" style={{ fontFamily: 'Arial, sans-serif' }}>
-          Click a phase card to jump to its full detail below
-        </p>
       </Section>
 
       {/* ═══════════════════════════════════
           SECTION 03  ·  FIVE PHASES IN FULL
       ═══════════════════════════════════ */}
       <Section id="section-03" className="bg-[#f8f6f3]">
-        <div {...fadeIn('phases-head')}>
-          <EyeBrow>The Five Phases in Full</EyeBrow>
-          <h2 className="text-3xl md:text-4xl font-bold text-[#1a2c4e] mb-16 leading-tight">
-            Every phase. Every course. Every gate.
-          </h2>
-        </div>
+        <SectionHeading
+          eyebrow="The Five Phases in Full"
+          title="Every phase. Every course. Every gate."
+        />
 
         <div className="space-y-0">
           {phases.map((phase, pi) => (
             <div key={phase.id}>
-              {/* Phase block */}
-              <div
-                id={phase.id}
-                {...fadeIn(`phase-block-${phase.number}`, 80)}
-                className="scroll-mt-24 bg-white rounded-2xl p-8 md:p-12 border border-black/5"
-              >
-                {/* Phase header */}
-                <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4 mb-8">
-                  <div>
-                    <div
-                      className="text-xs font-bold text-[#E05C3A] mb-2"
-                      style={{ fontFamily: 'Arial, sans-serif', letterSpacing: '0.15em' }}
-                    >
-                      {phase.tag}
-                    </div>
-                    <h3 className="text-2xl md:text-3xl font-bold text-[#1a2c4e] leading-tight">
-                      {phase.designation}
-                    </h3>
-                    <p className="text-[#1a2c4e]/55 text-sm mt-1 font-medium">{phase.subtitle}</p>
-                  </div>
-                  <div
-                    className="flex-shrink-0 w-12 h-12 rounded-2xl flex items-center justify-center font-bold text-white text-lg"
-                    style={{ background: 'linear-gradient(135deg, #1a2c4e 0%, #2d4a7a 100%)' }}
-                  >
-                    {phase.number}
-                  </div>
-                </div>
-
-                {/* Description paragraphs */}
-                <div className="space-y-4 mb-10">
-                  {phase.paragraphs.map((para, pi2) => (
-                    <p key={pi2} className="text-[#1a2c4e]/70 leading-relaxed text-[0.95rem]">
-                      {para}
-                    </p>
-                  ))}
-                </div>
-
-                {/* Courses */}
-                <div className="mb-8">
-                  <div
-                    className="text-xs font-bold uppercase tracking-widest text-[#1a2c4e]/40 mb-4"
-                    style={{ fontFamily: 'Arial, sans-serif' }}
-                  >
-                    {phase.coursesLabel}
-                  </div>
-                  <div className="space-y-3">
-                    {phase.courses.map((course, ci) => (
-                      <div
-                        key={ci}
-                        className="flex gap-4 p-4 rounded-xl bg-[#f8f6f3] border border-black/5"
-                      >
-                        <div
-                          className="flex-shrink-0 w-5 h-5 rounded-full mt-0.5 flex items-center justify-center"
-                          style={{ background: '#E05C3A' }}
-                        >
-                          <span className="text-white text-[9px] font-bold">{ci + 1}</span>
-                        </div>
-                        <div>
-                          <p className="font-semibold text-[#1a2c4e] text-sm mb-0.5">{course.name}</p>
-                          <p className="text-[#1a2c4e]/60 text-xs leading-relaxed">{course.description}</p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Gate outputs */}
-                <div
-                  className="rounded-xl p-6 border-l-4"
-                  style={{ background: 'rgba(26,44,78,0.03)', borderColor: '#E05C3A' }}
-                >
-                  <div
-                    className="text-xs font-bold uppercase tracking-widest text-[#E05C3A] mb-4"
-                    style={{ fontFamily: 'Arial, sans-serif' }}
-                  >
-                    {phase.gateLabel}
-                  </div>
-                  <ul className="space-y-2.5">
-                    {phase.gates.map((gate, gi) => (
-                      <li key={gi} className="flex gap-3 text-sm text-[#1a2c4e]/75 leading-relaxed">
-                        <span className="flex-shrink-0 text-[#E05C3A] font-bold mt-0.5">→</span>
-                        {gate}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              </div>
-
-              {/* Divider between phases */}
+              <PhaseBlock phase={phase} index={pi} />
               {pi < phases.length - 1 && (
                 <div className="flex items-center justify-center py-6">
                   <div className="h-10 w-px bg-gradient-to-b from-black/10 to-transparent" />
@@ -742,109 +1425,67 @@ export function Journey() {
           SECTION 04  ·  THREE VENTURE TYPES
       ═══════════════════════════════════ */}
       <Section id="section-04" className="bg-white">
-        <div {...fadeIn('vt-head')}>
-          <EyeBrow>Three Venture Types</EyeBrow>
-          <h2 className="text-3xl md:text-4xl font-bold text-[#1a2c4e] mb-4 leading-tight">
-            Every venture is one of three types.
-          </h2>
-          <p className="text-[#1a2c4e]/65 text-base md:text-lg max-w-3xl mb-16 leading-relaxed">
-            The venture type emerges from the nature of the problem and the fellow's chosen approach to creating lasting change. All three are built with equal rigour. All three are expected to demonstrate, with measurable evidence, that the problem they address is genuinely better because the fellow worked on it.
-          </p>
-        </div>
+        <SectionHeading
+          eyebrow="Three Venture Types"
+          title="Every venture is one of three types."
+          subtitle="The venture type emerges from the nature of the problem and the fellow's chosen approach to creating lasting change. All three are built with equal rigour. All three are expected to demonstrate, with measurable evidence, that the problem they address is genuinely better because the fellow worked on it."
+        />
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
           {ventureTypes.map((vt, i) => (
-            <div
-              key={i}
-              {...fadeIn(`vt-${i}`, i * 100)}
-              className="rounded-2xl border border-black/8 p-8 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 flex flex-col"
-              style={{ background: i === 0 ? '#1a2c4e' : i === 1 ? '#f8f6f3' : '#fff' }}
-            >
-              <h3
-                className={`text-xl font-bold mb-4 ${i === 0 ? 'text-white' : 'text-[#1a2c4e]'}`}
-              >
-                {vt.name}
-              </h3>
-              <p
-                className={`text-sm leading-relaxed mb-6 flex-1 ${i === 0 ? 'text-white/70' : 'text-[#1a2c4e]/65'}`}
-              >
-                {vt.definition}
-              </p>
-              <div className="space-y-3">
-                <div>
-                  <span
-                    className={`text-[10px] font-bold uppercase tracking-widest ${i === 0 ? 'text-[#E05C3A]' : 'text-[#E05C3A]'}`}
-                    style={{ fontFamily: 'Arial, sans-serif' }}
-                  >
-                    Registered as
-                  </span>
-                  <p className={`text-xs mt-0.5 ${i === 0 ? 'text-white/80' : 'text-[#1a2c4e]/70'}`}>
-                    {vt.registeredAs}
-                  </p>
-                </div>
-                <div>
-                  <span
-                    className={`text-[10px] font-bold uppercase tracking-widest ${i === 0 ? 'text-[#E05C3A]' : 'text-[#E05C3A]'}`}
-                    style={{ fontFamily: 'Arial, sans-serif' }}
-                  >
-                    Examples
-                  </span>
-                  <p className={`text-xs mt-0.5 ${i === 0 ? 'text-white/70' : 'text-[#1a2c4e]/60'}`}>
-                    {vt.examples.join(' · ')}
-                  </p>
-                </div>
-              </div>
-            </div>
+            <VentureCard key={i} vt={vt} delay={i * 0.1} />
           ))}
         </div>
 
         {/* Credential line */}
-        <div
-          {...fadeIn('credential')}
-          className="rounded-2xl p-8 border border-[#E05C3A]/20"
-          style={{ background: 'rgba(224,92,58,0.04)' }}
-        >
-          <p className="text-sm text-[#1a2c4e]/60 mb-2 font-medium">Credential line</p>
-          <p className="text-[#1a2c4e] text-base md:text-lg leading-relaxed max-w-4xl">
-            A fellow's complete credential reads:{' '}
-            <strong>Domain · Build Classification · Venture Type.</strong>{' '}
-            For example:{' '}
-            <span className="text-[#E05C3A] font-semibold">Health and Wellbeing · Method · Social Venture.</span>{' '}
-            One line that communicates the depth of the problem understood, the nature of what was built, and the ambition of the outcome created.
-          </p>
-        </div>
+        <FadeUp>
+          <div
+            className="rounded-2xl p-8 border border-[#E05C3A]/20"
+            style={{ background: 'rgba(224,92,58,0.04)' }}
+          >
+            <p className="text-sm text-[#1a2c4e]/60 mb-2 font-medium">Credential line</p>
+            <p className="text-[#1a2c4e] text-base md:text-lg leading-relaxed max-w-4xl">
+              A fellow's complete credential reads:{' '}
+              <strong>Domain · Build Classification · Venture Type.</strong>{' '}
+              For example:{' '}
+              <span className="text-[#E05C3A] font-semibold">Health and Wellbeing · Method · Social Venture.</span>{' '}
+              One line that communicates the depth of the problem understood, the nature of what was built, and the ambition of the outcome created.
+            </p>
+          </div>
+        </FadeUp>
       </Section>
 
       {/* ═══════════════════════════════════
           SECTION 05  ·  THE GATE SYSTEM
       ═══════════════════════════════════ */}
       <Section id="section-05" className="bg-[#1a2c4e]">
-        <div {...fadeIn('gate-head')}>
-          <EyeBrow>The Gate System</EyeBrow>
-          <h2 className="text-3xl md:text-4xl font-bold text-white mb-4 leading-tight">
-            Gates are real. Advancement is earned.
-          </h2>
-          <p className="text-white/55 text-base md:text-lg max-w-2xl mb-16 leading-relaxed">
-            Every phase ends with a gate. A panel review of demonstrated work against a published standard — the fellow's assigned mentor and at least one external reviewer with no stake in being lenient.
-          </p>
-        </div>
+        <SectionHeading
+          eyebrow="The Gate System"
+          eyebrowColor="#E05C3A"
+          dark
+          title="Gates are real. Advancement is earned."
+          subtitle="Every phase ends with a gate. A panel review of demonstrated work against a published standard — the fellow's assigned mentor and at least one external reviewer with no stake in being lenient."
+        />
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-px bg-white/10 rounded-2xl overflow-hidden">
           {gateColumns.map((col, i) => (
-            <div
-              key={i}
-              {...fadeIn(`gate-col-${i}`, i * 100)}
-              className="bg-[#1e3460] p-8 md:p-10"
-            >
-              <div
-                className="w-8 h-8 rounded-lg flex items-center justify-center mb-6"
-                style={{ background: 'rgba(224,92,58,0.2)' }}
+            <FadeUp key={i} delay={i * 0.1}>
+              <motion.div
+                whileHover={{ scale: 1.018 }}
+                transition={{ type: 'spring', stiffness: 260, damping: 20 }}
+                className="bg-[#1e3460] p-8 md:p-10 h-full cursor-default"
+                style={{ willChange: 'transform' }}
               >
-                <span className="text-[#E05C3A] font-bold text-xs">{String(i + 1).padStart(2, '0')}</span>
-              </div>
-              <h3 className="text-base font-bold text-white mb-4 leading-snug">{col.title}</h3>
-              <p className="text-white/60 text-sm leading-relaxed">{col.body}</p>
-            </div>
+                <div
+                  className="w-8 h-8 rounded-lg flex items-center justify-center mb-6"
+                  style={{ background: 'rgba(224,92,58,0.2)' }}
+                >
+                  <span className="text-[#E05C3A] font-bold text-xs">{String(i + 1).padStart(2, '0')}</span>
+                </div>
+                <h3 className="text-base font-bold text-white mb-4 leading-snug">{col.title}</h3>
+                <p className="text-white/60 text-sm leading-relaxed">{col.body}</p>
+              </motion.div>
+            </FadeUp>
           ))}
         </div>
       </Section>
@@ -853,34 +1494,43 @@ export function Journey() {
           SECTION 06  ·  WEEKLY RHYTHM
       ═══════════════════════════════════ */}
       <Section id="section-06" className="bg-[#0f1e38]">
-        <div {...fadeIn('rhythm-head')}>
-          <EyeBrow>Weekly Rhythm</EyeBrow>
-          <h2 className="text-3xl md:text-4xl font-bold text-white mb-4 leading-tight">
-            Three anchors. Every week. Every phase.
-          </h2>
-          <p className="text-white/50 text-base md:text-lg max-w-3xl mb-16 leading-relaxed">
-            Phases change. Problems evolve. Three structures run through every week of the programme without exception. They are the connective tissue of the programme — keeping momentum, accountability, and communication consistent across two years.
-          </p>
-        </div>
+        <div>
+          <SectionHeading
+            eyebrow="Weekly Rhythm"
+            eyebrowColor="#E05C3A"
+            dark
+            title="Three anchors. Every week. Every phase."
+            subtitle="Phases change. Problems evolve. Three structures run through every week of the programme without exception. They are the connective tissue of the programme — keeping momentum, accountability, and communication consistent across two years."
+          />
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {weeklyAnchors.map((anchor, i) => (
-            <div
-              key={i}
-              {...fadeIn(`anchor-${i}`, i * 120)}
-              className="rounded-2xl p-8 border border-white/8 hover:border-[#E05C3A]/40 transition-all duration-300 group"
-              style={{ background: 'rgba(255,255,255,0.03)' }}
-            >
-              <div className="flex items-center gap-3 mb-5">
-                <div
-                  className="w-2 h-8 rounded-full"
-                  style={{ background: '#E05C3A' }}
-                />
-                <h3 className="text-base font-bold text-white">{anchor.name}</h3>
-              </div>
-              <p className="text-white/55 text-sm leading-relaxed">{anchor.description}</p>
-            </div>
-          ))}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {weeklyAnchors.map((anchor, i) => (
+              <FadeUp key={i} delay={i * 0.12}>
+                <motion.div
+                  whileHover={{
+                    y: -4,
+                    scale: 1.018,
+                    borderColor: 'rgba(224,92,58,0.5)',
+                    background: 'rgba(255,255,255,0.06)',
+                  }}
+                  transition={{ type: 'spring', stiffness: 260, damping: 20 }}
+                  className="rounded-2xl p-8 border border-white/8 group h-full"
+                  style={{
+                    background: 'rgba(255,255,255,0.03)',
+                    willChange: 'transform',
+                    backdropFilter: 'blur(6px)',
+                    WebkitBackdropFilter: 'blur(6px)',
+                  }}
+                >
+                  <div className="flex items-center gap-3 mb-5">
+                    <div className="w-2 h-8 rounded-full" style={{ background: '#E05C3A' }} />
+                    <h3 className="text-base font-bold text-white">{anchor.name}</h3>
+                  </div>
+                  <p className="text-white/55 text-sm leading-relaxed">{anchor.description}</p>
+                </motion.div>
+              </FadeUp>
+            ))}
+          </div>
         </div>
       </Section>
 
@@ -888,92 +1538,98 @@ export function Journey() {
           SECTION 07  ·  REACT PORTFOLIO
       ═══════════════════════════════════ */}
       <Section id="section-07" className="bg-white">
-        <div {...fadeIn('port-head')}>
-          <EyeBrow>The REACT Portfolio</EyeBrow>
-          <h2 className="text-3xl md:text-4xl font-bold text-[#1a2c4e] mb-4 leading-tight">
-            The portfolio grows with the fellow.<br className="hidden md:block" /> It does not stop at graduation.
-          </h2>
-          <p className="text-[#1a2c4e]/65 text-base md:text-lg max-w-3xl mb-16 leading-relaxed">
-            Every fellow builds a REACT Portfolio across the full programme — a structured, verified, living record of what the fellow produced, what the field taught them, and what they went on to do. Presented as a bound physical document at graduation and as a verified digital record with a permanent URL.
-          </p>
-        </div>
+        <SectionHeading
+          eyebrow="The REACT Portfolio"
+          title={<>The portfolio grows with the fellow.<br className="hidden md:block" /> It does not stop at graduation.</>}
+          subtitle="Every fellow builds a REACT Portfolio across the full programme — a structured, verified, living record of what the fellow produced, what the field taught them, and what they went on to do. Presented as a bound physical document at graduation and as a verified digital record with a permanent URL."
+        />
 
         <div className="space-y-px">
           {portfolioLayers.map((layer, i) => (
-            <div
-              key={i}
-              {...fadeIn(`layer-${i}`, i * 60)}
-              className="group flex gap-6 md:gap-10 items-start p-6 md:p-8 rounded-xl border border-transparent hover:border-black/6 hover:bg-[#f8f6f3] transition-all duration-300 cursor-default"
-            >
-              <div className="flex-shrink-0 flex flex-col items-center">
-                <div
-                  className="w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm text-white"
-                  style={{ background: 'linear-gradient(135deg, #1a2c4e 0%, #2d4a7a 100%)' }}
-                >
-                  {layer.number}
+            <FadeUp key={i} delay={i * 0.06}>
+              <motion.div
+                whileHover={{ x: 6, backgroundColor: '#f8f6f3' }}
+                transition={{ duration: 0.25 }}
+                className="group flex gap-6 md:gap-10 items-start p-6 md:p-8 rounded-xl border border-transparent hover:border-black/6 transition-colors duration-300 cursor-default"
+                style={{ willChange: 'transform' }}
+              >
+                <div className="flex-shrink-0 flex flex-col items-center">
+                  <motion.div
+                    whileHover={{ scale: 1.1, rotate: 5 }}
+                    transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+                    className="w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm text-white"
+                    style={{ background: 'linear-gradient(135deg, #1a2c4e 0%, #2d4a7a 100%)', willChange: 'transform' }}
+                  >
+                    {layer.number}
+                  </motion.div>
+                  {i < portfolioLayers.length - 1 && (
+                    <div className="w-px flex-1 bg-black/8 mt-2 min-h-[20px]" />
+                  )}
                 </div>
-                {i < portfolioLayers.length - 1 && (
-                  <div className="w-px flex-1 bg-black/8 mt-2 min-h-[20px]" />
-                )}
-              </div>
-              <div className="pb-4">
-                <h3 className="font-bold text-[#1a2c4e] text-base mb-1">
-                  <span className="text-[#E05C3A] mr-2">·</span>
-                  {layer.name}
-                </h3>
-                <p className="text-[#1a2c4e]/60 text-sm leading-relaxed">{layer.content}</p>
-              </div>
-            </div>
+                <div className="pb-4">
+                  <h3 className="font-bold text-[#1a2c4e] text-base mb-1">
+                    <span className="text-[#E05C3A] mr-2">·</span>
+                    {layer.name}
+                  </h3>
+                  <p className="text-[#1a2c4e]/60 text-sm leading-relaxed">{layer.content}</p>
+                </div>
+              </motion.div>
+            </FadeUp>
           ))}
         </div>
 
-        <div
-          {...fadeIn('port-closing')}
-          className="mt-10 rounded-2xl p-6 border border-[#1a2c4e]/10 bg-[#f8f6f3]"
-        >
-          <p className="text-[#1a2c4e] text-base leading-relaxed font-medium">
-            When a fellow publishes a paper, wins a competition, or registers a venture after leaving the programme, it is added to the record. The Portfolio grows with the person.
-          </p>
-        </div>
+        <FadeUp>
+          <div className="mt-10 rounded-2xl p-6 border border-[#1a2c4e]/10 bg-[#f8f6f3]">
+            <p className="text-[#1a2c4e] text-base leading-relaxed font-medium">
+              When a fellow publishes a paper, wins a competition, or registers a venture after leaving the programme, it is added to the record. The Portfolio grows with the person.
+            </p>
+          </div>
+        </FadeUp>
       </Section>
 
       {/* ═══════════════════════════════════
           SECTION 08  ·  THE COHORT
       ═══════════════════════════════════ */}
       <Section id="section-08" className="bg-[#f8f6f3]">
-        <div {...fadeIn('cohort-head')}>
-          <EyeBrow>The Cohort</EyeBrow>
-          <h2 className="text-3xl md:text-4xl font-bold text-[#1a2c4e] mb-4 leading-tight">
-            The cohort is the programme's most powerful resource.
-          </h2>
-          <p className="text-[#1a2c4e]/65 text-base md:text-lg max-w-3xl mb-16 leading-relaxed">
-            Every cohort is assembled with deliberate diversity — across disciplines, domains, and backgrounds — so that the fellow working on agricultural market access and the fellow working on primary health diagnostics are learning from each other across two years.
-          </p>
-        </div>
+        <SectionHeading
+          eyebrow="The Cohort"
+          title="The cohort is the programme's most powerful resource."
+          subtitle="Every cohort is assembled with deliberate diversity — across disciplines, domains, and backgrounds — so that the fellow working on agricultural market access and the fellow working on primary health diagnostics are learning from each other across two years."
+        />
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {cohortTypes.map((ct, i) => (
-            <div
-              key={i}
-              {...fadeIn(`cohort-${i}`, i * 120)}
-              className="rounded-2xl p-10 border border-black/5 hover:shadow-md transition-all duration-300"
-              style={{ background: i === 0 ? '#fff' : '#1a2c4e' }}
-            >
-              <div
-                className="inline-flex px-3 py-1 rounded-full text-xs font-bold mb-6"
+            <FadeUp key={i} delay={i * 0.12}>
+              <motion.div
+                whileHover={{ y: -4, scale: 1.012 }}
+                transition={{ type: 'spring', stiffness: 200, damping: 22 }}
+                className="rounded-2xl p-10 border border-black/5 h-full cursor-default"
                 style={{
-                  fontFamily: 'Arial, sans-serif',
-                  letterSpacing: '0.1em',
-                  background: i === 0 ? 'rgba(224,92,58,0.1)' : 'rgba(224,92,58,0.2)',
-                  color: '#E05C3A',
+                  background: i === 0 ? '#fff' : '#1a2c4e',
+                  willChange: 'transform',
+                  backfaceVisibility: 'hidden',
+                  WebkitBackfaceVisibility: 'hidden',
                 }}
               >
-                {ct.label}
-              </div>
-              <p className={`text-base leading-relaxed ${i === 0 ? 'text-[#1a2c4e]/70' : 'text-white/70'}`}>
-                {ct.description}
-              </p>
-            </div>
+                <motion.div
+                  whileHover={{ scale: 1.04 }}
+                  transition={{ duration: 0.2 }}
+                  className="inline-flex px-3 py-1 rounded-full text-xs font-bold mb-6"
+                  style={{
+                    fontFamily: 'Arial, sans-serif',
+                    letterSpacing: '0.1em',
+                    background: i === 0 ? 'rgba(224,92,58,0.1)' : 'rgba(224,92,58,0.2)',
+                    color: '#E05C3A',
+                    willChange: 'transform',
+                  }}
+                >
+                  {ct.label}
+                </motion.div>
+                <p className={`text-base leading-relaxed ${i === 0 ? 'text-[#1a2c4e]/70' : 'text-white/70'}`}>
+                  {ct.description}
+                </p>
+              </motion.div>
+            </FadeUp>
           ))}
         </div>
       </Section>
@@ -994,38 +1650,84 @@ export function Journey() {
             background: 'radial-gradient(ellipse 60% 60% at 50% 50%, rgba(224,92,58,0.12) 0%, transparent 70%)',
           }}
         />
+        {/* Gradient overlay top */}
+        <div
+          aria-hidden
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            background: 'linear-gradient(to bottom, rgba(15,30,56,0.4) 0%, transparent 30%, transparent 70%, rgba(15,30,56,0.4) 100%)',
+          }}
+        />
 
         <div className="relative z-10 max-w-3xl mx-auto text-center">
-          <div
-            {...fadeIn('cta-head')}
-          >
-            <EyeBrow>Ready to start?</EyeBrow>
-            <h2
-              className="text-4xl md:text-5xl font-bold text-white mb-6 leading-tight"
-              style={{ letterSpacing: '-0.02em' }}
+          <FadeUp>
+            <motion.p
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.3 }}
+              transition={{ type: 'spring', damping: 60, stiffness: 350, mass: 1, delay: 0.05 }}
+              style={{ fontFamily: 'Arial, sans-serif', letterSpacing: '0.15em', color: '#E05C3A' }}
+              className="text-xs uppercase font-semibold mb-4 tracking-widest"
             >
               Ready to start?
-            </h2>
-            <p className="text-white/60 text-base md:text-lg leading-relaxed mb-10 max-w-xl mx-auto">
+            </motion.p>
+            <motion.h2
+              initial={{ opacity: 0, y: 140 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.3 }}
+              transition={{ type: 'spring', damping: 60, stiffness: 350, mass: 1, delay: 0.1 }}
+              className="text-4xl md:text-5xl font-bold text-white mb-6 leading-tight"
+              style={{ letterSpacing: '-0.02em', willChange: 'transform, opacity' }}
+            >
+              Ready to start?
+            </motion.h2>
+            <motion.p
+              initial={{ opacity: 0, y: 40 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.3 }}
+              transition={{ type: 'spring', damping: 60, stiffness: 350, mass: 1, delay: 0.18 }}
+              className="text-white/60 text-base md:text-lg leading-relaxed mb-10 max-w-xl mx-auto"
+            >
               The application window for Cohort 2 is open. Three stages. The first is a 500-word personal statement and a domain choice.
-            </p>
+            </motion.p>
 
-            <div className="flex flex-wrap justify-center gap-4 mb-14">
-              <Link
-                to="/apply"
-                id="cta-apply-bottom"
-                className="inline-flex items-center gap-2 px-8 py-4 rounded-full bg-[#E05C3A] text-white font-semibold text-sm hover:bg-[#c94d2e] shadow-xl shadow-[#E05C3A]/25 hover:-translate-y-0.5 transition-all duration-300"
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.3 }}
+              transition={{ type: 'spring', damping: 60, stiffness: 350, mass: 1, delay: 0.24 }}
+              className="flex flex-wrap justify-center gap-4 mb-14"
+            >
+              <motion.div
+                whileHover={{ y: -2, scale: 1.035 }}
+                whileTap={{ scale: 0.985 }}
+                transition={{ type: 'spring', stiffness: 260, damping: 20 }}
+                style={{ willChange: 'transform' }}
               >
-                Apply Now <ArrowRight size={15} />
-              </Link>
-              <Link
-                to="/programme"
-                id="cta-programme-bottom"
-                className="inline-flex items-center gap-2 px-8 py-4 rounded-full border border-white/20 text-white font-semibold text-sm hover:bg-white/10 hover:-translate-y-0.5 transition-all duration-300"
+                <Link
+                  to="/apply"
+                  id="cta-apply-bottom"
+                  className="inline-flex items-center gap-2 px-8 py-4 rounded-full bg-[#E05C3A] text-white font-semibold text-sm shadow-xl transition-colors duration-200 hover:bg-[#c94d2e]"
+                  style={{ boxShadow: '0 18px 40px rgba(224,92,58,0.30)' }}
+                >
+                  Apply Now <ArrowRight size={15} />
+                </Link>
+              </motion.div>
+              <motion.div
+                whileHover={{ y: -2, scale: 1.025 }}
+                whileTap={{ scale: 0.985 }}
+                transition={{ type: 'spring', stiffness: 260, damping: 20 }}
+                style={{ willChange: 'transform' }}
               >
-                See the Programmes <ArrowRight size={15} />
-              </Link>
-            </div>
+                <Link
+                  to="/programme"
+                  id="cta-programme-bottom"
+                  className="inline-flex items-center gap-2 px-8 py-4 rounded-full border border-white/20 text-white font-semibold text-sm transition-all duration-300 hover:bg-white/10"
+                >
+                  See the Programmes <ArrowRight size={15} />
+                </Link>
+              </motion.div>
+            </motion.div>
 
             {/* Contact */}
             <div className="border-t border-white/10 pt-10">
@@ -1035,19 +1737,13 @@ export function Journey() {
               >
                 Contact
               </p>
-              <div className="flex flex-wrap justify-center gap-x-6 gap-y-2">
-                {[
-                  'reactfellowship.kumaraguru.in',
-                  'react.kct.ac.in',
-                  'info.react@kumaraguru.in',
-                ].map((contact, i) => (
-                  <span key={i} className="text-white/55 text-sm">
-                    {contact}
-                  </span>
+              <div className="flex flex-wrap justify-center gap-3">
+                {contactItems.map((item) => (
+                  <ContactLink key={item.label} item={item} />
                 ))}
               </div>
             </div>
-          </div>
+          </FadeUp>
         </div>
       </section>
     </div>

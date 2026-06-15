@@ -18,9 +18,10 @@ export const Navbar = () => {
   const navItems = [
     { name: "Home", path: "/" },
     { name: "About", path: "/about" },
-    { name: "Program", path: "/programmes" }, // Hidden until reworks are complete
+    { name: "Program", path: "/programmes" }, 
+    {name : "Journey", path : "/journey"},
+    { name: "Projects", path: "/projects" }, // Hidden until reworks are complete
     { name: "People", path: "/people" },
-    { name: "Projects", path: "/projects" },
     { name: "Why India?", path: "/why-india?" },
     { name: "Explore Us", path: "/explore-us" },
     { name: "Work With Us", path: "/work" },
