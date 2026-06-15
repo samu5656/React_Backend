@@ -1,50 +1,56 @@
-import React from 'react';
+import { useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
+import { motion, useInView } from 'framer-motion';
+import gsap from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import Lenis from 'lenis';
 
+import { FadeUp } from '../components/AboutCom/FadeUp';
+import { RotatingText } from '../components/AboutCom/RotatingText';
+import { StatusBadge } from '../components/AboutCom/StatusBadge';
+import { Marquee } from '../components/AboutCom/Marquee';
+import { WaveBackground } from '../components/AboutCom/WaveBackground';
+import '../components/AboutCom/about.css';
+
+gsap.registerPlugin(ScrollTrigger);
+
+/* ── Data (unchanged) ── */
 const methodologyItems = [
   {
     label: 'Real World',
-    body:
-      'The field is the classroom. Fellows learn inside the problem, not at a distance from it. The first thing every fellow does is leave the campus.',
+    body: 'The field is the classroom. Fellows learn inside the problem, not at a distance from it. The first thing every fellow does is leave the campus.',
   },
   {
     label: 'Engineering',
-    body:
-      'In the fullest sense: the disciplined application of knowledge to build something that functions. A social worker who founds an NGO that survives is an engineer of institutions. A manager who designs a model that sustains a community cooperative is an engineer of systems. The methodology belongs to every discipline.',
+    body: 'In the fullest sense: the disciplined application of knowledge to build something that functions. A social worker who founds an NGO that survives is an engineer of institutions. A manager who designs a model that sustains a community cooperative is an engineer of systems. The methodology belongs to every discipline.',
   },
   {
     label: 'Application',
-    body:
-      'Knowledge that cannot act on a real problem is unfinished. Every framework, every session, every mentor conversation at this centre exists in service of something that gets built and tested in the field.',
+    body: 'Knowledge that cannot act on a real problem is unfinished. Every framework, every session, every mentor conversation at this centre exists in service of something that gets built and tested in the field.',
   },
   {
     label: 'Collaborative',
-    body:
-      'The communities who carry the problem are co-authors of the solution. The cohort builds together. The methodology is designed for this from the ground up.',
+    body: 'The communities who carry the problem are co-authors of the solution. The cohort builds together. The methodology is designed for this from the ground up.',
   },
   {
     label: 'Transformation',
-    body:
-      'The measure is whether something genuinely changed for the people the work was built for. Everything else is process.',
+    body: 'The measure is whether something genuinely changed for the people the work was built for. Everything else is process.',
   },
 ];
 
 const frameworks = [
   {
     title: 'Domain Intelligence Framework',
-    body:
-      'Nine structured lenses applied to every problem before anything is built. They surface what most practitioners miss: who benefits from the problem remaining unsolved, why previous solutions failed at scale, exactly where intervention can change things. Fellows who complete all nine lenses can diagnose a problem. The specific lenses are proprietary to the centre and are not disclosed externally.',
+    body: 'Nine structured lenses applied to every problem before anything is built. They surface what most practitioners miss: who benefits from the problem remaining unsolved, why previous solutions failed at scale, exactly where intervention can change things. Fellows who complete all nine lenses can diagnose a problem. The specific lenses are proprietary to the centre and are not disclosed externally.',
   },
   {
     title: 'MMD Build Classification',
-    body:
-      'Every solution built at the centre is classified as Material, Method, or Design. This classification is mapped directly to the Indian Patents Act. Fellows understand the intellectual property dimensions of their work from the first day of building.',
+    body: 'Every solution built at the centre is classified as Material, Method, or Design. This classification is mapped directly to the Indian Patents Act. Fellows understand the intellectual property dimensions of their work from the first day of building.',
   },
   {
     title: 'CALIBRATE Community Assessment',
-    body:
-      'Eighteen structured questions assessed before any fellow enters a community with a proposed solution: readiness, trust, infrastructure, governance, existing interventions. A solution does not arrive until the community is ready to receive it and the fellow has earned the permission to work there.',
+    body: 'Eighteen structured questions assessed before any fellow enters a community with a proposed solution: readiness, trust, infrastructure, governance, existing interventions. A solution does not arrive until the community is ready to receive it and the fellow has earned the permission to work there.',
   },
 ];
 
@@ -63,6 +69,7 @@ const qualities = [
   },
 ];
 
+/* ── Sub-components ── */
 const SectionLabel = ({ children, tone = 'light' }) => (
   <p
     className={`text-[11px] font-semibold uppercase tracking-[0.28em] ${
@@ -77,197 +84,443 @@ const CtaRow = ({ dark = false }) => (
   <div className="mt-9 flex flex-col gap-3 sm:flex-row">
     <Link
       to="/programme"
-      className={`inline-flex items-center justify-center gap-2 rounded-full px-7 py-3 text-base font-semibold transition-colors ${
-        dark ? 'bg-white text-[#0F2A44] hover:bg-white/90' : 'bg-[#0F2A44] text-white hover:bg-[#153a5d]'
+      className={`group inline-flex items-center justify-center gap-2 rounded-full px-7 py-3 text-base font-semibold transition-all duration-300 hover:-translate-y-0.5 hover:scale-[1.025] ${
+        dark
+          ? 'bg-white text-[#0F2A44] hover:bg-white/90'
+          : 'bg-[#0F2A44] text-white hover:bg-[#153a5d]'
       }`}
+      style={{ willChange: 'transform' }}
     >
       See the Programmes
-      <ArrowRight className="h-5 w-5" aria-hidden="true" />
+      <ArrowRight className="about-arrow-icon h-5 w-5" aria-hidden="true" />
     </Link>
     <Link
       to="/apply"
-      className={`inline-flex items-center justify-center rounded-full px-7 py-3 text-base font-semibold transition-colors ${
+      className={`inline-flex items-center justify-center rounded-full px-7 py-3 text-base font-semibold transition-all duration-300 hover:-translate-y-0.5 hover:scale-[1.025] ${
         dark
           ? 'border border-white/25 text-white hover:bg-white/10'
           : 'border border-slate-300 bg-white text-slate-950 hover:bg-slate-50'
       }`}
+      style={{ willChange: 'transform' }}
     >
       Apply Now
     </Link>
   </div>
 );
 
-export const About = () => {
+/* ── Spring heading wrapper ── */
+const SpringHeading = ({ children, as: Tag = 'h2', className = '', delay = 0 }) => {
+  const ref = useRef(null);
+  const inView = useInView(ref, { once: true, amount: 0.3 });
   return (
-    <main className="min-h-screen bg-[#F5F7FA] text-slate-950">
-      <section className="bg-white px-6 pb-20 pt-32 sm:pb-24 sm:pt-40">
-        <div className="mx-auto max-w-6xl">
-          <SectionLabel>Centre for REACT</SectionLabel>
-          <h1 className="mt-6 max-w-5xl text-5xl font-semibold leading-[1.02] tracking-tight text-[#0F2A44] sm:text-6xl lg:text-7xl">
-            <span className="block">India has the problems.</span>
-            <span className="block text-[#E76758]">We build the people who solve them.</span>
-          </h1>
-          <p className="mt-8 max-w-3xl text-lg leading-relaxed text-slate-600 sm:text-xl">
-            REACT is a methodology. This centre is where it runs. This page is why.
+    <div ref={ref} className="about-heading-clip">
+      <motion.div
+        initial={{ opacity: 0, y: 140 }}
+        animate={inView ? { opacity: 1, y: 0 } : {}}
+        transition={{ type: 'spring', damping: 60, stiffness: 350, mass: 1, delay }}
+        style={{ willChange: 'transform, opacity' }}
+      >
+        <Tag className={className}>{children}</Tag>
+      </motion.div>
+    </div>
+  );
+};
+
+/* ── Methodology stacked-card reveal ── */
+const MethodologyStack = () => {
+  const sectionRef = useRef(null);
+  const cardsRef   = useRef([]);
+  const N = methodologyItems.length;
+
+  useEffect(() => {
+    const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const section = sectionRef.current;
+    const cards   = cardsRef.current.filter(Boolean);
+    if (prefersReduced || !section || cards.length < N) return;
+
+    const ctx = gsap.context(() => {
+      cards.forEach((card) => {
+        gsap.from(card, {
+          opacity: 0,
+          y: 48,
+          scale: 0.94,
+          ease: 'power2.out',
+          scrollTrigger: {
+            trigger: card,
+            start: 'top 90%',
+            end: 'top 55%',
+            scrub: 0.5,
+          },
+        });
+      });
+    });
+
+    return () => ctx.revert();
+  }, []);
+
+  return (
+    <section
+      ref={sectionRef}
+      className="relative bg-white px-6 py-16 sm:py-20"
+    >
+      <div className="mx-auto max-w-6xl lg:grid lg:grid-cols-[2fr_3fr] lg:gap-16 lg:items-start">
+        {/* Heading — sticky on desktop while cards spread into view on the right */}
+        <div className="mb-12 lg:mb-0 lg:sticky lg:top-28">
+          <SectionLabel>The Methodology</SectionLabel>
+          <h2 className="mt-5 text-4xl font-semibold leading-tight text-slate-950 sm:text-5xl">
+            Every word in REACT is a commitment.
+          </h2>
+          <p className="mt-5 text-xl leading-relaxed text-slate-600">
+            Real World. Engineering. Application. Collaborative. Transformation.
           </p>
-          <CtaRow />
+        </div>
+
+        {/* Cards — each reveals individually as user scrolls */}
+        <div className="space-y-5">
+          {methodologyItems.map((item, i) => (
+            <div
+              key={item.label}
+              ref={el => cardsRef.current[i] = el}
+              className="about-pipeline-card rounded-2xl border border-slate-200 bg-[#F8FAFC] p-8 shadow-md"
+            >
+              <p className="text-[11px] font-semibold uppercase tracking-widest text-[#E76758]">
+                {String(i + 1).padStart(2, '0')} / {String(N).padStart(2, '0')}
+              </p>
+              <h3 className="mt-3 text-3xl font-semibold text-[#0F2A44]">{item.label}</h3>
+              <p className="mt-4 text-base leading-relaxed text-slate-600">{item.body}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+};
+
+
+/* ══════════════════════════════════════════════════
+   Main export
+   ══════════════════════════════════════════════════ */
+export const About = () => {
+  const heroRef      = useRef(null);
+  const heroTextRef  = useRef(null);
+
+  /* ── Lenis smooth scroll ── */
+  useEffect(() => {
+    const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (prefersReduced) return;
+
+    const lenis = new Lenis({
+      lerp: 0.075,
+      syncTouch: true,
+      wheelMultiplier: 0.82,
+      touchMultiplier: 0.9,
+    });
+
+    lenis.on('scroll', ScrollTrigger.update);
+
+    const raf = (time) => {
+      lenis.raf(time);
+      requestAnimationFrame(raf);
+    };
+    requestAnimationFrame(raf);
+
+    const refresh = () => ScrollTrigger.refresh();
+    window.addEventListener('resize', refresh);
+    window.addEventListener('load', refresh);
+
+    return () => {
+      lenis.destroy();
+      window.removeEventListener('resize', refresh);
+      window.removeEventListener('load', refresh);
+    };
+  }, []);
+
+  /* ── Hero page-load reveal (GSAP stagger) ── */
+  useEffect(() => {
+    const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (prefersReduced) return;
+
+    const ctx = gsap.context(() => {
+      const targets = heroTextRef.current?.querySelectorAll('.about-hero-el');
+      if (!targets?.length) return;
+
+      gsap.fromTo(
+        targets,
+        { opacity: 0, y: 26, filter: 'blur(10px)', willChange: 'transform, opacity, filter' },
+        {
+          opacity: 1,
+          y: 0,
+          filter: 'blur(0px)',
+          duration: 0.9,
+          ease: 'power3.out',
+          stagger: 0.08,
+          delay: 0.1,
+        }
+      );
+    }, heroRef);
+
+    return () => ctx.revert();
+  }, []);
+
+  /* ── Mouse parallax on hero ── */
+  useEffect(() => {
+    const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (prefersReduced) return;
+
+    let active = true;
+    const textEl = heroTextRef.current;
+
+    const onMove = (e) => {
+      if (!active || !textEl) return;
+      const px = e.clientX / window.innerWidth - 0.5;
+      const py = e.clientY / window.innerHeight - 0.5;
+      gsap.to(textEl, { x: px * -8, y: py * -5, duration: 0.55, ease: 'power3.out' });
+    };
+
+    window.addEventListener('mousemove', onMove);
+    return () => {
+      active = false;
+      window.removeEventListener('mousemove', onMove);
+    };
+  }, []);
+
+  return (
+    <main className="about-page min-h-screen bg-[#F5F7FA] text-slate-950">
+
+      {/* ── HERO ── */}
+      <section ref={heroRef} className="about-hero-section bg-white px-6 pb-20 pt-32 sm:pb-24 sm:pt-40">
+        <div className="mx-auto max-w-6xl">
+          <div ref={heroTextRef} style={{ willChange: 'transform' }}>
+            <div className="about-hero-el">
+              <StatusBadge />
+            </div>
+
+            <div className="about-hero-el mt-4">
+              <SectionLabel>Centre for REACT</SectionLabel>
+            </div>
+
+            <h1 className="about-hero-el mt-6 max-w-5xl text-5xl font-semibold leading-[1.02] tracking-tight text-[#0F2A44] sm:text-6xl lg:text-7xl">
+              <span className="block">India has the problems.</span>
+              <span className="block text-[#E76758]">
+                We build the{' '}
+                <RotatingText />
+                .
+              </span>
+            </h1>
+
+            <p className="about-hero-el mt-8 max-w-3xl text-lg leading-relaxed text-slate-600 sm:text-xl">
+              REACT is a methodology. This centre is where it runs. This page is why.
+            </p>
+
+            <div className="about-hero-el">
+              <CtaRow />
+            </div>
+          </div>
         </div>
       </section>
 
+      {/* ── MARQUEE TRUST BAR ── */}
+      <div className="bg-[#F5F7FA] py-2">
+        <Marquee />
+      </div>
+
+      {/* ── THE BELIEF ── */}
       <section className="px-6 py-16 sm:py-20">
         <div className="mx-auto grid max-w-6xl gap-10 lg:grid-cols-[0.78fr_1.22fr]">
           <div>
-            <SectionLabel>The Belief</SectionLabel>
-            <h2 className="mt-5 text-4xl font-semibold leading-tight text-slate-950 sm:text-5xl">
+            <FadeUp>
+              <SectionLabel>The Belief</SectionLabel>
+            </FadeUp>
+            <SpringHeading
+              as="h2"
+              className="mt-5 text-4xl font-semibold leading-tight text-slate-950 sm:text-5xl"
+              delay={0.05}
+            >
               Social problems are unmet markets.
-            </h2>
+            </SpringHeading>
           </div>
           <div className="space-y-6 text-lg leading-relaxed text-slate-700">
-            <p>A real need without a solution at scale is a market failure. Market failures can be corrected.</p>
-            <p>
-              The farmer losing produce to postharvest spoilage will pay for something that works. The patient
-              travelling hours for a diagnosis will pay when the answer is accurate and close. The family whose child
-              cannot read will invest in learning that actually functions.
-            </p>
-            <p>
-              The belief behind REACT is simple and demanding: a significant number of India&apos;s most urgent problems
-              can be solved in ways that sustain themselves through the value they create. Solutions built on grants
-              collapse when the grant ends. The community is left worse off than before: they experienced something
-              better and had it taken away.
-            </p>
-            <p>
-              REACT builds the other kind. The kind that grows because it earns, earns because it works, and works
-              because it was built by someone who spent time living inside the problem before touching a solution.
-            </p>
-            <blockquote className="border-l-4 border-[#E76758] pl-5 text-2xl font-semibold leading-snug text-[#0F2A44]">
-              "The ventures outlast the people who build them. That is the standard."
-            </blockquote>
+            <FadeUp delay={0}>
+              <p>A real need without a solution at scale is a market failure. Market failures can be corrected.</p>
+            </FadeUp>
+            <FadeUp delay={0.08}>
+              <p>
+                The farmer losing produce to postharvest spoilage will pay for something that works. The patient
+                travelling hours for a diagnosis will pay when the answer is accurate and close. The family whose child
+                cannot read will invest in learning that actually functions.
+              </p>
+            </FadeUp>
+            <FadeUp delay={0.16}>
+              <p>
+                The belief behind REACT is simple and demanding: a significant number of India&apos;s most urgent problems
+                can be solved in ways that sustain themselves through the value they create. Solutions built on grants
+                collapse when the grant ends. The community is left worse off than before: they experienced something
+                better and had it taken away.
+              </p>
+            </FadeUp>
+            <FadeUp delay={0.24}>
+              <p>
+                REACT builds the other kind. The kind that grows because it earns, earns because it works, and works
+                because it was built by someone who spent time living inside the problem before touching a solution.
+              </p>
+            </FadeUp>
+            <FadeUp delay={0.32}>
+              <blockquote className="about-blockquote border-l-4 border-[#E76758] pl-5 text-2xl font-semibold leading-snug text-[#0F2A44]">
+                &ldquo;The ventures outlast the people who build them. That is the standard.&rdquo;
+              </blockquote>
+            </FadeUp>
           </div>
         </div>
       </section>
 
-      <section className="bg-white px-6 py-16 sm:py-20">
+      {/* ── METHODOLOGY (stacked card reveal) ── */}
+      <MethodologyStack />
+
+      {/* ── FRAMEWORKS ── */}
+      <section className="bg-white px-6 py-10 sm:py-12">
         <div className="mx-auto max-w-6xl">
           <div className="max-w-3xl">
-            <SectionLabel>The Methodology</SectionLabel>
-            <h2 className="mt-5 text-4xl font-semibold leading-tight text-slate-950 sm:text-5xl">
-              Every word in REACT is a commitment.
-            </h2>
-            <p className="mt-5 text-xl leading-relaxed text-slate-600">
-              Real World. Engineering. Application. Collaborative. Transformation.
-            </p>
-          </div>
-
-          <div className="mt-12 grid grid-cols-1 gap-5 md:grid-cols-2">
-            {methodologyItems.map((item) => (
-              <article key={item.label} className="rounded-lg border border-slate-200 bg-[#F8FAFC] p-6">
-                <h3 className="text-2xl font-semibold text-[#0F2A44]">{item.label}</h3>
-                <p className="mt-4 text-base leading-relaxed text-slate-600">{item.body}</p>
-              </article>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section className="px-6 py-16 sm:py-20">
-        <div className="mx-auto max-w-6xl">
-          <div className="max-w-3xl">
-            <SectionLabel>The Frameworks</SectionLabel>
-            <h2 className="mt-5 text-4xl font-semibold leading-tight text-slate-950 sm:text-5xl">
+            <FadeUp>
+              <SectionLabel>The Frameworks</SectionLabel>
+            </FadeUp>
+            <SpringHeading
+              as="h2"
+              className="mt-4 text-3xl font-semibold leading-tight text-slate-950 sm:text-4xl"
+              delay={0.05}
+            >
               Three frameworks. One rigorous process.
-            </h2>
-            <p className="mt-5 text-lg leading-relaxed text-slate-700">
-              The REACT methodology is not a philosophy. It is a set of tools that give every fellow a repeatable,
-              disciplined process regardless of domain, background, or prior field experience.
-            </p>
+            </SpringHeading>
+            <FadeUp delay={0.1}>
+              <p className="mt-3 text-base leading-relaxed text-slate-700">
+                The REACT methodology is not a philosophy. It is a set of tools that give every fellow a repeatable,
+                disciplined process regardless of domain, background, or prior field experience.
+              </p>
+            </FadeUp>
           </div>
 
-          <div className="mt-12 grid grid-cols-1 gap-6 lg:grid-cols-3">
-            {frameworks.map((framework) => (
-              <article key={framework.title} className="rounded-lg border border-slate-200 bg-white p-7 shadow-sm">
-                <h3 className="text-2xl font-semibold leading-tight text-[#0F2A44]">{framework.title}</h3>
-                <p className="mt-5 text-base leading-relaxed text-slate-600">{framework.body}</p>
-              </article>
+          <div className="mt-8 grid grid-cols-1 items-stretch gap-4 lg:grid-cols-3">
+            {frameworks.map((framework, i) => (
+              <FadeUp key={framework.title} delay={i * 0.08} className="h-full">
+                <article className="about-card h-full rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+                  <h3 className="text-lg font-semibold leading-tight text-[#0F2A44]">{framework.title}</h3>
+                  <p className="mt-3 text-sm leading-relaxed text-slate-600">{framework.body}</p>
+                </article>
+              </FadeUp>
             ))}
           </div>
         </div>
       </section>
 
-      <section className="bg-white px-6 py-16 sm:py-20">
+      {/* ── INSTITUTION ── */}
+      <section className="px-6 py-16 sm:py-20">
         <div className="mx-auto grid max-w-6xl gap-10 lg:grid-cols-[0.8fr_1.2fr]">
           <div>
-            <SectionLabel>The Institution</SectionLabel>
-            <h2 className="mt-5 text-4xl font-semibold leading-tight text-slate-950 sm:text-5xl">
+            <FadeUp>
+              <SectionLabel>The Institution</SectionLabel>
+            </FadeUp>
+            <SpringHeading
+              as="h2"
+              className="mt-5 text-4xl font-semibold leading-tight text-slate-950 sm:text-5xl"
+              delay={0.05}
+            >
               Rooted at Kumaraguru Institutions, Coimbatore.
-            </h2>
-            <p className="mt-5 text-xl leading-relaxed text-slate-600">
-              One of India&apos;s leading private institutions for engineering, management, and liberal arts.
-            </p>
+            </SpringHeading>
+            <FadeUp delay={0.1}>
+              <p className="mt-5 text-xl leading-relaxed text-slate-600">
+                One of India&apos;s leading private institutions for engineering, management, and liberal arts.
+              </p>
+            </FadeUp>
           </div>
           <div className="space-y-6 text-lg leading-relaxed text-slate-700">
-            <p>
-              The Centre for REACT operates within Kumaraguru Institutions, based in Coimbatore, Tamil Nadu. The centre
-              draws on its laboratories, fabrication facilities, academic mentors, and decades of industry and civil
-              society relationships built across the region and beyond.
-            </p>
-            <p>
-              Kumaraguru Institutions has held one position consistently: the purpose of education is not merely
-              employment. The REACT methodology is the most direct expression of that position: a structured system that
-              places students inside real problems and expects them to contribute meaningfully to their solution.
-            </p>
-            <p>
-              The programmes run at this centre are academically accredited through partner Master&apos;s degrees across
-              three academic units within Kumaraguru Institutions.
-            </p>
-            <a
-              href="https://kct.ac.in"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 text-base font-semibold text-[#E76758] transition-colors hover:text-[#d8584a]"
-            >
-              Kumaraguru Institutions
-              <ArrowRight className="h-4 w-4" aria-hidden="true" />
-            </a>
+            <FadeUp delay={0}>
+              <p>
+                The Centre for REACT operates within Kumaraguru Institutions, based in Coimbatore, Tamil Nadu. The centre
+                draws on its laboratories, fabrication facilities, academic mentors, and decades of industry and civil
+                society relationships built across the region and beyond.
+              </p>
+            </FadeUp>
+            <FadeUp delay={0.08}>
+              <p>
+                Kumaraguru Institutions has held one position consistently: the purpose of education is not merely
+                employment. The REACT methodology is the most direct expression of that position: a structured system that
+                places students inside real problems and expects them to contribute meaningfully to their solution.
+              </p>
+            </FadeUp>
+            <FadeUp delay={0.16}>
+              <p>
+                The programmes run at this centre are academically accredited through partner Master&apos;s degrees across
+                three academic units within Kumaraguru Institutions.
+              </p>
+            </FadeUp>
+            <FadeUp delay={0.24}>
+              <a
+                href="https://kct.ac.in"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group inline-flex items-center gap-2 text-base font-semibold text-[#E76758] transition-colors hover:text-[#d8584a]"
+              >
+                Kumaraguru Institutions
+                <ArrowRight className="about-arrow-icon h-4 w-4" aria-hidden="true" />
+              </a>
+            </FadeUp>
           </div>
         </div>
       </section>
 
-      <section className="px-6 py-16 sm:py-20">
+      {/* ── WHO BELONGS HERE ── */}
+      <section className="bg-white px-6 py-16 sm:py-20">
         <div className="mx-auto max-w-6xl">
           <div className="max-w-3xl">
-            <SectionLabel>Who Belongs Here</SectionLabel>
-            <h2 className="mt-5 text-4xl font-semibold leading-tight text-slate-950 sm:text-5xl">
+            <FadeUp>
+              <SectionLabel>Who Belongs Here</SectionLabel>
+            </FadeUp>
+            <SpringHeading
+              as="h2"
+              className="mt-5 text-4xl font-semibold leading-tight text-slate-950 sm:text-5xl"
+              delay={0.05}
+            >
               Three qualities. No exceptions.
-            </h2>
-            <p className="mt-5 text-lg leading-relaxed text-slate-700">
-              Fellows come from every discipline. What matters is how they engage with a problem they have never
-              encountered before.
-            </p>
+            </SpringHeading>
+            <FadeUp delay={0.1}>
+              <p className="mt-5 text-lg leading-relaxed text-slate-700">
+                Fellows come from every discipline. What matters is how they engage with a problem they have never
+                encountered before.
+              </p>
+            </FadeUp>
           </div>
 
-          <div className="mt-10 grid grid-cols-1 gap-5 md:grid-cols-3">
-            {qualities.map((quality) => (
-              <article key={quality.title} className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
-                <h3 className="text-xl font-semibold text-[#0F2A44]">{quality.title}</h3>
-                <p className="mt-3 text-base leading-relaxed text-slate-600">{quality.body}</p>
-              </article>
+          <div className="mt-10 grid grid-cols-1 items-stretch gap-5 md:grid-cols-3">
+            {qualities.map((quality, i) => (
+              <FadeUp key={quality.title} delay={i * 0.08} className="h-full">
+                <article className="about-card h-full rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
+                  <h3 className="text-xl font-semibold text-[#0F2A44]">{quality.title}</h3>
+                  <p className="mt-3 text-base leading-relaxed text-slate-600">{quality.body}</p>
+                </article>
+              </FadeUp>
             ))}
           </div>
         </div>
       </section>
 
-      <section className="bg-[#0F2A44] px-6 py-18 text-white sm:py-24">
-        <div className="mx-auto max-w-6xl">
-          {/* <SectionLabel tone="dark">Closing</SectionLabel> */}
-          <h2 className="mt-5 max-w-4xl text-4xl font-semibold leading-tight sm:text-5xl">
-            One outcome. Everything serves it.
-          </h2>
-          <p className="mt-6 max-w-4xl text-lg leading-relaxed text-white/76">
-            The methodology, the frameworks, the field immersion, the cohort, the gate system, the partner network. All
-            of it is designed for one result: ventures that outlast the people who built them. Organisations that
-            continue serving communities after graduation. Change that does not collapse when the programme ends.
-          </p>
-          <CtaRow dark />
+      {/* ── DARK CTA (WebGL wave background) ── */}
+      <section className="about-dark-section bg-[#0F2A44] px-6 py-18 text-white sm:py-24">
+        <WaveBackground color={[0.3, 0.55, 0.8]} opacity={0.35} />
+        <div className="relative z-10 mx-auto max-w-6xl">
+          <FadeUp>
+            <h2 className="mt-5 max-w-4xl text-4xl font-semibold leading-tight sm:text-5xl">
+              One outcome. Everything serves it.
+            </h2>
+          </FadeUp>
+          <FadeUp delay={0.1}>
+            <p className="mt-6 max-w-4xl text-lg leading-relaxed text-white/76">
+              The methodology, the frameworks, the field immersion, the cohort, the gate system, the partner network. All
+              of it is designed for one result: ventures that outlast the people who built them. Organisations that
+              continue serving communities after graduation. Change that does not collapse when the programme ends.
+            </p>
+          </FadeUp>
+          <FadeUp delay={0.18}>
+            <CtaRow dark />
+          </FadeUp>
         </div>
       </section>
     </main>
