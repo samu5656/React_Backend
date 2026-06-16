@@ -1,7 +1,11 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useLayoutEffect, useRef, useCallback } from 'react';
 import { Link } from 'react-router-dom';
-import { motion, useMotionValue, animate, AnimatePresence } from 'framer-motion';
-import { ArrowRight, Linkedin, Globe, Mail, ExternalLink, Copy, Check } from 'lucide-react';
+import { motion, useScroll, useTransform, useSpring } from 'framer-motion';
+import { ArrowRight, Globe, Mail, ExternalLink, Copy, Check, BadgeCheck } from 'lucide-react';
+import gsap from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
+
+gsap.registerPlugin(ScrollTrigger);
 
 // ── Assets ──────────────────────────────────────────────────────────────────
 import Video from '../../assets/videos/video-hero.mp4';
@@ -194,6 +198,9 @@ const featuredProjects = [
     desc: 'A biodegradable, flushable sanitary napkin co-developed with rural women to address menstrual hygiene and waste disposal challenges.',
     link: '/projects',
     accentColor: '#9F1239',
+    stack: ['Biodegradable Materials', 'Field Co-design', 'Waste Systems'],
+    pastel: '#ffe4e6',
+    pastelDeep: '#fecdd3',
   },
   {
     name: 'Therbal',
@@ -202,6 +209,9 @@ const featuredProjects = [
     desc: 'A community-led water management initiative addressing seasonal scarcity in peri-urban zones.',
     link: '/projects/therbal',
     accentColor: '#065F46',
+    stack: ['IoT Sensors', 'Water Analytics', 'Community Ops'],
+    pastel: '#d1fae5',
+    pastelDeep: '#a7f3d0',
   },
   {
     name: 'Mushroom Farming',
@@ -210,6 +220,9 @@ const featuredProjects = [
     desc: 'A low-cost mushroom cultivation system designed with smallholder farmers to diversify income and improve nutrition.',
     link: '/projects',
     accentColor: '#92400E',
+    stack: ['Low-cost Cultivation', 'Farmer Training', 'Bio Inputs'],
+    pastel: '#fef3c7',
+    pastelDeep: '#fde68a',
   },
   {
     name: 'Shrimp Farming',
@@ -218,14 +231,20 @@ const featuredProjects = [
     desc: 'An automated shrimp feeding system built with coastal farming communities to reduce waste and increase yield.',
     link: '/projects/shrimp-feeder',
     accentColor: '#9A3412',
+    stack: ['Embedded Systems', 'Automation', 'Sensor Hardware'],
+    pastel: '#ffedd5',
+    pastelDeep: '#fed7aa',
   },
   {
     name: 'VR Simulator',
     domain: 'Education and Livelihood',
     domainColor: 'bg-violet-100 text-violet-800',
     desc: 'A virtual reality simulator for vocational skill training, co-designed with industry partners and students.',
+    stack: ['Unity', 'VR Hardware', '3D Modeling'],
     link: '/projects/vision-x',
     accentColor: '#5B21B6',
+    pastel: '#ede9fe',
+    pastelDeep: '#ddd6fe',
   },
 ];
 
@@ -828,149 +847,406 @@ function PartnersSection() {
   );
 }
 
-/* ── S07: Featured Projects ── */
-function ProjectCard({ p, i }) {
-  const { ref, tilt, onMouseMove, onMouseLeave } = use3DTilt();
+/* ── S07: Featured Projects — premium 3D rotating carousel ── */
+
+const PROJECT_DOMAIN_ICON = {
+  'Health and Wellbeing': HealthIcon,
+  'Environment and Climate': EnvironmentIcon,
+  'Agriculture and Food Systems': AgricultureIcon,
+  'Culture and Creative Economy': CultureIcon,
+  'Sustainable Communities': CommunityIcon,
+  'Education and Livelihood': EducationIcon,
+};
+
+// True cylinder: 5 cards evenly spaced (360 / count) around a ring, all the same
+// size. No card is stacked behind another — they're spread around the full circle.
+function useCarouselGeometry() {
+  const [geometry, setGeometry] = useState({ radius: 320, width: 240, height: 300, perspective: 1800 });
+
+  useEffect(() => {
+    function recompute() {
+      const w = window.innerWidth;
+      if (w < 640) {
+        setGeometry({ radius: 115, width: 125, height: 170, perspective: 900 });
+      } else if (w < 1024) {
+        setGeometry({ radius: 215, width: 175, height: 235, perspective: 1300 });
+      } else {
+        setGeometry({ radius: 320, width: 240, height: 300, perspective: 1800 });
+      }
+    }
+    recompute();
+    window.addEventListener('resize', recompute);
+    return () => window.removeEventListener('resize', recompute);
+  }, []);
+
+  return geometry;
+}
+
+// Ring placement is a literal CSS transform string — rotateY(angle) translateZ(radius) —
+// applied in that exact order, NOT through Framer's x/y/z/rotateY shorthand (which
+// composes translate before rotate and collapses every card to the same point).
+// `rotation` is a motion value derived from scroll progress, applied once on the
+// shared parent stage, so the cards spin together as the page scrolls.
+function ProjectCarousel3DCard({ p, angle, radius, width, height, rotation }) {
+  const Icon = PROJECT_DOMAIN_ICON[p.domain] || AgricultureIcon;
+
+  const facing = useTransform(rotation, (r) => Math.cos(((r + angle) * Math.PI) / 180));
+  const scale = useTransform(facing, (f) => 0.76 + 0.32 * Math.max(f, 0));
+  const opacity = useTransform(facing, (f) => 0.7 + 0.3 * Math.max(f, 0));
+  const zIndex = useTransform(facing, (f) => Math.round(f * 100));
+  const pointerEvents = useTransform(facing, (f) => (f > 0.5 ? 'auto' : 'none'));
+  // Full project details only reveal once this card has rotated close to front-facing.
+  const detailsOpacity = useTransform(facing, [0.65, 0.75], [0, 1], { clamp: true });
 
   return (
-    <motion.div
-      ref={ref}
-      initial={{ opacity: 0, y: 30, scale: 0.96 }}
-      whileInView={{ opacity: 1, y: 0, scale: 1 }}
-      viewport={{ once: true }}
-      transition={{ duration: 0.5, delay: i * 0.1, ease: [0.16, 1, 0.3, 1] }}
-      whileHover={{ scale: 1.06, y: -8, zIndex: 10 }}
-      onMouseMove={onMouseMove}
-      onMouseLeave={onMouseLeave}
+    <div
+      className="absolute top-1/2 left-1/2"
       style={{
-        transform: tilt.x || tilt.y
-          ? `perspective(900px) rotateX(${tilt.x}deg) rotateY(${tilt.y}deg)`
-          : undefined,
-        transition: 'box-shadow 0.35s ease',
-        boxShadow: tilt.x || tilt.y
-          ? `0 24px 48px rgba(0,0,0,0.14), 0 4px 16px ${p.accentColor}30`
-          : '0 2px 8px rgba(0,0,0,0.06)',
+        width,
+        height,
+        marginLeft: -width / 2,
+        marginTop: -height / 2,
+        transform: `rotateY(${angle}deg) translateZ(${radius}px)`,
+        transformStyle: 'preserve-3d',
       }}
-      className="relative overflow-hidden"
     >
-      <Link to={p.link} className="block group">
+      <motion.div
+        className="relative w-full h-full"
+        style={{ scale, opacity, zIndex, borderRadius: 20, pointerEvents }}
+      >
         <div
-          className="bg-white border border-gray-200 rounded-2xl p-7 h-full relative overflow-hidden"
-          style={{
-            borderTop: `3px solid ${p.accentColor}`,
-          }}
+          className="relative w-full h-full rounded-[20px] overflow-hidden [backface-visibility:hidden]"
+          style={{ border: '1px solid rgba(0,0,0,0.08)', WebkitBackfaceVisibility: 'hidden' }}
         >
-          {/* Glare */}
+          {/* Image / background */}
           <div
-            className="absolute inset-0 rounded-2xl pointer-events-none"
-            style={{
-              background: `radial-gradient(circle at ${tilt.glare.x}% ${tilt.glare.y}%, rgba(255,255,255,0.2) 0%, transparent 60%)`,
-              opacity: tilt.x || tilt.y ? 1 : 0,
-              transition: 'opacity 0.3s',
-            }}
-          />
-          <div className="flex items-start justify-between mb-4">
+            className="absolute inset-0"
+            style={{ background: `linear-gradient(150deg, ${p.pastel}, ${p.pastelDeep})` }}
+          >
+            <div className="w-full h-full flex items-center justify-center opacity-20">
+              <Icon className="w-9 h-9 sm:w-12 sm:h-12" />
+            </div>
+          </div>
+
+          {/* Title + content — anchored to the top */}
+          <div className="absolute inset-x-0 top-0 px-4 pt-4 pb-4">
             <h3
-              className="text-xl font-black text-gray-950 group-hover:transition-colors duration-200"
-              style={{
-                letterSpacing: '-0.01em',
-                color: tilt.x || tilt.y ? p.accentColor : undefined,
-                transition: 'color 0.3s',
-              }}
+              className="text-gray-900 font-black mb-1.5"
+              style={{ fontSize: 'clamp(0.95rem, 1.6vw, 1.3rem)', letterSpacing: '-0.01em' }}
             >
               {p.name}
             </h3>
-            <ArrowRight
-              size={18}
-              className="text-gray-300 group-hover:translate-x-1 transition-all mt-1 flex-shrink-0"
-              style={{ color: tilt.x || tilt.y ? p.accentColor : undefined, transition: 'color 0.3s' }}
-            />
+
+            {/* Full project details — revealed only as this card spins to the front */}
+            <motion.div style={{ opacity: detailsOpacity }}>
+              <span
+                className={`inline-block px-2.5 py-1 rounded-full text-[10px] font-bold mb-2 ${p.domainColor}`}
+              >
+                {p.domain}
+              </span>
+              <p className="text-gray-800 text-xs leading-relaxed mb-3">{p.desc}</p>
+              <Link
+                to={p.link}
+                className="inline-flex items-center gap-1 text-[11px] font-bold text-gray-900 bg-black/5 hover:bg-black/10 border border-black/15 rounded-full px-2.5 py-1 transition-colors"
+              >
+                View Project
+                <ArrowRight size={10} />
+              </Link>
+            </motion.div>
           </div>
-          <span className={`inline-block px-3 py-1 rounded-full text-xs font-bold mb-4 ${p.domainColor}`}>
-            {p.domain}
-          </span>
-          <p className="text-gray-600 text-sm leading-relaxed">{p.desc}</p>
         </div>
-      </Link>
-    </motion.div>
+      </motion.div>
+    </div>
   );
 }
 
 function ProjectsSection() {
+  const sectionRef = useRef(null);
+  const { scrollYProgress } = useScroll({ target: sectionRef, offset: ['start start', 'end end'] });
+  const rawRotation = useTransform(scrollYProgress, [0, 1], [0, 360]);
+  const rotation = useSpring(rawRotation, { stiffness: 60, damping: 26, mass: 0.6 });
+  const { radius, width, height, perspective } = useCarouselGeometry();
+  const angleStep = 360 / featuredProjects.length;
+
   return (
     <section
       id="featured-projects"
-      className="bg-gray-50 py-20 px-6 min-h-screen flex items-center"
-      style={{ scrollSnapAlign: 'start' }}
+      ref={sectionRef}
+      className="relative bg-white"
+      style={{ scrollSnapAlign: 'start', minHeight: '400vh' }}
     >
-      <div className="max-w-6xl mx-auto w-full">
-        <p className="text-xs tracking-[0.2em] uppercase text-gray-400 font-semibold mb-4">
-          Built Inside the Centre
-        </p>
-        <motion.h2
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
-          className="text-3xl md:text-4xl font-black text-gray-950 mb-3"
-          style={{ letterSpacing: '-0.02em' }}
-        >
-          These are not assignments. They are products.
-        </motion.h2>
-        <p className="text-gray-600 text-base mb-12 max-w-2xl leading-relaxed">
-          Every project here was built by fellows working on a real problem, in a real community, through the REACT
-          methodology. Each went through field validation, a proof of concept, and user testing before it became what you see.
-        </p>
+      <div className="sticky top-0 min-h-screen flex items-center px-6 overflow-hidden">
+        <div className="max-w-6xl mx-auto w-full">
+          <p className="text-xs tracking-[0.2em] uppercase text-gray-400 font-semibold mb-4">
+            Built Inside the Centre
+          </p>
+          <motion.h2
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+            className="text-3xl md:text-4xl font-black text-gray-950 mb-3"
+            style={{ letterSpacing: '-0.02em' }}
+          >
+            These are not assignments. They are products.
+          </motion.h2>
+          <p className="text-gray-600 text-base mb-12 max-w-2xl leading-relaxed">
+            Every project here was built by fellows working on a real problem, in a real community, through the REACT
+            methodology. Each went through field validation, a proof of concept, and user testing before it became what you see.
+          </p>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-10">
-          {featuredProjects.map((p, i) => (
-            <ProjectCard key={p.name} p={p} i={i} />
-          ))}
+          <div className="relative mx-auto" style={{ perspective, height: height + 160, width: '100%' }}>
+            <motion.div className="absolute inset-0" style={{ rotateY: rotation, transformStyle: 'preserve-3d' }}>
+              {featuredProjects.map((p, i) => (
+                <ProjectCarousel3DCard
+                  key={p.name}
+                  p={p}
+                  angle={i * angleStep}
+                  radius={radius}
+                  width={width}
+                  height={height}
+                  rotation={rotation}
+                />
+              ))}
+            </motion.div>
+          </div>
         </div>
-
-        <Link
-          to="/projects"
-          className="inline-flex items-center gap-2 text-sm font-bold text-gray-900 hover:text-amber-600 transition-colors group"
-        >
-          See all projects
-          <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
-        </Link>
       </div>
     </section>
   );
 }
 
 /* ── S08: Testimonials ── */
-function TestimonialCard({ item }) {
+
+// Dark glass card used inside the scroll-driven zig-zag layout
+function TestimonialDarkCard({ item }) {
   return (
-    <motion.div
-      whileHover={{ y: -6, boxShadow: '0 20px 40px rgba(0,0,0,0.12)' }}
-      transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-      className="bg-gray-50 border border-gray-100 rounded-2xl p-7 h-full"
+    <div
+      className="relative flex flex-col h-full rounded-2xl"
+      style={{
+        background: '#0a0a0b',
+        border: '1px solid rgba(255,255,255,0.06)',
+        padding: 'clamp(26px, 3vw, 32px)',
+        boxShadow: '0 24px 48px rgba(0,0,0,0.35)',
+      }}
     >
-      <div className="flex items-start justify-between mb-5">
-        <div className="flex gap-3 items-center">
+      <p
+        className="text-white/90 italic"
+        style={{ flex: 1, fontSize: 'clamp(17px, 1.4vw, 21px)', lineHeight: 1.55 }}
+      >
+        "{item.quote}"
+      </p>
+
+      <div
+        className="flex items-center justify-between gap-4 mt-6 pt-5"
+        style={{ borderTop: '1px solid rgba(255,255,255,0.12)' }}
+      >
+        <div className="flex items-center gap-3 min-w-0">
           <img
             src={item.img}
             alt={item.name}
-            className="w-12 h-12 rounded-full object-cover border-2 border-white shadow"
+            className="flex-shrink-0 object-cover"
+            style={{ width: 48, height: 48, borderRadius: 9 }}
           />
-          <div>
-            <p className="font-black text-gray-900 leading-tight">{item.name}</p>
-            <p className="text-xs text-gray-500 uppercase tracking-wider mt-0.5">{item.title}</p>
+          <div className="min-w-0">
+            <div className="flex items-center gap-1.5">
+              <p className="font-bold text-white text-[15px] leading-tight truncate">{item.name}</p>
+              <BadgeCheck size={14} className="flex-shrink-0 text-amber-500" />
+            </div>
+            <p className="text-[13px] text-white/50 leading-tight mt-0.5 truncate">{item.title}</p>
           </div>
         </div>
-        <a
-          href={item.linkedin}
-          target="_blank"
-          rel="noreferrer"
-          className="text-blue-500 hover:text-blue-700 transition-colors"
+
+        <span
+          className="flex-shrink-0 text-xs font-black uppercase tracking-wider"
+          style={{ color: '#D97706', letterSpacing: '0.08em' }}
         >
-          <Linkedin size={18} />
-        </a>
+          REACT
+        </span>
       </div>
-      <p className="text-gray-700 text-sm leading-relaxed italic">"{item.quote}"</p>
-    </motion.div>
+    </div>
+  );
+}
+
+// Static, non-animated fallback for prefers-reduced-motion
+function StaticTestimonialsList({ testimonials }) {
+  return (
+    <div className="flex flex-col gap-5 max-w-xl mx-auto px-6">
+      {testimonials.map((item, i) => (
+        <TestimonialDarkCard key={i} item={item} />
+      ))}
+    </div>
+  );
+}
+
+// Slot placement: alternating left / right / center / right / left, with
+// variable heights + offsets to create overlap and rhythm between cards.
+const TESTIMONIAL_SLOTS = [
+  { justify: 'flex-start', minHeight: 'clamp(220px, 30vh, 360px)', marginTop: '0vh' },
+  { justify: 'flex-end', minHeight: 'clamp(200px, 26vh, 320px)', marginTop: '-6vh' },
+  { justify: 'center', minHeight: 'clamp(260px, 40vh, 420px)', marginTop: '4vh' },
+  { justify: 'flex-end', minHeight: 'clamp(200px, 26vh, 320px)', marginTop: '-8vh' },
+  { justify: 'flex-start', minHeight: 'clamp(220px, 30vh, 360px)', marginTop: '2vh' },
+];
+
+const WATERMARK_PHRASE = 'Testimonials — Voices of REACT — ';
+
+function ScrollDrivenTestimonials({ testimonials }) {
+  const sectionRef = useRef(null);
+  const bgRef = useRef(null);
+  const watermarkRef = useRef(null);
+  const slotRefs = useRef([]);
+  const cardRefs = useRef([]);
+  const frostRefs = useRef([]);
+
+  useLayoutEffect(() => {
+    const isMobile = window.innerWidth < 768;
+
+    const ctx = gsap.context(() => {
+      gsap.to(watermarkRef.current, {
+        xPercent: -50,
+        duration: 36,
+        ease: 'none',
+        repeat: -1,
+      });
+
+      ScrollTrigger.create({
+        trigger: sectionRef.current,
+        pin: bgRef.current,
+        pinSpacing: false,
+        anticipatePin: 1,
+        start: 'top top',
+        end: 'bottom bottom',
+        invalidateOnRefresh: true,
+      });
+
+      TESTIMONIAL_SLOTS.forEach((slot, i) => {
+        const slotEl = slotRefs.current[i];
+        const cardEl = cardRefs.current[i];
+        const frostEl = frostRefs.current[i];
+        if (!slotEl || !cardEl) return;
+
+        const sign = slot.justify === 'flex-start' ? -1 : slot.justify === 'flex-end' ? 1 : 0;
+        const enterRotateY = sign * (isMobile ? 0 : 6);
+        const exitRotateY = -sign * (isMobile ? 0 : 4);
+
+        const tl = gsap.timeline({
+          scrollTrigger: {
+            trigger: slotEl,
+            start: 'top 90%',
+            end: 'bottom 18%',
+            scrub: 0.8,
+          },
+        });
+
+        tl.fromTo(
+          cardEl,
+          {
+            y: 110,
+            opacity: 1,
+            scale: 0.94,
+            rotateX: isMobile ? 8 : 14,
+            rotateY: enterRotateY,
+            transformPerspective: 1200,
+          },
+          {
+            y: 0,
+            opacity: 1,
+            scale: 1,
+            rotateX: 0,
+            rotateY: 0,
+            ease: 'power2.out',
+          }
+        ).to(cardEl, {
+          y: -90,
+          opacity: 0,
+          scale: 0.96,
+          rotateX: isMobile ? -6 : -10,
+          rotateY: exitRotateY,
+          ease: 'power2.in',
+        });
+
+        if (frostEl) {
+          tl.to(frostEl, { opacity: 0, ease: 'power2.out' }, 0);
+        }
+      });
+    }, sectionRef);
+
+    return () => ctx.revert();
+  }, [testimonials]);
+
+  return (
+    <div ref={sectionRef} style={{ position: 'relative', isolation: 'isolate', background: '#fff' }}>
+      {/* Pinned background layer with scrolling watermark */}
+      <div ref={bgRef} style={{ height: '100vh', overflow: 'hidden', position: 'relative' }}>
+        <div
+          ref={watermarkRef}
+          style={{
+            position: 'absolute',
+            top: '50%',
+            left: 0,
+            transform: 'translateY(-50%)',
+            display: 'flex',
+            whiteSpace: 'nowrap',
+            fontWeight: 900,
+            fontSize: 'clamp(4rem, 18vw, 13rem)',
+            color: '#000',
+            opacity: 0.05,
+            letterSpacing: '-0.02em',
+          }}
+        >
+          <span>{WATERMARK_PHRASE.repeat(4)}</span>
+          <span>{WATERMARK_PHRASE.repeat(4)}</span>
+        </div>
+      </div>
+
+      {/* Card overlay — scrolls over the pinned background */}
+      <div style={{ position: 'relative', zIndex: 2, marginTop: '-100vh', pointerEvents: 'none' }}>
+        {testimonials.map((item, i) => {
+          const slot = TESTIMONIAL_SLOTS[i % TESTIMONIAL_SLOTS.length];
+          return (
+            <div
+              key={i}
+              ref={(el) => (slotRefs.current[i] = el)}
+              className="px-6"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: slot.justify,
+                minHeight: slot.minHeight,
+                marginTop: slot.marginTop,
+              }}
+            >
+              <div
+                ref={(el) => (cardRefs.current[i] = el)}
+                style={{
+                  position: 'relative',
+                  width: 'min(420px, 92vw)',
+                  transformStyle: 'preserve-3d',
+                  willChange: 'transform, opacity',
+                  pointerEvents: 'auto',
+                }}
+              >
+                <TestimonialDarkCard item={item} />
+                <div
+                  ref={(el) => (frostRefs.current[i] = el)}
+                  style={{
+                    position: 'absolute',
+                    inset: 0,
+                    borderRadius: 16,
+                    backdropFilter: 'blur(9px)',
+                    WebkitBackdropFilter: 'blur(9px)',
+                    pointerEvents: 'none',
+                    maskImage: 'linear-gradient(to top, rgba(0,0,0,1) 0%, rgba(0,0,0,0) 50%)',
+                    WebkitMaskImage: 'linear-gradient(to top, rgba(0,0,0,1) 0%, rgba(0,0,0,0) 50%)',
+                  }}
+                />
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
   );
 }
 
@@ -1015,53 +1291,14 @@ function StickyNote() {
 }
 
 function TestimonialsSection() {
-  const [isMobile, setIsMobile] = useState(false);
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const x = useMotionValue(0);
-  const animationRef = useRef(null);
-  const cardWidthWithGap = 432;
-  const extendedTestimonials = [...testimonials, ...testimonials, ...testimonials];
-
-  useEffect(() => {
-    const check = () => setIsMobile(window.innerWidth < 1024);
-    check();
-    window.addEventListener('resize', check);
-    return () => window.removeEventListener('resize', check);
-  }, []);
-
-  const startScroll = useCallback(() => {
-    const totalSetWidth = cardWidthWithGap * testimonials.length;
-    animationRef.current = animate(x, x.get() - totalSetWidth, {
-      duration: 30,
-      ease: 'linear',
-      repeat: Infinity,
-      onUpdate: (latest) => {
-        if (latest <= -totalSetWidth) x.set(latest + totalSetWidth);
-      },
-    });
-  }, [x]);
-
-  useEffect(() => {
-    if (!isMobile) startScroll();
-    return () => animationRef.current?.stop();
-  }, [isMobile, startScroll]);
-
-  useEffect(() => {
-    if (!isMobile) return;
-    const interval = setInterval(() => {
-      setCurrentIndex((prev) => (prev + 1) % testimonials.length);
-    }, 2800);
-    return () => clearInterval(interval);
-  }, [isMobile]);
+  const [reducedMotion] = useState(
+    () => typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  );
 
   return (
-    <section
-      id="testimonials"
-      className="bg-white py-14 overflow-hidden min-h-screen flex flex-col justify-center"
-      style={{ scrollSnapAlign: 'start' }}
-    >
+    <section id="testimonials" className="bg-white" style={{ scrollSnapAlign: 'start' }}>
       {/* Header + sticky note side by side */}
-      <div className="max-w-6xl mx-auto px-6 mb-10 flex flex-col lg:flex-row lg:items-end lg:justify-between gap-8">
+      <div className="max-w-6xl mx-auto px-6 pt-14 pb-10 flex flex-col lg:flex-row lg:items-end lg:justify-between gap-8">
         <div>
           <p className="text-xs tracking-[0.2em] uppercase text-gray-400 font-semibold mb-4">
             From the People Inside It
@@ -1080,51 +1317,12 @@ function TestimonialsSection() {
         </div>
       </div>
 
-      {isMobile ? (
-        <div className="px-6">
-          <div className="overflow-hidden w-full">
-            <div
-              className="flex transition-transform duration-700 ease-in-out"
-              style={{ transform: `translateX(-${currentIndex * 100}%)` }}
-            >
-              {testimonials.map((item, index) => (
-                <div key={index} className="w-full flex-shrink-0 px-2">
-                  <TestimonialCard item={item} />
-                </div>
-              ))}
-            </div>
-          </div>
-          <div className="flex justify-center gap-2 mt-6">
-            {testimonials.map((_, index) => (
-              <button
-                key={index}
-                onClick={() => setCurrentIndex(index)}
-                className={`h-2 rounded-full transition-all duration-300 ${index === currentIndex ? 'bg-amber-500 w-6' : 'bg-gray-300 w-2'}`}
-              />
-            ))}
-          </div>
+      {reducedMotion ? (
+        <div className="pb-14">
+          <StaticTestimonialsList testimonials={testimonials} />
         </div>
       ) : (
-        <div
-          className="w-full cursor-grab active:cursor-grabbing"
-          onMouseEnter={() => animationRef.current?.stop()}
-          onMouseLeave={() => startScroll()}
-        >
-          <motion.div
-            className="flex gap-6 pl-6"
-            style={{ x, width: 'max-content' }}
-            drag="x"
-            dragConstraints={{ left: -(cardWidthWithGap * testimonials.length * 2), right: 0 }}
-            onDragStart={() => animationRef.current?.stop()}
-            onDragEnd={() => startScroll()}
-          >
-            {extendedTestimonials.map((item, index) => (
-              <div key={index} className="flex-shrink-0 w-[400px] select-none">
-                <TestimonialCard item={item} />
-              </div>
-            ))}
-          </motion.div>
-        </div>
+        <ScrollDrivenTestimonials testimonials={testimonials} />
       )}
     </section>
   );
