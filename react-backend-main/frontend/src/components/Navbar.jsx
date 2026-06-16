@@ -22,10 +22,11 @@ export const Navbar = () => {
     {name : "Journey", path : "/journey"},
     { name: "Projects", path: "/projects" }, // Hidden until reworks are complete
     { name: "People", path: "/people" },
-    { name: "Why India?", path: "/why-india?" },
-    { name: "Explore Us", path: "/explore-us" },
-    { name: "Work With Us", path: "/work" },
+    //{ name: "Why India?", path: "/why-india?" },
+    //{ name: "Explore Us", path: "/explore-us" },
+    { name: "Careers", path: "/work" },
     { name: "Contact", path: "/contact" },
+    
   ];
 
   // Helper function to handle active link styling
@@ -76,8 +77,12 @@ export const Navbar = () => {
         {/* Action + Hamburger */}
         <div className="flex items-center gap-3 flex-shrink-0">
 
-
-
+          <a
+            href="http://localhost:5173/apply"
+            className="hidden lg:inline-flex items-center justify-center rounded-full bg-black text-white text-[11px] uppercase tracking-widest px-5 py-2 hover:bg-gray-800 transition-all"
+          >
+            Apply
+          </a>
 
 
           <button
@@ -108,7 +113,13 @@ export const Navbar = () => {
             </NavLink>
           ))}
 
-
+          <a
+            href="http://localhost:5173/apply"
+            onClick={() => setIsOpen(false)}
+            className="rounded-full bg-black text-white px-5 py-2 mt-1"
+          >
+            Apply
+          </a>
 
         </div>
       </div>

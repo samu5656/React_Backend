@@ -867,7 +867,7 @@ function ProgrammeStackSection({ externalRef, setSelectedProgramme }) {
               type="button"
               onClick={() => setSelectedProgramme(p)}
               className={`flex flex-col text-left overflow-hidden bg-white group hover:bg-slate-50 transition-colors focus:outline-none${i % 2 === 1 ? ' border-l border-slate-200' : ''}${i >= 2 ? ' border-t border-slate-200' : ''}`}
-              style={{ minHeight: '240px' }}
+              style={{ minHeight: '300px' }}
             >
               <div
                 className="h-1 w-full shrink-0"
@@ -890,7 +890,21 @@ function ProgrammeStackSection({ externalRef, setSelectedProgramme }) {
                 <h3 className="relative z-10 mt-3 text-sm font-bold text-slate-900 leading-snug">
                   {p.title}
                 </h3>
-                <p className="relative z-10 mt-2 flex-1 text-[11px] leading-relaxed text-slate-500 line-clamp-3">
+                <dl className="relative z-10 mt-2.5 space-y-1.5">
+                  <div className="flex items-start gap-1.5">
+                    <Award className="h-3 w-3 mt-0.5 shrink-0 text-slate-400" aria-hidden="true" />
+                    <dd className="text-[10.5px] text-slate-600 leading-snug">{p.credential}</dd>
+                  </div>
+                  <div className="flex items-start gap-1.5">
+                    <Users className="h-3 w-3 mt-0.5 shrink-0 text-slate-400" aria-hidden="true" />
+                    <dd className="text-[10.5px] text-slate-600 leading-snug">{p.openTo}</dd>
+                  </div>
+                  <div className="flex items-start gap-1.5">
+                    <Calendar className="h-3 w-3 mt-0.5 shrink-0 text-slate-400" aria-hidden="true" />
+                    <dd className="text-[10.5px] text-slate-600 leading-snug">{p.applicationWindow}</dd>
+                  </div>
+                </dl>
+                <p className="relative z-10 mt-2.5 flex-1 text-[11px] leading-relaxed text-slate-500 line-clamp-2">
                   {p.summary}
                 </p>
                 <div
