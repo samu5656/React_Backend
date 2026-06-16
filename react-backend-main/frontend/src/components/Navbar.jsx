@@ -40,7 +40,7 @@ export const Navbar = () => {
         className={`
           flex items-center justify-between transition-all duration-500 ease-in-out
           ${isScrolled
-            ? 'mt-4 w-[95%] max-w-7xl rounded-full border border-black/5 bg-white/70 backdrop-blur-xl shadow-xl px-6 py-3'
+            ? 'mt-4 w-[95%] max-w-7xl rounded-full border border-black/10 bg-white/80 backdrop-blur-xl shadow-lg px-6 py-3'
             : 'w-full rounded-none border-b border-black/5 bg-white/70 backdrop-blur-2xl px-8 py-3'
           }
         `}

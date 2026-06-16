@@ -82,6 +82,35 @@ html.lenis {
   box-shadow: 0 14px 32px rgba(0,0,0,0.10), 0 4px 8px rgba(0,0,0,0.07);
 }
 
+/* ── WHO BELONGS HERE — coloured cards ── */
+.about-who-card {
+  border: 1px solid transparent;
+  transition:
+    transform 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 0.35s ease,
+    border-color 0.35s ease;
+}
+/* Card 1 — indigo/violet: intellectual curiosity */
+.about-who-card--1 {
+  background: linear-gradient(135deg, #dbeafe 0%, #ede9fe 100%);
+  border-color: #c4b5fd;
+}
+/* Card 2 — emerald/teal: adaptability & growth */
+.about-who-card--2 {
+  background: linear-gradient(135deg, #d1fae5 0%, #cffafe 100%);
+  border-color: #6ee7b7;
+}
+/* Card 3 — rose/amber: collaborative warmth (echoes brand coral) */
+.about-who-card--3 {
+  background: linear-gradient(135deg, #fee2e2 0%, #fef3c7 100%);
+  border-color: #fca5a5;
+}
+.about-who-card:hover {
+  transform: translateY(-8px) scale(1.04);
+  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.13), 0 8px 16px rgba(0, 0, 0, 0.08);
+  border-color: transparent;
+}
+
 /* ── Image zoom on card hover ── */
 .about-card-img {
   transition: transform 700ms cubic-bezier(0.68, 0, 0.22, 0.83);
@@ -176,6 +205,7 @@ button:hover .about-arrow-icon {
   .about-pulse-ring,
   .about-pulse-dot,
   .about-card,
+  .about-who-card,
   .about-card-img,
   .about-cta-gradient,
   .about-pipeline-card,

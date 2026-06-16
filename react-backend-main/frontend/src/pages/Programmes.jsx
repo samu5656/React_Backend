@@ -8,6 +8,8 @@ import {
   useScroll,
   useTransform,
 } from 'framer-motion';
+import gsap from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import {
   ArrowRight,
   Mail,
@@ -23,6 +25,8 @@ import {
   Users,
   Calendar,
 } from 'lucide-react';
+
+gsap.registerPlugin(ScrollTrigger);
 
 // ─────────────────────────────────────────────────────────────
 // DATA
@@ -273,7 +277,6 @@ function FadeUp({ children, delay = 0, className = '' }) {
   );
 }
 
-// Large faded watermark text sitting behind section content
 function SectionWatermark({ text, light = false }) {
   return (
     <div
@@ -291,153 +294,8 @@ function SectionWatermark({ text, light = false }) {
   );
 }
 
-// Stack offsets — each card's initial position relative to its grid cell,
-// chosen so all four cards converge toward the visual center of the 2×2 grid.
-const STACK_OFFSETS = [
-  { x: 210,  y:  140, rotate: -4 },  // top-left  → shift right + down
-  { x: -210, y:  140, rotate:  3 },  // top-right → shift left  + down
-  { x: 210,  y: -140, rotate: -2 },  // bot-left  → shift right + up
-  { x: -210, y: -140, rotate:  4 },  // bot-right → shift left  + up
-];
-
 // ─────────────────────────────────────────────────────────────
-// PROGRAMME CARD — grouped-stack-to-grid reveal + 3-D hover tilt
-// ─────────────────────────────────────────────────────────────
-function ProgrammeCard({ programme, index, onClick, isGridInView }) {
-  const outerRef = useRef(null);
-  const innerRef = useRef(null);
-  const shouldReduce = useReducedMotion();
-
-  const offset = STACK_OFFSETS[index];
-
-  function onMouseMove(e) {
-    if (shouldReduce) return;
-    const el = outerRef.current;
-    const inner = innerRef.current;
-    if (!el || !inner) return;
-    const r = el.getBoundingClientRect();
-    const x = ((e.clientX - r.left) / r.width - 0.5) * 2;
-    const y = ((e.clientY - r.top) / r.height - 0.5) * 2;
-    inner.style.transform = `perspective(1100px) rotateX(${-y * 9}deg) rotateY(${x * 9}deg) scale(1.025)`;
-    inner.style.boxShadow = `${x * -14}px ${y * -14}px 48px rgba(0,0,0,0.09), 0 28px 56px rgba(0,0,0,0.11)`;
-  }
-
-  function onMouseLeave() {
-    const inner = innerRef.current;
-    if (!inner) return;
-    inner.style.transform = 'perspective(1100px) rotateX(0deg) rotateY(0deg) scale(1)';
-    inner.style.boxShadow = '0 4px 24px rgba(0,0,0,0.07), 0 1px 3px rgba(0,0,0,0.04)';
-  }
-
-  return (
-    <motion.div
-      initial={
-        shouldReduce
-          ? { opacity: 0 }
-          : { opacity: 0.35, x: offset.x, y: offset.y, scale: 0.82, rotate: offset.rotate }
-      }
-      animate={
-        isGridInView
-          ? { opacity: 1, x: 0, y: 0, scale: 1, rotate: 0 }
-          : {}
-      }
-      transition={
-        shouldReduce
-          ? { duration: 0.2 }
-          : { type: 'spring', stiffness: 62, damping: 18, mass: 1.1, delay: index * 0.09 }
-      }
-      style={{ transformPerspective: 1200, position: 'relative', zIndex: 4 - index }}
-      className="h-full"
-    >
-      <div
-        ref={outerRef}
-        onMouseMove={onMouseMove}
-        onMouseLeave={onMouseLeave}
-        onClick={() => onClick(programme)}
-        className="h-full cursor-pointer"
-        style={{ perspective: '1100px' }}
-      >
-        <article
-          ref={innerRef}
-          className="h-full flex flex-col rounded-2xl border border-slate-200/80 bg-white overflow-hidden group"
-          style={{
-            transition: 'transform 0.22s cubic-bezier(0.22,1,0.36,1), box-shadow 0.22s cubic-bezier(0.22,1,0.36,1)',
-            boxShadow: '0 4px 24px rgba(0,0,0,0.07), 0 1px 3px rgba(0,0,0,0.04)',
-            transformStyle: 'preserve-3d',
-          }}
-        >
-          {/* Gradient top accent */}
-          <div
-            className="h-1.5 w-full shrink-0"
-            style={{
-              background: `linear-gradient(90deg, ${programme.gradientFrom}, ${programme.gradientTo})`,
-            }}
-          />
-
-          <div className="flex flex-col flex-1 p-6 sm:p-7">
-            {/* Number + Duration badge */}
-            <div className="flex items-start justify-between mb-5">
-              <span
-                className="text-7xl font-black leading-none select-none"
-                style={{ color: `${programme.accent}18` }}
-                aria-hidden="true"
-              >
-                {programme.number}
-              </span>
-              <span
-                className="mt-1 text-[11px] font-bold uppercase tracking-[0.18em] px-3 py-1.5 rounded-full shrink-0"
-                style={{ color: programme.accent, background: `${programme.accent}14` }}
-              >
-                {programme.duration}
-              </span>
-            </div>
-
-            {/* Title */}
-            <h3 className="text-xl font-bold text-slate-900 leading-tight mb-4">
-              {programme.title}
-            </h3>
-
-            {/* Meta info */}
-            <dl className="space-y-2.5 mb-5">
-              <div className="flex items-start gap-2.5">
-                <Award className="h-3.5 w-3.5 mt-0.5 shrink-0 text-slate-400" aria-hidden="true" />
-                <dd className="text-[13px] text-slate-600 leading-snug">{programme.credential}</dd>
-              </div>
-              <div className="flex items-start gap-2.5">
-                <Users className="h-3.5 w-3.5 mt-0.5 shrink-0 text-slate-400" aria-hidden="true" />
-                <dd className="text-[13px] text-slate-600 leading-snug">{programme.openTo}</dd>
-              </div>
-              <div className="flex items-start gap-2.5">
-                <Calendar className="h-3.5 w-3.5 mt-0.5 shrink-0 text-slate-400" aria-hidden="true" />
-                <dd className="text-[13px] text-slate-600 leading-snug">{programme.applicationWindow}</dd>
-              </div>
-            </dl>
-
-            {/* Summary */}
-            <p className="flex-1 text-[14px] leading-relaxed text-slate-500 line-clamp-3">
-              {programme.summary}
-            </p>
-
-            {/* CTA hint */}
-            <div
-              className="mt-5 pt-5 border-t border-slate-100 flex items-center gap-1.5 text-sm font-semibold transition-all group-hover:gap-3"
-              style={{ color: programme.accent }}
-            >
-              <span>View Programme</span>
-              <ArrowRight
-                className="h-4 w-4 transition-transform group-hover:translate-x-1"
-                aria-hidden="true"
-              />
-            </div>
-          </div>
-        </article>
-      </div>
-    </motion.div>
-  );
-}
-
-// ─────────────────────────────────────────────────────────────
-// MODAL — spring scale + blur backdrop
+// MODAL — spring scale + blur backdrop (unchanged)
 // ─────────────────────────────────────────────────────────────
 function ProgrammeModal({ programme, onClose }) {
   const applyHref = programme.applyHref || '/apply';
@@ -462,7 +320,6 @@ function ProgrammeModal({ programme, onClose }) {
       exit={{ opacity: 0 }}
       transition={{ duration: 0.2 }}
     >
-      {/* Backdrop — blur + dark overlay */}
       <motion.div
         className="absolute inset-0 bg-[#0a1628]/85 backdrop-blur-md"
         onClick={onClose}
@@ -472,7 +329,6 @@ function ProgrammeModal({ programme, onClose }) {
         transition={{ duration: 0.3 }}
       />
 
-      {/* Modal panel — spring entrance */}
       <motion.div
         className="relative z-10 w-full max-w-5xl max-h-[92vh] flex flex-col lg:flex-row overflow-hidden rounded-3xl"
         initial={{ opacity: 0, scale: shouldReduce ? 1 : 0.84, y: shouldReduce ? 0 : 60 }}
@@ -488,14 +344,13 @@ function ProgrammeModal({ programme, onClose }) {
             '0 0 0 1px rgba(255,255,255,0.07), 0 56px 100px rgba(0,0,0,0.55), 0 8px 24px rgba(0,0,0,0.30)',
         }}
       >
-        {/* ── LEFT PANEL — identity + meta */}
+        {/* LEFT PANEL */}
         <div
           className="relative shrink-0 flex flex-col lg:w-[320px] xl:w-[360px] text-white"
           style={{
             background: `linear-gradient(160deg, ${programme.gradientFrom} 0%, ${programme.gradientTo} 100%)`,
           }}
         >
-          {/* Decorative blobs clipped to panel */}
           <div className="absolute inset-0 overflow-hidden rounded-tl-3xl rounded-bl-3xl pointer-events-none" aria-hidden="true">
             <div
               className="absolute -top-16 -right-16 h-64 w-64 rounded-full opacity-10"
@@ -507,7 +362,6 @@ function ProgrammeModal({ programme, onClose }) {
             />
           </div>
 
-          {/* Close — mobile only */}
           <button
             onClick={onClose}
             className="absolute top-4 right-4 lg:hidden z-10 p-2 rounded-full bg-white/15 hover:bg-white/28 text-white transition-colors"
@@ -517,18 +371,11 @@ function ProgrammeModal({ programme, onClose }) {
           </button>
 
           <div className="relative flex-1 overflow-y-auto min-h-0 px-7 pt-8 pb-4 scroll-modern-light">
-            <span className="text-white/50 text-[10px] font-bold uppercase tracking-[0.3em]">
+            <span className="text-white/50 text-[11px] font-bold uppercase tracking-[0.3em]">
               Programme {programme.number}
             </span>
-
-            <h2 className="mt-3 text-2xl font-bold leading-snug">
-              {programme.title}
-            </h2>
-
-            <p className="mt-4 text-white/80 text-[13.5px] leading-relaxed">
-              {programme.summary}
-            </p>
-
+            <h2 className="mt-3 text-3xl font-bold leading-snug">{programme.title}</h2>
+            <p className="mt-4 text-white/80 text-[15px] leading-relaxed">{programme.summary}</p>
             <dl className="mt-5 space-y-3.5">
               {[
                 { label: 'Duration', value: programme.duration },
@@ -537,16 +384,13 @@ function ProgrammeModal({ programme, onClose }) {
                 { label: 'Application window', value: programme.applicationWindow },
               ].map(({ label, value }) => (
                 <div key={label}>
-                  <dt className="text-[10px] font-bold uppercase tracking-[0.22em] text-white/45 mb-0.5">
-                    {label}
-                  </dt>
-                  <dd className="text-[13px] font-semibold text-white/90 leading-snug">{value}</dd>
+                  <dt className="text-[11px] font-bold uppercase tracking-[0.22em] text-white/45 mb-0.5">{label}</dt>
+                  <dd className="text-[14.5px] font-semibold text-white/90 leading-snug">{value}</dd>
                 </div>
               ))}
             </dl>
           </div>
 
-          {/* CTA buttons — pinned at bottom */}
           <div className="relative shrink-0 px-7 pb-7 pt-4 flex flex-col gap-2.5 border-t border-white/10">
             {applyExternal ? (
               <a
@@ -578,12 +422,10 @@ function ProgrammeModal({ programme, onClose }) {
           </div>
         </div>
 
-        {/* ── RIGHT PANEL — details (scrollable) */}
+        {/* RIGHT PANEL */}
         <div className="flex-1 flex flex-col overflow-hidden bg-white">
           <div className="hidden lg:flex shrink-0 items-center justify-between px-8 pt-6 pb-4 border-b border-slate-100">
-            <span className="text-xs font-bold uppercase tracking-[0.22em] text-slate-400">
-              Programme details
-            </span>
+            <span className="text-xs font-bold uppercase tracking-[0.22em] text-slate-400">Programme details</span>
             <button
               onClick={onClose}
               className="p-2 rounded-full hover:bg-slate-100 text-slate-500 transition-colors"
@@ -613,26 +455,19 @@ function ProgrammeModal({ programme, onClose }) {
                       aria-hidden="true"
                     />
                     <h3
-                      className="text-[11px] font-black uppercase tracking-[0.26em]"
+                      className="text-[12.5px] font-black uppercase tracking-[0.26em]"
                       style={{ color: programme.accent }}
                     >
                       {detail.heading}
                     </h3>
                   </div>
-
                   {detail.body && (
-                    <p className="text-[15px] leading-relaxed text-slate-700 font-medium pl-9">
-                      {detail.body}
-                    </p>
+                    <p className="text-[16px] leading-relaxed text-slate-700 font-medium pl-9">{detail.body}</p>
                   )}
-
                   {detail.items && (
                     <ul className="pl-9 mt-1 space-y-2.5">
                       {detail.items.map((item) => (
-                        <li
-                          key={item}
-                          className="flex gap-3 text-[14.5px] leading-relaxed text-slate-700 font-medium"
-                        >
+                        <li key={item} className="flex gap-3 text-[16px] leading-relaxed text-slate-700 font-medium">
                           <span
                             className="mt-[7px] h-2 w-2 shrink-0 rounded-full"
                             style={{ background: programme.accent }}
@@ -654,7 +489,7 @@ function ProgrammeModal({ programme, onClose }) {
 }
 
 // ─────────────────────────────────────────────────────────────
-// STAGE CARD — hover tilt + scroll reveal
+// STAGE CARD — hover tilt + scroll reveal (unchanged)
 // ─────────────────────────────────────────────────────────────
 function StageCard({ stage, index }) {
   const ref = useRef(null);
@@ -685,11 +520,7 @@ function StageCard({ stage, index }) {
       ref={ref}
       initial={{ opacity: 0, y: shouldReduce ? 0 : 65 }}
       animate={isInView ? { opacity: 1, y: 0 } : {}}
-      transition={{
-        duration: shouldReduce ? 0.15 : 0.72,
-        delay: index * 0.14,
-        ease: [0.22, 1, 0.36, 1],
-      }}
+      transition={{ duration: shouldReduce ? 0.15 : 0.72, delay: index * 0.14, ease: [0.22, 1, 0.36, 1] }}
       onMouseMove={onMouseMove}
       onMouseLeave={onMouseLeave}
       className="h-full"
@@ -708,17 +539,11 @@ function StageCard({ stage, index }) {
         >
           <stage.Icon className="h-5 w-5" style={{ color: stage.color }} aria-hidden="true" />
         </div>
-
-        <p
-          className="text-[10.5px] font-bold uppercase tracking-[0.24em] mb-2"
-          style={{ color: stage.color }}
-        >
+        <p className="text-[10.5px] font-bold uppercase tracking-[0.24em] mb-2" style={{ color: stage.color }}>
           Stage {stage.stage}
         </p>
         <h3 className="text-lg font-bold text-slate-900 leading-snug mb-3">{stage.title}</h3>
         <p className="text-[14px] leading-relaxed text-slate-600">{stage.body}</p>
-
-        {/* Watermark number */}
         <div
           className="absolute -bottom-2 right-4 text-8xl font-black leading-none select-none pointer-events-none"
           style={{ color: `${stage.color}0D` }}
@@ -732,7 +557,7 @@ function StageCard({ stage, index }) {
 }
 
 // ─────────────────────────────────────────────────────────────
-// COHORT LINK (clipboard / external)
+// COHORT LINK (unchanged)
 // ─────────────────────────────────────────────────────────────
 function CohortLink({ item }) {
   const [copied, setCopied] = useState(false);
@@ -773,11 +598,314 @@ function CohortLink({ item }) {
       ) : (
         <item.Icon className="h-4 w-4 opacity-75" aria-hidden="true" />
       )}
-      <span className="transition-all">
-        {copied ? 'Copied to clipboard!' : item.label}
-      </span>
+      <span className="transition-all">{copied ? 'Copied to clipboard!' : item.label}</span>
       {!copied && <Copy className="h-3 w-3 opacity-45" aria-hidden="true" />}
     </button>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────
+// PROGRAMME STACK SECTION  — stacked fan → full-width 2×2 grid
+//
+// Desktop (≥ 1024 px):
+//   A pinned h-screen section.  Left text block (absolute, ~44 % wide) slides
+//   up on scroll.  Four cards start stacked in a fan adjacent to the heading
+//   then spread to fill the full viewport in a 2×2 grid.
+//
+// FLIP coordinate math (GSAP):
+//   stackCX = midpoint between heading right-edge and section right-edge
+//   stackCY = vertical centre of the heading element
+//   xT = stackCX − naturalCX + fan.dx
+//   yT = stackCY − naturalCY + fan.dy
+//
+// Timeline (scrub 0.15, end +=240%):
+//   Phase 1  (0→1.0): left text exits upward (y: -sectionHeight)
+//   Phase 2  (0→1.0): cards animate from stacked offsets → 2×2 grid
+//   Phase 4  (0.85+): .prog-detail elements stagger-fade in
+//
+// Mobile (< 1024 px): normal-flow heading + 2×2 grid, no pin.
+// ─────────────────────────────────────────────────────────────
+
+const FAN_OFFSETS = [
+  { dx:   0, dy:  -5, rotation:   5, depth: 1.00 },
+  { dx: -68, dy:   8, rotation: -15, depth: 0.75 },
+  { dx:  62, dy:  18, rotation:  11, depth: 0.58 },
+  { dx: -18, dy:  38, rotation:  -6, depth: 0.42 },
+];
+
+function ProgrammeStackSection({ externalRef, setSelectedProgramme }) {
+  const sectionRef = useRef(null);
+  const textRef    = useRef(null);
+  const headingRef = useRef(null);
+  const gridRef    = useRef(null);
+  const cardRefs   = useRef([]);
+  const ctxRef     = useRef(null);
+
+  useEffect(() => {
+    const section = sectionRef.current;
+    const textEl  = textRef.current;
+    const heading = headingRef.current;
+    const grid    = gridRef.current;
+    const cards   = cardRefs.current.filter(Boolean);
+
+    if (!section || !textEl || !heading || !grid || cards.length < 4) return;
+    if (window.innerWidth < 1024) return;
+
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      section.querySelectorAll('.prog-detail').forEach(el => {
+        el.style.opacity = '1';
+        el.style.transform = 'none';
+      });
+      return;
+    }
+
+    // Compute FLIP offsets and apply initial stacked state.
+    // Called on mount and via onRefresh so layout stays accurate after resize.
+    function setInitialCardState() {
+      const sR = section.getBoundingClientRect();
+      const hR = heading.getBoundingClientRect();
+
+      // Stack centre: horizontally midpoint between the heading's right edge
+      // and the section's right edge; vertically aligned with the heading centre.
+      const stackCX = hR.right + (sR.right - hR.right) / 2;
+      const stackCY = hR.top + hR.height / 2;
+
+      cards.forEach((card, i) => {
+        const fan = FAN_OFFSETS[i];
+        const cR  = card.getBoundingClientRect();
+        gsap.set(card, {
+          x:                    stackCX - (cR.left + cR.width  / 2) + fan.dx,
+          y:                    stackCY - (cR.top  + cR.height / 2) + fan.dy,
+          rotation:             fan.rotation,
+          scale:                0.6,
+          z:                    110 * fan.depth,
+          zIndex:               Math.round(fan.depth * 10),
+          transformPerspective: 1200,
+          transformOrigin:      '50% 50%',
+          filter:               `drop-shadow(${fan.dx * 0.1}px ${fan.dy * 0.1}px 16px rgba(0,0,0,0.22))`,
+        });
+      });
+
+      section.querySelectorAll('.prog-detail').forEach(el => {
+        gsap.set(el, { opacity: 1, y: 0 });
+      });
+    }
+
+    ctxRef.current?.revert();
+
+    ctxRef.current = gsap.context(() => {
+      setInitialCardState();
+
+      const sectionH = section.offsetHeight;
+
+      const tl = gsap.timeline({
+        scrollTrigger: {
+          trigger:             section,
+          start:               'top top',
+          end:                 '+=240%',
+          pin:                 true,
+          pinSpacing:          true,
+          scrub:               0.15,
+          invalidateOnRefresh: true,
+          onRefresh:           setInitialCardState,
+        },
+      });
+
+      // Phase 1: left text block exits upward
+      tl.to(textEl, { y: -sectionH, ease: 'none', duration: 1 }, 0);
+
+      // Phase 2: cards animate from stacked fan → natural 2×2 grid positions
+      tl.to(cards, {
+        x:        0,
+        y:        0,
+        z:        0,
+        rotation: 0,
+        scale:    1,
+        filter:   'drop-shadow(0px 0px 0px rgba(0,0,0,0))',
+        zIndex:   1,
+        ease:     'power2.out',
+        stagger:  0.04,
+        duration: 1,
+      }, 0);
+
+    }, section);
+
+    return () => ctxRef.current?.revert();
+  }, []);
+
+  return (
+    <section
+      ref={el => { sectionRef.current = el; if (externalRef) externalRef.current = el; }}
+      id="programmes"
+      className="relative h-auto lg:h-screen w-full overflow-hidden bg-[#F5F7FA]"
+      style={{ perspective: '1200px' }}
+    >
+      <SectionWatermark text="FOUR" />
+
+      {/* ══ DESKTOP (≥ lg) ══════════════════════════════════════════
+          Full-viewport 2×2 grid — the cards' natural final positions.
+          GSAP stacks all four near the heading on mount; they animate
+          back here as the user scrolls. */}
+      <div
+        ref={gridRef}
+        className="hidden lg:grid absolute inset-x-0 bottom-0 grid-cols-2 grid-rows-2 gap-3 px-3 pt-2 pb-8"
+        style={{ top: '105px', transformStyle: 'preserve-3d', willChange: 'transform' }}
+      >
+        {programmes.map((p, i) => (
+          <div
+            key={p.id}
+            ref={el => { cardRefs.current[i] = el; }}
+            style={{ transformStyle: 'preserve-3d', willChange: 'transform', position: 'relative' }}
+          >
+            <button
+              type="button"
+              onClick={() => setSelectedProgramme(p)}
+              className="w-full h-full text-left flex flex-col bg-white border border-slate-200/60 rounded-2xl overflow-hidden shadow-sm group hover:bg-slate-50/60 transition-colors focus:outline-none"
+            >
+              {/* Gradient accent bar — always visible, identifies card in stack */}
+              <div
+                className="h-1.5 w-full shrink-0"
+                style={{ background: `linear-gradient(90deg, ${p.gradientFrom}, ${p.gradientTo})` }}
+              />
+              <div className="prog-detail relative flex flex-col flex-1 p-5 xl:p-7 overflow-hidden">
+                <span
+                  className="absolute top-3 right-4 font-black leading-none select-none pointer-events-none"
+                  style={{ fontSize: '8rem', color: `${p.accent}10` }}
+                  aria-hidden="true"
+                >
+                  {p.number}
+                </span>
+                <span
+                  className="relative z-10 self-start text-xs font-bold uppercase tracking-[0.18em] px-2.5 py-1 rounded-full"
+                  style={{ color: p.accent, background: `${p.accent}15` }}
+                >
+                  {p.duration}
+                </span>
+                <h3 className="relative z-10 mt-4 text-xl xl:text-2xl font-bold text-slate-900 leading-snug">
+                  {p.title}
+                </h3>
+                <div className="relative z-10 my-4 h-px w-10" style={{ background: p.accent }} />
+                <dl className="relative z-10 space-y-2 mb-4">
+                  <div className="flex items-start gap-2">
+                    <Award className="h-4 w-4 mt-0.5 shrink-0 text-slate-400" aria-hidden="true" />
+                    <dd className="text-[13.5px] text-slate-600 leading-snug">{p.credential}</dd>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <Users className="h-4 w-4 mt-0.5 shrink-0 text-slate-400" aria-hidden="true" />
+                    <dd className="text-[13.5px] text-slate-600 leading-snug">{p.openTo}</dd>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <Calendar className="h-4 w-4 mt-0.5 shrink-0 text-slate-400" aria-hidden="true" />
+                    <dd className="text-[13.5px] text-slate-600 leading-snug">{p.applicationWindow}</dd>
+                  </div>
+                </dl>
+                <p className="relative z-10 flex-1 text-[14px] xl:text-[15px] leading-relaxed text-slate-500 line-clamp-3">
+                  {p.summary}
+                </p>
+                <div
+                  className="relative z-10 mt-4 pt-4 border-t border-slate-100 flex items-center gap-2 text-[15px] font-semibold group-hover:gap-3 transition-all"
+                  style={{ color: p.accent }}
+                >
+                  <span>View Programme</span>
+                  <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" aria-hidden="true" />
+                </div>
+              </div>
+              {i >= 2 && (
+                <div
+                  className="h-2 w-full shrink-0"
+                  style={{ background: `linear-gradient(90deg, ${p.gradientFrom}, ${p.gradientTo})` }}
+                />
+              )}
+            </button>
+          </div>
+        ))}
+      </div>
+
+      {/* Left text block — absolute, vertically centred, exits upward in Phase 1.
+          Background matches the section so it cleanly masks cards behind it. */}
+      <div
+        ref={textRef}
+        className="hidden lg:flex absolute left-0 top-0 h-full flex-col justify-center px-10 xl:px-14"
+        style={{ width: '44%', willChange: 'transform', zIndex: 20 }}
+      >
+        <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-[#E76758]">
+          The Programmes
+        </p>
+        <h2
+          ref={headingRef}
+          className="mt-4 text-4xl font-semibold tracking-tight text-slate-950 xl:text-5xl"
+        >
+          Four programmes. Every one built on REACT.
+        </h2>
+        <p className="mt-4 text-base leading-relaxed text-slate-600">
+          From a two-year fellowship with a degree to a semester-long certification — every
+          programme runs on the same methodology, demands the same rigour, and produces people
+          who have worked on real problems with something real to show for it.
+        </p>
+      </div>
+
+      {/* ══ MOBILE (< lg) ════════════════════════════════════════
+          Normal-flow layout: heading above a 2×2 card grid, no pin. */}
+      <div className="lg:hidden">
+        <div className="px-6 py-12 border-b border-slate-200">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-[#E76758]">
+            The Programmes
+          </p>
+          <h2 className="mt-4 text-3xl font-semibold tracking-tight text-slate-950">
+            Four programmes. Every one built on REACT.
+          </h2>
+          <p className="mt-4 text-base leading-relaxed text-slate-600">
+            From a two-year fellowship with a degree to a semester-long certification — every
+            programme runs on the same methodology, demands the same rigour, and produces people
+            who have worked on real problems with something real to show for it.
+          </p>
+        </div>
+        <div className="grid grid-cols-2">
+          {programmes.map((p, i) => (
+            <button
+              key={p.id}
+              type="button"
+              onClick={() => setSelectedProgramme(p)}
+              className={`flex flex-col text-left overflow-hidden bg-white group hover:bg-slate-50 transition-colors focus:outline-none${i % 2 === 1 ? ' border-l border-slate-200' : ''}${i >= 2 ? ' border-t border-slate-200' : ''}`}
+              style={{ minHeight: '240px' }}
+            >
+              <div
+                className="h-1 w-full shrink-0"
+                style={{ background: `linear-gradient(90deg, ${p.gradientFrom}, ${p.gradientTo})` }}
+              />
+              <div className="relative flex flex-col flex-1 p-4 overflow-hidden">
+                <span
+                  className="absolute top-2 right-2 text-[5rem] font-black leading-none select-none pointer-events-none"
+                  style={{ color: `${p.accent}11` }}
+                  aria-hidden="true"
+                >
+                  {p.number}
+                </span>
+                <span
+                  className="relative z-10 self-start text-[10px] font-bold uppercase tracking-[0.18em] px-2 py-1 rounded-full"
+                  style={{ color: p.accent, background: `${p.accent}16` }}
+                >
+                  {p.duration}
+                </span>
+                <h3 className="relative z-10 mt-3 text-sm font-bold text-slate-900 leading-snug">
+                  {p.title}
+                </h3>
+                <p className="relative z-10 mt-2 flex-1 text-[11px] leading-relaxed text-slate-500 line-clamp-3">
+                  {p.summary}
+                </p>
+                <div
+                  className="relative z-10 mt-3 flex items-center gap-1.5 text-xs font-semibold group-hover:gap-2.5 transition-all"
+                  style={{ color: p.accent }}
+                >
+                  <span>View</span>
+                  <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
+                </div>
+              </div>
+            </button>
+          ))}
+        </div>
+      </div>
+    </section>
   );
 }
 
@@ -786,17 +914,12 @@ function CohortLink({ item }) {
 // ─────────────────────────────────────────────────────────────
 export const Programmes = () => {
   const cardsRef = useRef(null);
-  const gridRef = useRef(null);
   const [selectedProgramme, setSelectedProgramme] = useState(null);
   const shouldReduce = useReducedMotion();
 
-  // Shared trigger for the stack-to-grid reveal — all 4 cards animate together
-  const isGridInView = useInView(gridRef, { once: true, amount: 0.15 });
-
-  // Parallax scroll values for hero orbs and floating cards
   const { scrollY } = useScroll();
-  const orb1Y = useTransform(scrollY, [0, 600], [0, -100]);
-  const orb2Y = useTransform(scrollY, [0, 600], [0, -60]);
+  const orb1Y       = useTransform(scrollY, [0, 600], [0, -100]);
+  const orb2Y       = useTransform(scrollY, [0, 600], [0, -60]);
   const floatCardsY = useTransform(scrollY, [0, 400], [0, -44]);
 
   function scrollToCards() {
@@ -806,11 +929,10 @@ export const Programmes = () => {
   return (
     <main className="min-h-screen overflow-x-hidden bg-[#F5F7FA] text-slate-900">
 
-      {/* ── HERO ── */}
+      {/* ── HERO (unchanged) ── */}
       <section className="relative overflow-hidden bg-white px-6 pb-24 pt-24 sm:pb-28 sm:pt-36">
         <SectionWatermark text="PROGRAMMES" />
 
-        {/* Orb 1 — top right, parallax */}
         <motion.div
           className="pointer-events-none absolute -top-24 -right-24 h-[36rem] w-[36rem] rounded-full"
           style={{
@@ -822,7 +944,6 @@ export const Programmes = () => {
           aria-hidden="true"
         />
 
-        {/* Orb 2 — bottom left, parallax */}
         <motion.div
           className="pointer-events-none absolute -bottom-16 -left-16 h-80 w-80 rounded-full"
           style={{
@@ -834,7 +955,6 @@ export const Programmes = () => {
           aria-hidden="true"
         />
 
-        {/* Orb 3 — mid-left accent */}
         <motion.div
           className="pointer-events-none absolute top-1/2 left-1/4 h-48 w-48 rounded-full -translate-y-1/2"
           style={{ background: 'radial-gradient(circle, rgba(192,104,64,0.07) 0%, transparent 70%)' }}
@@ -843,7 +963,6 @@ export const Programmes = () => {
           aria-hidden="true"
         />
 
-        {/* 3-D layered floating cards (desktop) — parallax on scroll */}
         <motion.div
           className="pointer-events-none absolute inset-y-0 right-0 hidden w-[38vw] max-w-[28rem] items-center justify-center lg:flex"
           style={{ y: shouldReduce ? 0 : floatCardsY }}
@@ -873,12 +992,7 @@ export const Programmes = () => {
                   y: [0, -(26 - i * 6), 0],
                   x: i === 2 ? [0, 8, 0] : [0, 0, 0],
                 }}
-                transition={{
-                  duration: 4 + i * 1.2,
-                  repeat: Infinity,
-                  ease: 'easeInOut',
-                  delay: i * 0.7,
-                }}
+                transition={{ duration: 4 + i * 1.2, repeat: Infinity, ease: 'easeInOut', delay: i * 0.7 }}
               />
             ))}
           </div>
@@ -949,34 +1063,11 @@ export const Programmes = () => {
         </div>
       </section>
 
-      {/* ── PROGRAMME CARDS ── */}
-      <section ref={cardsRef} id="programmes" className="relative overflow-hidden px-6 py-16 sm:py-24">
-        <SectionWatermark text="FOUR" />
-        <div className="mx-auto max-w-6xl relative z-10">
-          <FadeUp>
-            <h2 className="text-3xl font-semibold tracking-tight text-slate-950 sm:text-4xl">
-              Four programmes. Every one built on REACT.
-            </h2>
-            <p className="mt-4 max-w-2xl text-lg leading-relaxed text-slate-600">
-              From a two-year fellowship with a degree to a semester-long certification — every
-              programme runs on the same methodology, demands the same rigour, and produces people
-              who have worked on real problems with something real to show for it.
-            </p>
-          </FadeUp>
-
-          <div ref={gridRef} className="mt-10 grid grid-cols-1 gap-6 sm:grid-cols-2">
-            {programmes.map((programme, index) => (
-              <ProgrammeCard
-                key={programme.id}
-                programme={programme}
-                index={index}
-                onClick={setSelectedProgramme}
-                isGridInView={isGridInView}
-              />
-            ))}
-          </div>
-        </div>
-      </section>
+      {/* ── PROGRAMME CARDS — GSAP pinned stack-to-grid reveal ── */}
+      <ProgrammeStackSection
+        externalRef={cardsRef}
+        setSelectedProgramme={setSelectedProgramme}
+      />
 
       {/* ── MODAL ── */}
       <AnimatePresence>
@@ -988,11 +1079,10 @@ export const Programmes = () => {
         )}
       </AnimatePresence>
 
-      {/* ── REACT FELLOW ── */}
+      {/* ── REACT FELLOW (unchanged) ── */}
       <section className="relative overflow-hidden bg-[#0F2A44] px-6 py-20 text-white sm:py-24">
         <SectionWatermark text="FELLOW" light />
 
-        {/* Accent orb */}
         <motion.div
           className="pointer-events-none absolute -top-32 -right-32 h-[28rem] w-[28rem] rounded-full"
           style={{ background: 'radial-gradient(circle, rgba(231,103,88,0.12) 0%, transparent 70%)' }}
@@ -1025,7 +1115,7 @@ export const Programmes = () => {
                 <p>
                   Two years of the REACT methodology — living inside a real problem, building under
                   field conditions, producing verified evidence that something changed for real people
-                  — does not leave a person unchanged. The centre's belief is that anyone who
+                  — does not leave a person unchanged. The centre&apos;s belief is that anyone who
                   genuinely goes through it will not stop when the programme ends. They will still be
                   working on social problems through innovative means. Still striving. Still finding
                   ways to create change that lasts.
@@ -1049,25 +1139,22 @@ export const Programmes = () => {
                 <ul className="mt-5 space-y-3 text-[15px] leading-relaxed text-white/76">
                   {fellowBenefits.map((benefit) => (
                     <li key={benefit} className="flex gap-3">
-                      <span
-                        className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-[#FFB4AA]"
-                        aria-hidden="true"
-                      />
+                      <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-[#FFB4AA]" aria-hidden="true" />
                       <span>{benefit}</span>
                     </li>
                   ))}
                 </ul>
               </div>
               <blockquote className="border-l-4 border-[#E76758] pl-6 text-3xl font-semibold leading-tight text-white sm:text-4xl">
-                "The designation cannot be applied for. The venture does not complete it. What comes
-                after does."
+                &ldquo;The designation cannot be applied for. The venture does not complete it. What comes
+                after does.&rdquo;
               </blockquote>
             </div>
           </FadeUp>
         </div>
       </section>
 
-      {/* ── THREE STAGES ── */}
+      {/* ── THREE STAGES (unchanged) ── */}
       <section className="relative overflow-hidden bg-white px-6 py-16 sm:py-24">
         <SectionWatermark text="SELECT" />
         <div className="mx-auto max-w-6xl relative z-10">
@@ -1093,11 +1180,10 @@ export const Programmes = () => {
         </div>
       </section>
 
-      {/* ── COHORT 2 CTA ── */}
+      {/* ── COHORT 2 CTA (unchanged) ── */}
       <section className="relative overflow-hidden bg-[#101827] px-6 py-16 text-white sm:py-24">
         <SectionWatermark text="COHORT" light />
 
-        {/* Accent orb */}
         <motion.div
           className="pointer-events-none absolute -bottom-24 -left-24 h-72 w-72 rounded-full"
           style={{ background: 'radial-gradient(circle, rgba(231,103,88,0.10) 0%, transparent 70%)' }}

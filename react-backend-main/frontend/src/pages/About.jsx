@@ -492,7 +492,7 @@ export const About = () => {
           <div className="mt-10 grid grid-cols-1 items-stretch gap-5 md:grid-cols-3">
             {qualities.map((quality, i) => (
               <FadeUp key={quality.title} delay={i * 0.08} className="h-full">
-                <article className="about-card h-full rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
+                <article className={`about-card about-who-card about-who-card--${i + 1} h-full rounded-lg p-6 shadow-sm`}>
                   <h3 className="text-xl font-semibold text-[#0F2A44]">{quality.title}</h3>
                   <p className="mt-3 text-base leading-relaxed text-slate-600">{quality.body}</p>
                 </article>
