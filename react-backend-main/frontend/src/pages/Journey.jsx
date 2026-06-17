@@ -554,6 +554,50 @@ function FadeUp({ children, delay = 0, className = '', as: Tag = 'div' }) {
   );
 }
 
+// Like FadeUp, but plays in AND reverses back out as the element leaves the
+// viewport in either scroll direction — used where items should not just
+// appear once and stay, but fly in/out as the user scrolls past them.
+function FlyInOut({ children, delay = 0, className = '', as: Tag = 'div', direction = 'left' }) {
+  const ref = useRef(null);
+  const fromX = direction === 'right' ? 60 : -60;
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const mm = gsap.matchMedia();
+    mm.add('(prefers-reduced-motion: no-preference)', () => {
+      gsap.fromTo(
+        el,
+        { opacity: 0, x: fromX, willChange: 'transform, opacity' },
+        {
+          opacity: 1,
+          x: 0,
+          duration: 0.7,
+          delay,
+          ease: 'power3.out',
+          scrollTrigger: {
+            trigger: el,
+            start: 'top 88%',
+            end: 'top 90px',
+            toggleActions: 'play reverse play reverse',
+            invalidateOnRefresh: true,
+          },
+        }
+      );
+    });
+    mm.add('(prefers-reduced-motion: reduce)', () => {
+      gsap.set(el, { opacity: 1, x: 0 });
+    });
+    return () => mm.revert();
+  }, [delay, fromX]);
+
+  return (
+    <Tag ref={ref} className={className}>
+      {children}
+    </Tag>
+  );
+}
+
 /* ─────────────────────────────────────────────
    SECTION HEADING (Framer Motion spring + useInView)
 ───────────────────────────────────────────── */
@@ -752,51 +796,44 @@ function CTAButton({ to, variant = 'primary', children }) {
 }
 
 /* ─────────────────────────────────────────────
-   3D PHASE CARD (used in scroll pipeline)
+   PHASE CARD — split left/right, stacked via GSAP
+   ScrollTrigger pin (each card pins at the top of
+   the viewport while the next one scrolls up and
+   covers it — the "stacked cards" scroll effect).
 ───────────────────────────────────────────── */
-function PhaseBlock({ phase, index }) {
+function PhaseBlock({ phase, index, total }) {
   const cardRef = useRef(null);
+  const contentRef = useRef(null);
   const [hovered, setHovered] = useState(false);
 
   useEffect(() => {
     const el = cardRef.current;
+    const content = contentRef.current;
     if (!el) return;
+    // Card is visible immediately — no fade-in wait. Only the hand-off to the next
+    // card (it sliding up to cover this one) gets a quick, short fade so the swap
+    // doesn't feel like an abrupt cut, without ever leaving the card blank.
     const mm = gsap.matchMedia();
+    let pinTrigger;
     mm.add('(prefers-reduced-motion: no-preference)', () => {
-      gsap.fromTo(
-        el,
-        {
-          y: 110,
-          scale: 0.94,
-          rotateX: 14,
-          rotateY: index % 2 === 0 ? 6 : -6,
-          transformPerspective: 1200,
-          opacity: 0.8,
-          willChange: 'transform, opacity',
-        },
-        {
-          y: 0,
-          scale: 1,
-          rotateX: 0,
-          rotateY: 0,
-          opacity: 1,
-          ease: 'power2.out',
-          scrollTrigger: {
-            trigger: el,
-            start: 'top 90%',
-            end: 'bottom 18%',
-            scrub: 0.8,
-            invalidateOnRefresh: true,
-          },
-          clearProps: 'willChange',
-        }
-      );
+      if (index < total - 1) {
+        pinTrigger = ScrollTrigger.create({
+          trigger: el,
+          start: 'top 80px',
+          end: 'bottom top',
+          pin: true,
+          pinSpacing: false,
+          invalidateOnRefresh: true,
+          onLeave: () => gsap.to(content, { opacity: 0, scale: 0.97, duration: 0.2, ease: 'power1.in' }),
+          onEnterBack: () => gsap.to(content, { opacity: 1, scale: 1, duration: 0.2, ease: 'power1.out' }),
+        });
+      }
     });
-    mm.add('(prefers-reduced-motion: reduce)', () => {
-      gsap.set(el, { opacity: 1, y: 0, scale: 1 });
-    });
-    return () => mm.revert();
-  }, [index]);
+    return () => {
+      pinTrigger?.kill();
+      mm.revert();
+    };
+  }, [index, total]);
 
   return (
     <div
@@ -804,114 +841,99 @@ function PhaseBlock({ phase, index }) {
       id={phase.id}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
-      className="scroll-mt-24 bg-white rounded-2xl p-8 md:p-12 border border-black/5 relative overflow-hidden"
+      className="phase-stack-card scroll-mt-24 bg-white rounded-2xl p-5 md:p-7 border border-black/5 relative overflow-hidden"
       style={{
-        transformStyle: 'preserve-3d',
-        backfaceVisibility: 'hidden',
-        WebkitBackfaceVisibility: 'hidden',
-        transition: 'box-shadow 0.3s ease, transform 0.3s ease',
+        zIndex: index + 1,
+        height: 'calc(100vh - 130px)',
+        transition: 'box-shadow 0.3s ease',
         boxShadow: hovered
           ? '0 28px 60px rgba(0,0,0,0.13), 0 4px 8px rgba(0,0,0,0.07)'
           : '0 2px 12px rgba(0,0,0,0.05)',
-        transform: hovered ? 'translateY(-4px) scale(1.005)' : 'translateY(0) scale(1)',
       }}
     >
-      {/* Glassmorphism frost overlay that fades on exit */}
-      <div
-        aria-hidden
-        style={{
-          position: 'absolute',
-          inset: 0,
-          backdropFilter: 'blur(9px)',
-          WebkitBackdropFilter: 'blur(9px)',
-          WebkitMaskImage: 'linear-gradient(to top, rgba(0,0,0,1) 0%, rgba(0,0,0,1) 26%, rgba(0,0,0,0) 52%)',
-          maskImage: 'linear-gradient(to top, rgba(0,0,0,1) 0%, rgba(0,0,0,1) 26%, rgba(0,0,0,0) 52%)',
-          opacity: 0,
-          pointerEvents: 'none',
-          zIndex: 0,
-        }}
-      />
-      <div style={{ position: 'relative', zIndex: 1 }}>
-        {/* Phase header */}
-        <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4 mb-8">
-          <div>
-            <div
-              className="text-xs font-bold text-[#E05C3A] mb-2"
-              style={{ fontFamily: 'Arial, sans-serif', letterSpacing: '0.15em' }}
-            >
-              {phase.tag}
-            </div>
-            <h3 className="text-2xl md:text-3xl font-bold text-[#1a2c4e] leading-tight">
-              {phase.designation}
-            </h3>
-            <p className="text-[#1a2c4e]/55 text-sm mt-1 font-medium">{phase.subtitle}</p>
-          </div>
-          <div
-            className="flex-shrink-0 w-12 h-12 rounded-2xl flex items-center justify-center font-bold text-white text-lg"
-            style={{ background: 'linear-gradient(135deg, #1a2c4e 0%, #2d4a7a 100%)' }}
-          >
-            {phase.number}
-          </div>
-        </div>
-
-        {/* Description paragraphs */}
-        <div className="space-y-4 mb-10">
-          {phase.paragraphs.map((para, pi2) => (
-            <p key={pi2} className="text-[#1a2c4e]/70 leading-relaxed text-[0.95rem]">
-              {para}
-            </p>
-          ))}
-        </div>
-
-        {/* Courses */}
-        <div className="mb-8">
-          <div
-            className="text-xs font-bold uppercase tracking-widest text-[#1a2c4e]/40 mb-4"
-            style={{ fontFamily: 'Arial, sans-serif' }}
-          >
-            {phase.coursesLabel}
-          </div>
-          <div className="space-y-3">
-            {phase.courses.map((course, ci) => (
+      <div ref={contentRef} className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 h-full">
+        {/* Left — phase identity + description */}
+        <div className="overflow-y-auto pr-1" style={{ scrollbarWidth: 'thin' }}>
+          <div className="flex items-start justify-between gap-4 mb-5">
+            <div>
               <div
-                key={ci}
-                className="flex gap-4 p-4 rounded-xl bg-[#f8f6f3] border border-black/5 transition-all duration-300 hover:shadow-sm hover:-translate-y-0.5"
-                style={{ willChange: 'transform' }}
+                className="text-xs font-bold text-[#E05C3A] mb-1.5"
+                style={{ fontFamily: 'Arial, sans-serif', letterSpacing: '0.15em' }}
               >
-                <div
-                  className="flex-shrink-0 w-5 h-5 rounded-full mt-0.5 flex items-center justify-center"
-                  style={{ background: '#E05C3A' }}
-                >
-                  <span className="text-white text-[9px] font-bold">{ci + 1}</span>
-                </div>
-                <div>
-                  <p className="font-semibold text-[#1a2c4e] text-sm mb-0.5">{course.name}</p>
-                  <p className="text-[#1a2c4e]/60 text-xs leading-relaxed">{course.description}</p>
-                </div>
+                {phase.tag}
               </div>
+              <h3 className="text-xl md:text-2xl font-bold text-[#1a2c4e] leading-tight">
+                {phase.designation}
+              </h3>
+              <p className="text-[#1a2c4e]/55 text-sm mt-1 font-medium">{phase.subtitle}</p>
+            </div>
+            <div
+              className="flex-shrink-0 w-10 h-10 rounded-2xl flex items-center justify-center font-bold text-white text-base"
+              style={{ background: 'linear-gradient(135deg, #1a2c4e 0%, #2d4a7a 100%)' }}
+            >
+              {phase.number}
+            </div>
+          </div>
+
+          <div className="space-y-3">
+            {phase.paragraphs.map((para, pi2) => (
+              <p key={pi2} className="text-[#1a2c4e]/70 leading-relaxed text-[0.85rem]">
+                {para}
+              </p>
             ))}
           </div>
         </div>
 
-        {/* Gate outputs */}
-        <div
-          className="rounded-xl p-6 border-l-4"
-          style={{ background: 'rgba(26,44,78,0.03)', borderColor: '#E05C3A' }}
-        >
-          <div
-            className="text-xs font-bold uppercase tracking-widest text-[#E05C3A] mb-4"
-            style={{ fontFamily: 'Arial, sans-serif' }}
-          >
-            {phase.gateLabel}
+        {/* Right — courses + gate outputs */}
+        <div className="overflow-y-auto pr-1" style={{ scrollbarWidth: 'thin' }}>
+          <div className="mb-5">
+            <div
+              className="text-xs font-bold uppercase tracking-widest text-[#1a2c4e]/40 mb-3"
+              style={{ fontFamily: 'Arial, sans-serif' }}
+            >
+              {phase.coursesLabel}
+            </div>
+            <div className="space-y-2.5">
+              {phase.courses.map((course, ci) => (
+                <div
+                  key={ci}
+                  className="flex gap-3 p-3 rounded-xl bg-[#f8f6f3] border border-black/5 transition-all duration-300 hover:shadow-sm hover:-translate-y-0.5"
+                  style={{ willChange: 'transform' }}
+                >
+                  <div
+                    className="flex-shrink-0 w-5 h-5 rounded-full mt-0.5 flex items-center justify-center"
+                    style={{ background: '#E05C3A' }}
+                  >
+                    <span className="text-white text-[9px] font-bold">{ci + 1}</span>
+                  </div>
+                  <div>
+                    <p className="font-semibold text-[#1a2c4e] text-sm mb-0.5">{course.name}</p>
+                    <p className="text-[#1a2c4e]/60 text-xs leading-relaxed">{course.description}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
-          <ul className="space-y-2.5">
-            {phase.gates.map((gate, gi) => (
-              <li key={gi} className="flex gap-3 text-sm text-[#1a2c4e]/75 leading-relaxed">
-                <span className="flex-shrink-0 text-[#E05C3A] font-bold mt-0.5">→</span>
-                {gate}
-              </li>
-            ))}
-          </ul>
+
+          <div
+            className="rounded-xl p-4 border-l-4"
+            style={{ background: 'rgba(26,44,78,0.03)', borderColor: '#E05C3A' }}
+          >
+            <div
+              className="text-xs font-bold uppercase tracking-widest text-[#E05C3A] mb-3"
+              style={{ fontFamily: 'Arial, sans-serif' }}
+            >
+              {phase.gateLabel}
+            </div>
+            <ul className="space-y-2">
+              {phase.gates.map((gate, gi) => (
+                <li key={gi} className="flex gap-2.5 text-[0.83rem] text-[#1a2c4e]/75 leading-relaxed">
+                  <span className="flex-shrink-0 text-[#E05C3A] font-bold mt-0.5">→</span>
+                  {gate}
+                </li>
+              ))}
+            </ul>
+          </div>
         </div>
       </div>
     </div>
@@ -1068,6 +1090,71 @@ function ContactLink({ item }) {
       </span>
       {!copied && <Copy className="h-3 w-3 opacity-45" aria-hidden="true" />}
     </button>
+  );
+}
+
+/* ─────────────────────────────────────────────
+   WEEKLY RHYTHM CARDS  (stack → expand animation)
+───────────────────────────────────────────── */
+function WeeklyRhythmCards({ anchors }) {
+  const ref = useRef(null);
+  const inView = useInView(ref, { once: false, amount: 0.25 });
+
+  const containerVariants = {
+    hidden: {},
+    visible: { transition: { staggerChildren: 0.18 } },
+  };
+
+  const cardVariants = {
+    hidden: (i) => ({
+      x: i === 0 ? 0 : `${-i * 100}%`,
+      scale: 1 - i * 0.05,
+      opacity: 1 - i * 0.2,
+    }),
+    visible: {
+      x: '0%',
+      scale: 1,
+      opacity: 1,
+      transition: { type: 'spring', stiffness: 60, damping: 20 },
+    },
+  };
+
+  return (
+    <motion.div
+      ref={ref}
+      className="grid grid-cols-1 md:grid-cols-3 gap-6"
+      variants={containerVariants}
+      initial="hidden"
+      animate={inView ? 'visible' : 'hidden'}
+    >
+      {anchors.map((anchor, i) => (
+        <motion.div
+          key={i}
+          custom={i}
+          variants={cardVariants}
+          whileHover={{
+            y: -4,
+            scale: 1.018,
+            borderColor: 'rgba(224,92,58,0.5)',
+            background: 'rgba(255,255,255,0.06)',
+            transition: { type: 'spring', stiffness: 260, damping: 20 },
+          }}
+          className="rounded-2xl p-8 border border-white/8 group h-full"
+          style={{
+            background: 'rgba(255,255,255,0.03)',
+            willChange: 'transform',
+            backdropFilter: 'blur(6px)',
+            WebkitBackdropFilter: 'blur(6px)',
+          }}
+        >
+          <div className="flex items-center gap-3 mb-5">
+            <div className="w-2 h-8 rounded-full" style={{ background: '#E05C3A' }} />
+            <h3 className="text-base font-bold text-white">{anchor.name}</h3>
+          </div>
+          <p className="text-white/55 text-sm leading-relaxed">{anchor.description}</p>
+        </motion.div>
+      ))}
+    </motion.div>
   );
 }
 
@@ -1286,10 +1373,16 @@ export function Journey() {
           className="grid grid-cols-1 md:grid-cols-3 gap-6"
           style={{ perspective: '1400px' }}
         >
-          {frameworks.map((fw, i) => (
+          {(() => {
+            const hoverShadows = [
+              '0 22px 50px rgba(59,130,246,0.42), 0 -14px 34px rgba(59,130,246,0.28), 18px 0 34px rgba(59,130,246,0.28), -18px 0 34px rgba(59,130,246,0.28)',
+              '0 22px 50px rgba(224,92,58,0.45), 0 -14px 34px rgba(224,92,58,0.30), 18px 0 34px rgba(224,92,58,0.30), -18px 0 34px rgba(224,92,58,0.30)',
+              '0 22px 50px rgba(139,92,246,0.42), 0 -14px 34px rgba(139,92,246,0.28), 18px 0 34px rgba(139,92,246,0.28), -18px 0 34px rgba(139,92,246,0.28)',
+            ];
+            return frameworks.map((fw, i) => (
             <FadeUp key={fw.id} delay={i * 0.1} className="h-full">
               <motion.div
-                whileHover={{ y: -8, scale: 1.03, boxShadow: '0 20px 50px rgba(26,44,78,0.14), 0 4px 12px rgba(0,0,0,0.07)' }}
+                whileHover={{ y: -8, scale: 1.03, boxShadow: hoverShadows[i] }}
                 transition={{ type: 'spring', stiffness: 260, damping: 20 }}
                 className="bg-white rounded-2xl p-8 border border-black/5 shadow-sm flex flex-col cursor-pointer h-full"
                 style={{
@@ -1322,7 +1415,8 @@ export function Journey() {
                 </div>
               </motion.div>
             </FadeUp>
-          ))}
+          ));
+          })()}
         </div>
       </Section>
 
@@ -1407,16 +1501,9 @@ export function Journey() {
           title="Every phase. Every course. Every gate."
         />
 
-        <div className="space-y-0">
+        <div className="relative">
           {phases.map((phase, pi) => (
-            <div key={phase.id}>
-              <PhaseBlock phase={phase} index={pi} />
-              {pi < phases.length - 1 && (
-                <div className="flex items-center justify-center py-6">
-                  <div className="h-10 w-px bg-gradient-to-b from-black/10 to-transparent" />
-                </div>
-              )}
-            </div>
+            <PhaseBlock key={phase.id} phase={phase} index={pi} total={phases.length} />
           ))}
         </div>
       </Section>
@@ -1503,34 +1590,7 @@ export function Journey() {
             subtitle="Phases change. Problems evolve. Three structures run through every week of the programme without exception. They are the connective tissue of the programme — keeping momentum, accountability, and communication consistent across two years."
           />
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {weeklyAnchors.map((anchor, i) => (
-              <FadeUp key={i} delay={i * 0.12}>
-                <motion.div
-                  whileHover={{
-                    y: -4,
-                    scale: 1.018,
-                    borderColor: 'rgba(224,92,58,0.5)',
-                    background: 'rgba(255,255,255,0.06)',
-                  }}
-                  transition={{ type: 'spring', stiffness: 260, damping: 20 }}
-                  className="rounded-2xl p-8 border border-white/8 group h-full"
-                  style={{
-                    background: 'rgba(255,255,255,0.03)',
-                    willChange: 'transform',
-                    backdropFilter: 'blur(6px)',
-                    WebkitBackdropFilter: 'blur(6px)',
-                  }}
-                >
-                  <div className="flex items-center gap-3 mb-5">
-                    <div className="w-2 h-8 rounded-full" style={{ background: '#E05C3A' }} />
-                    <h3 className="text-base font-bold text-white">{anchor.name}</h3>
-                  </div>
-                  <p className="text-white/55 text-sm leading-relaxed">{anchor.description}</p>
-                </motion.div>
-              </FadeUp>
-            ))}
-          </div>
+          <WeeklyRhythmCards anchors={weeklyAnchors} />
         </div>
       </Section>
 
@@ -1546,7 +1606,7 @@ export function Journey() {
 
         <div className="space-y-px">
           {portfolioLayers.map((layer, i) => (
-            <FadeUp key={i} delay={i * 0.06}>
+            <FlyInOut key={i} delay={i * 0.04} direction={i % 2 === 0 ? 'left' : 'right'}>
               <motion.div
                 whileHover={{ x: 6, backgroundColor: '#f8f6f3' }}
                 transition={{ duration: 0.25 }}
@@ -1574,7 +1634,7 @@ export function Journey() {
                   <p className="text-[#1a2c4e]/60 text-sm leading-relaxed">{layer.content}</p>
                 </div>
               </motion.div>
-            </FadeUp>
+            </FlyInOut>
           ))}
         </div>
 
