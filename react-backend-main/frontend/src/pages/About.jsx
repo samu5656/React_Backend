@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, Compass, Scale, ShieldCheck, MapPin, GraduationCap, Landmark } from 'lucide-react';
 import { motion, useInView } from 'framer-motion';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
@@ -52,6 +52,12 @@ const frameworks = [
     title: 'CALIBRATE Community Assessment',
     body: 'Eighteen structured questions assessed before any fellow enters a community with a proposed solution: readiness, trust, infrastructure, governance, existing interventions. A solution does not arrive until the community is ready to receive it and the fellow has earned the permission to work there.',
   },
+];
+
+const institutionStats = [
+  { icon: MapPin, label: 'Coimbatore, Tamil Nadu' },
+  { icon: GraduationCap, label: '3 Academic Units' },
+  { icon: Landmark, label: 'Decades of Industry Ties' },
 ];
 
 const qualities = [
@@ -197,6 +203,115 @@ const MethodologyStack = () => {
 };
 
 
+/* ── Frameworks — tilt + spotlight hover cards ── */
+const FRAMEWORK_ICONS = [Compass, Scale, ShieldCheck];
+
+const FrameworkCard = ({ framework, index }) => {
+  const cardRef = useRef(null);
+  const Icon = FRAMEWORK_ICONS[index] ?? Compass;
+  const prefersReducedRef = useRef(false);
+
+  useEffect(() => {
+    prefersReducedRef.current = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  }, []);
+
+  const onMouseMove = (e) => {
+    const el = cardRef.current;
+    if (!el || prefersReducedRef.current) return;
+    const r = el.getBoundingClientRect();
+    const px = ((e.clientX - r.left) / r.width) * 100;
+    const py = ((e.clientY - r.top) / r.height) * 100;
+    const nx = ((e.clientX - r.left) / r.width - 0.5) * 2;
+    const ny = ((e.clientY - r.top) / r.height - 0.5) * 2;
+    el.style.setProperty('--spot-x', `${px}%`);
+    el.style.setProperty('--spot-y', `${py}%`);
+    gsap.to(el, {
+      rotateX: -ny * 7,
+      rotateY: nx * 7,
+      y: -6,
+      duration: 0.4,
+      ease: 'power2.out',
+      overwrite: true,
+    });
+  };
+
+  const onMouseLeave = () => {
+    const el = cardRef.current;
+    if (!el) return;
+    gsap.to(el, { rotateX: 0, rotateY: 0, y: 0, duration: 0.5, ease: 'power3.out', overwrite: true });
+  };
+
+  return (
+    <article
+      ref={cardRef}
+      onMouseMove={onMouseMove}
+      onMouseLeave={onMouseLeave}
+      className="about-framework-card h-full rounded-2xl border border-slate-200 bg-white p-6 shadow-sm"
+      style={{ transformStyle: 'preserve-3d' }}
+    >
+      <span className="about-framework-spotlight" aria-hidden="true" />
+      <div className="relative z-10 flex items-center justify-between">
+        <span className="about-framework-icon flex h-11 w-11 items-center justify-center rounded-xl">
+          <Icon className="h-5 w-5" aria-hidden="true" />
+        </span>
+        <span className="about-framework-number text-4xl font-black leading-none select-none">
+          {String(index + 1).padStart(2, '0')}
+        </span>
+      </div>
+      <h3 className="relative z-10 mt-5 text-lg font-semibold leading-tight text-[#0F2A44]">
+        {framework.title}
+      </h3>
+      <p className="relative z-10 mt-3 text-sm leading-relaxed text-slate-600">{framework.body}</p>
+    </article>
+  );
+};
+
+/* ── Who Belongs Here — title shown first, body reveals on scroll ── */
+const QualityCard = ({ quality, index }) => {
+  const cardRef = useRef(null);
+  const bodyRef = useRef(null);
+
+  useEffect(() => {
+    const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const card = cardRef.current;
+    const body = bodyRef.current;
+    if (prefersReduced || !card || !body) return;
+
+    const ctx = gsap.context(() => {
+      gsap.fromTo(
+        body,
+        { opacity: 0, y: 24, filter: 'blur(6px)' },
+        {
+          opacity: 1,
+          y: 0,
+          filter: 'blur(0px)',
+          ease: 'power2.out',
+          scrollTrigger: {
+            trigger: card,
+            start: 'top 80%',
+            end: 'top 38%',
+            scrub: 0.6,
+          },
+        }
+      );
+    });
+
+    return () => ctx.revert();
+  }, []);
+
+  return (
+    <article
+      ref={cardRef}
+      className={`about-card about-who-card about-who-card--${index + 1} h-full rounded-lg p-6 shadow-sm`}
+    >
+      <h3 className="text-xl font-semibold text-[#0F2A44]">{quality.title}</h3>
+      <p ref={bodyRef} className="about-quality-body mt-3 text-base leading-relaxed text-slate-600">
+        {quality.body}
+      </p>
+    </article>
+  );
+};
+
 /* ══════════════════════════════════════════════════
    Main export
    ══════════════════════════════════════════════════ */
@@ -341,17 +456,17 @@ export const About = () => {
           </div>
           <div className="space-y-6 text-lg leading-relaxed text-slate-700">
             <FadeUp delay={0}>
-              <p>A real need without a solution at scale is a market failure. Market failures can be corrected.</p>
+              <p className="about-belief-p">A real need without a solution at scale is a market failure. Market failures can be corrected.</p>
             </FadeUp>
             <FadeUp delay={0.08}>
-              <p>
+              <p className="about-belief-p">
                 The farmer losing produce to postharvest spoilage will pay for something that works. The patient
                 travelling hours for a diagnosis will pay when the answer is accurate and close. The family whose child
                 cannot read will invest in learning that actually functions.
               </p>
             </FadeUp>
             <FadeUp delay={0.16}>
-              <p>
+              <p className="about-belief-p">
                 The belief behind REACT is simple and demanding: a significant number of India&apos;s most urgent problems
                 can be solved in ways that sustain themselves through the value they create. Solutions built on grants
                 collapse when the grant ends. The community is left worse off than before: they experienced something
@@ -359,7 +474,7 @@ export const About = () => {
               </p>
             </FadeUp>
             <FadeUp delay={0.24}>
-              <p>
+              <p className="about-belief-p">
                 REACT builds the other kind. The kind that grows because it earns, earns because it works, and works
                 because it was built by someone who spent time living inside the problem before touching a solution.
               </p>
@@ -398,13 +513,13 @@ export const About = () => {
             </FadeUp>
           </div>
 
-          <div className="mt-8 grid grid-cols-1 items-stretch gap-4 lg:grid-cols-3">
+          <div
+            className="about-framework-grid mt-8 grid grid-cols-1 items-stretch gap-5 lg:grid-cols-3"
+            style={{ perspective: '1400px' }}
+          >
             {frameworks.map((framework, i) => (
               <FadeUp key={framework.title} delay={i * 0.08} className="h-full">
-                <article className="about-card h-full rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
-                  <h3 className="text-lg font-semibold leading-tight text-[#0F2A44]">{framework.title}</h3>
-                  <p className="mt-3 text-sm leading-relaxed text-slate-600">{framework.body}</p>
-                </article>
+                <FrameworkCard framework={framework} index={i} />
               </FadeUp>
             ))}
           </div>
@@ -412,8 +527,10 @@ export const About = () => {
       </section>
 
       {/* ── INSTITUTION ── */}
-      <section className="px-6 py-16 sm:py-20">
-        <div className="mx-auto grid max-w-6xl gap-10 lg:grid-cols-[0.8fr_1.2fr]">
+      <section className="about-institution-section relative overflow-hidden px-6 py-16 sm:py-20">
+        <span className="about-institution-blob about-institution-blob--1" aria-hidden="true" />
+        <span className="about-institution-blob about-institution-blob--2" aria-hidden="true" />
+        <div className="relative mx-auto grid max-w-6xl gap-10 lg:grid-cols-[0.8fr_1.2fr]">
           <div>
             <FadeUp>
               <SectionLabel>The Institution</SectionLabel>
@@ -430,24 +547,37 @@ export const About = () => {
                 One of India&apos;s leading private institutions for engineering, management, and liberal arts.
               </p>
             </FadeUp>
+
+            <FadeUp delay={0.16}>
+              <div className="mt-7 flex flex-col gap-3">
+                {institutionStats.map(({ icon: Icon, label }) => (
+                  <div key={label} className="about-institution-chip flex items-center gap-3 rounded-xl border border-slate-200 bg-white/70 px-4 py-3">
+                    <span className="about-institution-chip-icon flex h-9 w-9 shrink-0 items-center justify-center rounded-lg">
+                      <Icon className="h-4 w-4" aria-hidden="true" />
+                    </span>
+                    <span className="text-sm font-semibold text-[#0F2A44]">{label}</span>
+                  </div>
+                ))}
+              </div>
+            </FadeUp>
           </div>
           <div className="space-y-6 text-lg leading-relaxed text-slate-700">
             <FadeUp delay={0}>
-              <p>
+              <p className="about-institution-p">
                 The Centre for REACT operates within Kumaraguru Institutions, based in Coimbatore, Tamil Nadu. The centre
                 draws on its laboratories, fabrication facilities, academic mentors, and decades of industry and civil
                 society relationships built across the region and beyond.
               </p>
             </FadeUp>
             <FadeUp delay={0.08}>
-              <p>
+              <p className="about-institution-p">
                 Kumaraguru Institutions has held one position consistently: the purpose of education is not merely
                 employment. The REACT methodology is the most direct expression of that position: a structured system that
                 places students inside real problems and expects them to contribute meaningfully to their solution.
               </p>
             </FadeUp>
             <FadeUp delay={0.16}>
-              <p>
+              <p className="about-institution-p">
                 The programmes run at this centre are academically accredited through partner Master&apos;s degrees across
                 three academic units within Kumaraguru Institutions.
               </p>
@@ -457,9 +587,9 @@ export const About = () => {
                 href="https://kct.ac.in"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="group inline-flex items-center gap-2 text-base font-semibold text-[#E76758] transition-colors hover:text-[#d8584a]"
+                className="about-institution-link group inline-flex items-center gap-2 rounded-full border border-[#E76758]/30 bg-white px-6 py-3 text-base font-semibold text-[#E76758]"
               >
-                Kumaraguru Institutions
+                Visit Kumaraguru Institutions
                 <ArrowRight className="about-arrow-icon h-4 w-4" aria-hidden="true" />
               </a>
             </FadeUp>
@@ -492,10 +622,7 @@ export const About = () => {
           <div className="mt-10 grid grid-cols-1 items-stretch gap-5 md:grid-cols-3">
             {qualities.map((quality, i) => (
               <FadeUp key={quality.title} delay={i * 0.08} className="h-full">
-                <article className={`about-card about-who-card about-who-card--${i + 1} h-full rounded-lg p-6 shadow-sm`}>
-                  <h3 className="text-xl font-semibold text-[#0F2A44]">{quality.title}</h3>
-                  <p className="mt-3 text-base leading-relaxed text-slate-600">{quality.body}</p>
-                </article>
+                <QualityCard quality={quality} index={i} />
               </FadeUp>
             ))}
           </div>

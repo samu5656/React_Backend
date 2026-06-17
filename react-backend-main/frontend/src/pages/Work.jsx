@@ -21,7 +21,7 @@ export const Work = () => {
 
       {/* Page Header */}
       <div className="max-w-4xl w-full text-center mb-12">
-        <h1 className="text-4xl font-bold text-gray-900 mb-4 tracking-tight">Carrer</h1>
+        <h1 className="text-4xl font-bold text-gray-900 mb-4 tracking-tight">Carrers</h1>
         <p className="text-lg text-gray-600 max-w-2xl mx-auto">
           Join a team that values field reality over assumptions and evidence over opinions. 
           We are looking for grounded leaders to join our mission.
