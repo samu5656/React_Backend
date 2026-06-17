@@ -255,7 +255,7 @@ const programmes = [
     credential: "Diploma in Social Innovation + Partner Master's degree from Kumaraguru Institutions.",
     eligibility: 'For postgraduate students.',
     tag: 'Flagship',
-    anchor: '/programme#social-innovation-fellowship',
+    link: '/fellowship/social-innovation-fellowship',
     accentColor: '#F59E0B',
   },
   {
@@ -264,7 +264,7 @@ const programmes = [
     credential: 'Full REACT methodology. The same Diploma.',
     eligibility: 'Open to any graduate anywhere in the world.',
     tag: null,
-    anchor: '/programme#social-innovation-programme',
+    link: '/fellowship/social-impact-fellowship',
     accentColor: '#38BDF8',
   },
   {
@@ -273,7 +273,7 @@ const programmes = [
     credential: 'Foundational skill — understanding a problem deeply enough that it is worth solving.',
     eligibility: 'Open to any current student at any institution.',
     tag: null,
-    anchor: '/programme#social-innovation-certification',
+    link: '/fellowship/social-innovation-certification',
     accentColor: '#A78BFA',
   },
   {
@@ -282,7 +282,7 @@ const programmes = [
     credential: 'Immersive engagement with live programme work alongside active fellows and field partners.',
     eligibility: 'For students and early-career professionals. Rolling intake.',
     tag: 'Rolling',
-    anchor: '/programme#field-internship',
+    link: '/fellowship/field-internship',
     accentColor: '#34D399',
   },
 ];
@@ -684,7 +684,7 @@ function OutputsSection() {
               key={i}
               initial={{ opacity: 0, x: -40 }}
               whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
+              viewport={{ once: false, margin: '-90px 0px 0px 0px' }}
               transition={{ duration: 0.45, delay: i * 0.07, ease: [0.16, 1, 0.3, 1] }}
               whileHover={{ x: 6 }}
               className="flex items-start gap-4 p-4 rounded-xl bg-gray-50 border border-gray-100 hover:border-amber-300 hover:bg-amber-50/40 transition-colors duration-200 group cursor-default"
@@ -692,7 +692,7 @@ function OutputsSection() {
               <motion.span
                 initial={{ scale: 0 }}
                 whileInView={{ scale: 1 }}
-                viewport={{ once: true }}
+                viewport={{ once: false, margin: '-90px 0px 0px 0px' }}
                 transition={{ duration: 0.4, delay: i * 0.07 + 0.15, type: 'spring', stiffness: 200 }}
                 className="flex-shrink-0 w-8 h-8 rounded-full bg-amber-100 text-amber-700 text-xs font-black flex items-center justify-center mt-0.5 group-hover:bg-amber-500 group-hover:text-white transition-colors duration-200"
               >
@@ -1026,19 +1026,19 @@ function TestimonialDarkCard({ item }) {
       style={{
         background: '#0a0a0b',
         border: '1px solid rgba(255,255,255,0.06)',
-        padding: 'clamp(26px, 3vw, 32px)',
+        padding: 'clamp(20px, 2.4vw, 28px)',
         boxShadow: '0 24px 48px rgba(0,0,0,0.35)',
       }}
     >
       <p
         className="text-white/90 italic"
-        style={{ flex: 1, fontSize: 'clamp(17px, 1.4vw, 21px)', lineHeight: 1.55 }}
+        style={{ flex: 1, fontSize: 'clamp(14px, 1.25vw, 18px)', lineHeight: 1.55 }}
       >
         "{item.quote}"
       </p>
 
       <div
-        className="flex items-center justify-between gap-4 mt-6 pt-5"
+        className="flex items-center justify-between gap-3 mt-4 pt-4"
         style={{ borderTop: '1px solid rgba(255,255,255,0.12)' }}
       >
         <div className="flex items-center gap-3 min-w-0">
@@ -1082,11 +1082,11 @@ function StaticTestimonialsList({ testimonials }) {
 // Slot placement: alternating left / right / center / right / left, with
 // variable heights + offsets to create overlap and rhythm between cards.
 const TESTIMONIAL_SLOTS = [
-  { justify: 'flex-start', minHeight: 'clamp(220px, 30vh, 360px)', marginTop: '0vh' },
-  { justify: 'flex-end', minHeight: 'clamp(200px, 26vh, 320px)', marginTop: '-6vh' },
-  { justify: 'center', minHeight: 'clamp(260px, 40vh, 420px)', marginTop: '4vh' },
-  { justify: 'flex-end', minHeight: 'clamp(200px, 26vh, 320px)', marginTop: '-8vh' },
-  { justify: 'flex-start', minHeight: 'clamp(220px, 30vh, 360px)', marginTop: '2vh' },
+  { justify: 'flex-start', minHeight: 'clamp(160px, 20vh, 240px)', marginTop: '0vh' },
+  { justify: 'flex-end',   minHeight: 'clamp(160px, 20vh, 240px)', marginTop: '3vh' },
+  { justify: 'flex-start', minHeight: 'clamp(160px, 20vh, 240px)', marginTop: '3vh' },
+  { justify: 'flex-end',   minHeight: 'clamp(160px, 20vh, 240px)', marginTop: '3vh' },
+  { justify: 'flex-start', minHeight: 'clamp(160px, 20vh, 240px)', marginTop: '3vh' },
 ];
 
 const WATERMARK_PHRASE = 'Testimonials — Voices of REACT — ';
@@ -1202,6 +1202,7 @@ function ScrollDrivenTestimonials({ testimonials }) {
 
       {/* Card overlay — scrolls over the pinned background */}
       <div style={{ position: 'relative', zIndex: 2, marginTop: '-100vh', pointerEvents: 'none' }}>
+        <div style={{ maxWidth: '860px', margin: '0 auto' }}>
         {testimonials.map((item, i) => {
           const slot = TESTIMONIAL_SLOTS[i % TESTIMONIAL_SLOTS.length];
           return (
@@ -1221,7 +1222,7 @@ function ScrollDrivenTestimonials({ testimonials }) {
                 ref={(el) => (cardRefs.current[i] = el)}
                 style={{
                   position: 'relative',
-                  width: 'min(420px, 92vw)',
+                  width: 'min(410px, 86vw)',
                   transformStyle: 'preserve-3d',
                   willChange: 'transform, opacity',
                   pointerEvents: 'auto',
@@ -1245,6 +1246,7 @@ function ScrollDrivenTestimonials({ testimonials }) {
             </div>
           );
         })}
+        </div>
       </div>
     </div>
   );
@@ -1331,6 +1333,7 @@ function TestimonialsSection() {
 /* ── S09: Programmes in Brief ── */
 function ProgrammeCard({ prog, i }) {
   const { ref, tilt, onMouseMove, onMouseLeave } = use3DTilt();
+  const isHovered = Boolean(tilt.x || tilt.y);
 
   return (
     <motion.div
@@ -1343,60 +1346,92 @@ function ProgrammeCard({ prog, i }) {
       onMouseMove={onMouseMove}
       onMouseLeave={onMouseLeave}
       style={{
-        transform: tilt.x || tilt.y
+        transform: isHovered
           ? `perspective(900px) rotateX(${tilt.x}deg) rotateY(${tilt.y}deg)`
           : undefined,
         transition: 'box-shadow 0.35s ease',
-        boxShadow: tilt.x || tilt.y
+        boxShadow: isHovered
           ? `0 24px 48px rgba(0,0,0,0.3), 0 0 0 1px ${prog.accentColor}40`
           : '0 4px 16px rgba(0,0,0,0.15)',
+        minHeight: 280,
       }}
-      className="relative flex flex-col justify-between bg-gradient-to-b from-slate-800 to-slate-900 rounded-2xl p-6 overflow-hidden"
+      className="relative bg-gradient-to-b from-slate-800 to-slate-900 rounded-2xl p-6 overflow-hidden"
     >
       {/* Accent top border */}
       <div
-        className="absolute top-0 left-0 right-0 h-1 rounded-t-2xl"
+        className="absolute top-0 left-0 right-0 h-1 rounded-t-2xl z-10"
         style={{ background: prog.accentColor }}
       />
 
       {/* Glare */}
       <div
-        className="absolute inset-0 rounded-2xl pointer-events-none"
+        className="absolute inset-0 rounded-2xl pointer-events-none z-10"
         style={{
           background: `radial-gradient(circle at ${tilt.glare.x}% ${tilt.glare.y}%, rgba(255,255,255,0.08) 0%, transparent 55%)`,
-          opacity: tilt.x || tilt.y ? 1 : 0,
+          opacity: isHovered ? 1 : 0,
           transition: 'opacity 0.3s',
         }}
       />
 
-      {prog.tag && (
-        <span
-          className="absolute top-5 right-5 px-2 py-0.5 text-[10px] uppercase tracking-wider rounded-full font-bold"
-          style={{ background: `${prog.accentColor}25`, color: prog.accentColor }}
+      {/* Flip wrapper — rotates on the Y-axis on hover to reveal the back face */}
+      <div
+        className="relative w-full h-full"
+        style={{
+          transformStyle: 'preserve-3d',
+          transition: 'transform 0.6s cubic-bezier(0.4, 0.2, 0.2, 1)',
+          transform: isHovered ? 'rotateY(180deg)' : 'rotateY(0deg)',
+        }}
+      >
+        {/* Front face — everything except the CTA */}
+        <div
+          className="absolute inset-0 flex flex-col justify-between"
+          style={{
+            backfaceVisibility: 'hidden',
+            WebkitBackfaceVisibility: 'hidden',
+            pointerEvents: isHovered ? 'none' : 'auto',
+          }}
         >
-          {prog.tag}
-        </span>
-      )}
+          {prog.tag && (
+            <span
+              className="absolute top-0 right-0 px-2 py-0.5 text-[10px] uppercase tracking-wider rounded-full font-bold"
+              style={{ background: `${prog.accentColor}25`, color: prog.accentColor }}
+            >
+              {prog.tag}
+            </span>
+          )}
 
-      <div>
-        <p className="text-white/50 text-xs font-bold uppercase tracking-wider mb-2">{prog.duration}</p>
-        <h3 className="text-white font-black text-lg leading-snug mb-3" style={{ letterSpacing: '-0.01em' }}>
-          {prog.title}
-        </h3>
-        <p className="text-gray-300 text-sm leading-relaxed mb-2">{prog.credential}</p>
-        <p className="text-gray-500 text-xs leading-relaxed">{prog.eligibility}</p>
+          <div>
+            <p className="text-white/50 text-xs font-bold uppercase tracking-wider mb-2">{prog.duration}</p>
+            <h3 className="text-white font-black text-lg leading-snug mb-3" style={{ letterSpacing: '-0.01em' }}>
+              {prog.title}
+            </h3>
+            <p className="text-gray-300 text-sm leading-relaxed mb-2">{prog.credential}</p>
+            <p className="text-gray-500 text-xs leading-relaxed">{prog.eligibility}</p>
+          </div>
+        </div>
+
+        {/* Back face — only the CTA */}
+        <div
+          className="absolute inset-0 flex items-center justify-center"
+          style={{
+            backfaceVisibility: 'hidden',
+            WebkitBackfaceVisibility: 'hidden',
+            transform: 'rotateY(180deg)',
+            pointerEvents: isHovered ? 'auto' : 'none',
+          }}
+        >
+          <Link to={prog.link} className="w-full">
+            <button
+              className="w-full text-center text-xs font-bold text-white/80 hover:text-white border border-white/20 hover:border-white/60 rounded-lg py-2.5 transition-all duration-200 hover:bg-white/5"
+              style={{ borderColor: `${prog.accentColor}40` }}
+              onMouseOver={(e) => (e.currentTarget.style.borderColor = prog.accentColor)}
+              onMouseOut={(e) => (e.currentTarget.style.borderColor = `${prog.accentColor}40`)}
+            >
+              Know more →
+            </button>
+          </Link>
+        </div>
       </div>
-
-      <Link to={prog.anchor} className="mt-6 block">
-        <button
-          className="w-full text-center text-xs font-bold text-white/80 hover:text-white border border-white/20 hover:border-white/60 rounded-lg py-2.5 transition-all duration-200 hover:bg-white/5"
-          style={{ borderColor: `${prog.accentColor}40` }}
-          onMouseOver={(e) => (e.currentTarget.style.borderColor = prog.accentColor)}
-          onMouseOut={(e) => (e.currentTarget.style.borderColor = `${prog.accentColor}40`)}
-        >
-          Know more →
-        </button>
-      </Link>
     </motion.div>
   );
 }
