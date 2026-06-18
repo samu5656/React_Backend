@@ -18,15 +18,15 @@ export const Navbar = () => {
   const navItems = [
     { name: "Home", path: "/" },
     { name: "About", path: "/about" },
-    { name: "Program", path: "/programmes" }, 
-    {name : "Journey", path : "/journey"},
+    { name: "Program", path: "/programmes" },
+    { name: "Journey", path: "/journey" },
     { name: "Projects", path: "/projects" }, // Hidden until reworks are complete
     { name: "People", path: "/people" },
     //{ name: "Why India?", path: "/why-india?" },
     //{ name: "Explore Us", path: "/explore-us" },
     { name: "Careers", path: "/work" },
     { name: "Contact", path: "/contact" },
-    
+
   ];
 
   // Helper function to handle active link styling
@@ -77,12 +77,14 @@ export const Navbar = () => {
         {/* Action + Hamburger */}
         <div className="flex items-center gap-3 flex-shrink-0">
 
-          <a
-            href="http://localhost:5173/apply"
-            className="hidden lg:inline-flex items-center justify-center rounded-full bg-black text-white text-[11px] uppercase tracking-widest px-5 py-2 hover:bg-gray-800 transition-all"
-          >
-            Apply
-          </a>
+<a
+  href="/apply"
+  className="navbar-float px-6 py-2 rounded-full bg-[#E07B00] text-black
+  text-[13px] font-bold uppercase tracking-widest
+  transition-transform duration-300 hover:scale-110"
+>
+  Apply
+</a>
 
 
           <button
