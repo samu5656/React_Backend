@@ -665,10 +665,11 @@ function ProgrammeStackSection({ externalRef, setSelectedProgramme }) {
       const sR = section.getBoundingClientRect();
       const hR = heading.getBoundingClientRect();
 
-      // Stack centre: horizontally midpoint between the heading's right edge
-      // and the section's right edge; vertically aligned with the heading centre.
+      // X: midpoint between heading right-edge and section right-edge (original formula — do not change).
+      // Y: 40 % of the visible viewport below the section top so the fan
+      //    sits in the lower half of the right area, clear of the heading text.
       const stackCX = hR.right + (sR.right - hR.right) / 2;
-      const stackCY = hR.top + hR.height / 2;
+      const stackCY = sR.top + window.innerHeight * 0.4;
 
       cards.forEach((card, i) => {
         const fan = FAN_OFFSETS[i];
@@ -737,7 +738,7 @@ function ProgrammeStackSection({ externalRef, setSelectedProgramme }) {
     <section
       ref={el => { sectionRef.current = el; if (externalRef) externalRef.current = el; }}
       id="programmes"
-      className="relative h-auto lg:h-screen w-full overflow-hidden bg-[#F5F7FA]"
+      className="relative h-auto w-full overflow-hidden bg-[#F5F7FA]"
       style={{ perspective: '1200px' }}
     >
       <SectionWatermark text="FOUR" />
@@ -748,14 +749,14 @@ function ProgrammeStackSection({ externalRef, setSelectedProgramme }) {
           back here as the user scrolls. */}
       <div
         ref={gridRef}
-        className="hidden lg:grid absolute inset-x-0 bottom-0 grid-cols-2 grid-rows-2 gap-3 px-3 pt-2 pb-8"
-        style={{ top: '105px', transformStyle: 'preserve-3d', willChange: 'transform' }}
+        className="hidden lg:grid grid-cols-2 gap-4 max-w-[936px] w-full mx-auto pb-10"
+        style={{ paddingTop: '105px', transformStyle: 'preserve-3d', willChange: 'transform' }}
       >
         {programmes.map((p, i) => (
           <div
             key={p.id}
             ref={el => { cardRefs.current[i] = el; }}
-            style={{ transformStyle: 'preserve-3d', willChange: 'transform', position: 'relative' }}
+            style={{ transformStyle: 'preserve-3d', willChange: 'transform', position: 'relative', aspectRatio: '1/1' }}
           >
             <button
               type="button"
@@ -785,6 +786,9 @@ function ProgrammeStackSection({ externalRef, setSelectedProgramme }) {
                   {p.title}
                 </h3>
                 <div className="relative z-10 my-4 h-px w-10" style={{ background: p.accent }} />
+                <p className="relative z-10 text-[14px] xl:text-[15px] leading-relaxed text-slate-700 mb-5">
+                  {p.summary}
+                </p>
                 <dl className="relative z-10 space-y-2 mb-4">
                   <div className="flex items-start gap-2">
                     <Award className="h-4 w-4 mt-0.5 shrink-0 text-slate-400" aria-hidden="true" />
@@ -799,11 +803,8 @@ function ProgrammeStackSection({ externalRef, setSelectedProgramme }) {
                     <dd className="text-[13.5px] text-slate-600 leading-snug">{p.applicationWindow}</dd>
                   </div>
                 </dl>
-                <p className="relative z-10 flex-1 text-[14px] xl:text-[15px] leading-relaxed text-slate-500 line-clamp-3">
-                  {p.summary}
-                </p>
                 <div
-                  className="relative z-10 mt-4 pt-4 border-t border-slate-100 flex items-center gap-2 text-[15px] font-semibold group-hover:gap-3 transition-all"
+                  className="relative z-10 mt-auto pt-4 border-t border-slate-100 flex items-center gap-2 text-[15px] font-semibold group-hover:gap-3 transition-all"
                   style={{ color: p.accent }}
                 >
                   <span>View Programme</span>
@@ -825,7 +826,7 @@ function ProgrammeStackSection({ externalRef, setSelectedProgramme }) {
           Background matches the section so it cleanly masks cards behind it. */}
       <div
         ref={textRef}
-        className="hidden lg:flex absolute left-0 top-0 h-full flex-col justify-center px-10 xl:px-14"
+        className="hidden lg:flex absolute left-0 top-0 flex-col justify-start pt-16 px-10 xl:px-14"
         style={{ width: '44%', willChange: 'transform', zIndex: 20 }}
       >
         <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-[#E76758]">
@@ -867,7 +868,7 @@ function ProgrammeStackSection({ externalRef, setSelectedProgramme }) {
               type="button"
               onClick={() => setSelectedProgramme(p)}
               className={`flex flex-col text-left overflow-hidden bg-white group hover:bg-slate-50 transition-colors focus:outline-none${i % 2 === 1 ? ' border-l border-slate-200' : ''}${i >= 2 ? ' border-t border-slate-200' : ''}`}
-              style={{ minHeight: '300px' }}
+              style={{ aspectRatio: '1/1', minHeight: '280px' }}
             >
               <div
                 className="h-1 w-full shrink-0"
@@ -904,11 +905,11 @@ function ProgrammeStackSection({ externalRef, setSelectedProgramme }) {
                     <dd className="text-[10.5px] text-slate-600 leading-snug">{p.applicationWindow}</dd>
                   </div>
                 </dl>
-                <p className="relative z-10 mt-2.5 flex-1 text-[11px] leading-relaxed text-slate-500 line-clamp-2">
+                <p className="relative z-10 mt-2.5 text-[11px] leading-relaxed text-slate-600">
                   {p.summary}
                 </p>
                 <div
-                  className="relative z-10 mt-3 flex items-center gap-1.5 text-xs font-semibold group-hover:gap-2.5 transition-all"
+                  className="relative z-10 mt-auto flex items-center gap-1.5 text-xs font-semibold group-hover:gap-2.5 transition-all"
                   style={{ color: p.accent }}
                 >
                   <span>View</span>
