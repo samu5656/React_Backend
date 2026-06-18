@@ -24,6 +24,7 @@ import {
   Award,
   Users,
   Calendar,
+  ChevronDown,
 } from 'lucide-react';
 
 gsap.registerPlugin(ScrollTrigger);
@@ -640,6 +641,7 @@ function ProgrammeStackSection({ externalRef, setSelectedProgramme }) {
   const gridRef    = useRef(null);
   const cardRefs   = useRef([]);
   const ctxRef     = useRef(null);
+  const [openId, setOpenId] = useState(null);
 
   useEffect(() => {
     const section = sectionRef.current;
@@ -846,7 +848,7 @@ function ProgrammeStackSection({ externalRef, setSelectedProgramme }) {
       </div>
 
       {/* ══ MOBILE (< lg) ════════════════════════════════════════
-          Normal-flow layout: heading above a 2×2 card grid, no pin. */}
+          Stacked accordion cards — tap to expand each programme. */}
       <div className="lg:hidden">
         <div className="px-6 py-12 border-b border-slate-200">
           <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-[#E76758]">
@@ -861,62 +863,78 @@ function ProgrammeStackSection({ externalRef, setSelectedProgramme }) {
             who have worked on real problems with something real to show for it.
           </p>
         </div>
-        <div className="grid grid-cols-2">
-          {programmes.map((p, i) => (
-            <button
-              key={p.id}
-              type="button"
-              onClick={() => setSelectedProgramme(p)}
-              className={`flex flex-col text-left overflow-hidden bg-white group hover:bg-slate-50 transition-colors focus:outline-none${i % 2 === 1 ? ' border-l border-slate-200' : ''}${i >= 2 ? ' border-t border-slate-200' : ''}`}
-              style={{ aspectRatio: '1/1', minHeight: '280px' }}
-            >
+
+        <div className="flex flex-col">
+          {programmes.map((p) => (
+            <div key={p.id} className="border-b border-slate-200 bg-white">
+              {/* Gradient accent bar */}
               <div
                 className="h-1 w-full shrink-0"
                 style={{ background: `linear-gradient(90deg, ${p.gradientFrom}, ${p.gradientTo})` }}
               />
-              <div className="relative flex flex-col flex-1 p-4 overflow-hidden">
-                <span
-                  className="absolute top-2 right-2 text-[5rem] font-black leading-none select-none pointer-events-none"
-                  style={{ color: `${p.accent}11` }}
-                  aria-hidden="true"
-                >
-                  {p.number}
-                </span>
-                <span
-                  className="relative z-10 self-start text-[10px] font-bold uppercase tracking-[0.18em] px-2 py-1 rounded-full"
-                  style={{ color: p.accent, background: `${p.accent}16` }}
-                >
-                  {p.duration}
-                </span>
-                <h3 className="relative z-10 mt-3 text-sm font-bold text-slate-900 leading-snug">
-                  {p.title}
-                </h3>
-                <dl className="relative z-10 mt-2.5 space-y-1.5">
-                  <div className="flex items-start gap-1.5">
-                    <Award className="h-3 w-3 mt-0.5 shrink-0 text-slate-400" aria-hidden="true" />
-                    <dd className="text-[10.5px] text-slate-600 leading-snug">{p.credential}</dd>
-                  </div>
-                  <div className="flex items-start gap-1.5">
-                    <Users className="h-3 w-3 mt-0.5 shrink-0 text-slate-400" aria-hidden="true" />
-                    <dd className="text-[10.5px] text-slate-600 leading-snug">{p.openTo}</dd>
-                  </div>
-                  <div className="flex items-start gap-1.5">
-                    <Calendar className="h-3 w-3 mt-0.5 shrink-0 text-slate-400" aria-hidden="true" />
-                    <dd className="text-[10.5px] text-slate-600 leading-snug">{p.applicationWindow}</dd>
-                  </div>
-                </dl>
-                <p className="relative z-10 mt-2.5 text-[11px] leading-relaxed text-slate-600">
-                  {p.summary}
-                </p>
-                <div
-                  className="relative z-10 mt-auto flex items-center gap-1.5 text-xs font-semibold group-hover:gap-2.5 transition-all"
-                  style={{ color: p.accent }}
-                >
-                  <span>View</span>
-                  <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
+              {/* Tap header */}
+              <button
+                type="button"
+                onClick={() => setOpenId(openId === p.id ? null : p.id)}
+                className="w-full flex items-center justify-between gap-3 px-5 py-4 text-left focus:outline-none"
+              >
+                <div className="flex items-center gap-3 min-w-0">
+                  <span
+                    className="shrink-0 text-[10px] font-bold uppercase tracking-[0.18em] px-2.5 py-1 rounded-full"
+                    style={{ color: p.accent, background: `${p.accent}16` }}
+                  >
+                    {p.duration}
+                  </span>
+                  <h3 className="text-[15px] font-bold text-slate-900 leading-snug">{p.title}</h3>
                 </div>
-              </div>
-            </button>
+                <ChevronDown
+                  className="h-5 w-5 shrink-0 text-slate-400 transition-transform duration-300"
+                  style={{ transform: openId === p.id ? 'rotate(180deg)' : 'rotate(0deg)' }}
+                  aria-hidden="true"
+                />
+              </button>
+
+              {/* Expandable content */}
+              <AnimatePresence initial={false}>
+                {openId === p.id && (
+                  <motion.div
+                    key="content"
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: 'auto', opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
+                    className="overflow-hidden"
+                  >
+                    <div className="px-5 pb-6">
+                      <p className="text-[14px] leading-relaxed text-slate-600 mb-4">{p.summary}</p>
+                      <dl className="space-y-2.5 mb-5">
+                        <div className="flex items-start gap-2">
+                          <Award className="h-4 w-4 mt-0.5 shrink-0 text-slate-400" aria-hidden="true" />
+                          <dd className="text-[13px] text-slate-600 leading-snug">{p.credential}</dd>
+                        </div>
+                        <div className="flex items-start gap-2">
+                          <Users className="h-4 w-4 mt-0.5 shrink-0 text-slate-400" aria-hidden="true" />
+                          <dd className="text-[13px] text-slate-600 leading-snug">{p.openTo}</dd>
+                        </div>
+                        <div className="flex items-start gap-2">
+                          <Calendar className="h-4 w-4 mt-0.5 shrink-0 text-slate-400" aria-hidden="true" />
+                          <dd className="text-[13px] text-slate-600 leading-snug">{p.applicationWindow}</dd>
+                        </div>
+                      </dl>
+                      <button
+                        type="button"
+                        onClick={() => setSelectedProgramme(p)}
+                        className="inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-sm font-semibold text-white transition-opacity hover:opacity-90"
+                        style={{ background: p.accent }}
+                      >
+                        View Programme
+                        <ArrowRight className="h-4 w-4" aria-hidden="true" />
+                      </button>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
           ))}
         </div>
       </div>
