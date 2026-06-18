@@ -79,7 +79,7 @@ export const Navbar = () => {
 
 <a
   href="/apply"
-  className="navbar-float px-6 py-2 rounded-full bg-[#E07B00] text-black
+  className="navbar-float hidden lg:inline-flex px-6 py-2 rounded-full bg-[#E07B00] text-black
   text-[13px] font-bold uppercase tracking-widest
   transition-transform duration-300 hover:scale-110"
 >

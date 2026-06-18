@@ -805,6 +805,16 @@ function PhaseBlock({ phase, index, total }) {
   const cardRef = useRef(null);
   const contentRef = useRef(null);
   const [hovered, setHovered] = useState(false);
+  const [isMobile, setIsMobile] = useState(
+    () => typeof window !== 'undefined' && window.matchMedia('(max-width: 1023px)').matches
+  );
+
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 1023px)');
+    const handler = (e) => setIsMobile(e.matches);
+    mq.addEventListener('change', handler);
+    return () => mq.removeEventListener('change', handler);
+  }, []);
 
   useEffect(() => {
     const el = cardRef.current;
@@ -815,7 +825,7 @@ function PhaseBlock({ phase, index, total }) {
     // doesn't feel like an abrupt cut, without ever leaving the card blank.
     const mm = gsap.matchMedia();
     let pinTrigger;
-    mm.add('(prefers-reduced-motion: no-preference)', () => {
+    mm.add('(prefers-reduced-motion: no-preference) and (min-width: 1024px)', () => {
       if (index < total - 1) {
         pinTrigger = ScrollTrigger.create({
           trigger: el,
@@ -841,19 +851,20 @@ function PhaseBlock({ phase, index, total }) {
       id={phase.id}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
-      className="phase-stack-card scroll-mt-24 bg-white rounded-2xl p-5 md:p-7 border border-black/5 relative overflow-hidden"
+      className="phase-stack-card scroll-mt-24 bg-white rounded-2xl p-5 md:p-7 border border-black/5 relative"
       style={{
         zIndex: index + 1,
-        height: 'calc(100vh - 130px)',
+        height: isMobile ? 'auto' : 'calc(100vh - 130px)',
+        overflow: isMobile ? 'visible' : 'hidden',
         transition: 'box-shadow 0.3s ease',
         boxShadow: hovered
           ? '0 28px 60px rgba(0,0,0,0.13), 0 4px 8px rgba(0,0,0,0.07)'
           : '0 2px 12px rgba(0,0,0,0.05)',
       }}
     >
-      <div ref={contentRef} className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 h-full">
+      <div ref={contentRef} className={`grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 ${isMobile ? '' : 'h-full'}`}>
         {/* Left — phase identity + description */}
-        <div className="overflow-y-auto pr-1" style={{ scrollbarWidth: 'thin' }}>
+        <div className="phase-col-scroll overflow-y-auto pr-1" style={{ scrollbarWidth: 'thin' }}>
           <div className="flex items-start justify-between gap-4 mb-5">
             <div>
               <div
@@ -885,7 +896,7 @@ function PhaseBlock({ phase, index, total }) {
         </div>
 
         {/* Right — courses + gate outputs */}
-        <div className="overflow-y-auto pr-1" style={{ scrollbarWidth: 'thin' }}>
+        <div className="phase-col-scroll overflow-y-auto pr-1" style={{ scrollbarWidth: 'thin' }}>
           <div className="mb-5">
             <div
               className="text-xs font-bold uppercase tracking-widest text-[#1a2c4e]/40 mb-3"

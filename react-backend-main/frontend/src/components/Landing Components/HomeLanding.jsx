@@ -203,7 +203,7 @@ const featuredProjects = [
     pastelDeep: '#fecdd3',
   },
   {
-    name: 'Therbal',
+    name: 'Modular Solar Drying sheet',
     domain: 'Environment and Climate',
     domainColor: 'bg-emerald-100 text-emerald-800',
     desc: 'A community-led water management initiative addressing seasonal scarcity in peri-urban zones.',

@@ -26,6 +26,22 @@ html {
   animation: navbar-float 2.5s ease-in-out infinite;
 }
 
+/* ── Journey page: Five Phases — mobile overrides (desktop untouched) ── */
+@media (max-width: 1023px) {
+  .phase-stack-card {
+    height: auto !important;
+    overflow: visible !important;
+  }
+  /* The inner content grid uses h-full which collapses when parent is auto height */
+  .phase-stack-card > div {
+    height: auto !important;
+  }
+  .phase-col-scroll {
+    overflow-y: visible !important;
+    height: auto !important;
+  }
+}
+
 /* =========================================================================
    Shrimp Feeder page — Tailwind token mappings (ADDITIVE).
    Translates the source project's tailwind.config.js (Tailwind v3) into a
