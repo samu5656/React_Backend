@@ -17,6 +17,15 @@ html {
   }
 }
 
+@keyframes navbar-float {
+  0%, 100% { transform: translateY(0px); }
+  50%       { transform: translateY(-5px); }
+}
+
+.navbar-float {
+  animation: navbar-float 2.5s ease-in-out infinite;
+}
+
 /* =========================================================================
    Shrimp Feeder page — Tailwind token mappings (ADDITIVE).
    Translates the source project's tailwind.config.js (Tailwind v3) into a
