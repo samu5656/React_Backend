@@ -861,17 +861,17 @@ const PROJECT_DOMAIN_ICON = {
 // True cylinder: 5 cards evenly spaced (360 / count) around a ring, all the same
 // size. No card is stacked behind another — they're spread around the full circle.
 function useCarouselGeometry() {
-  const [geometry, setGeometry] = useState({ radius: 320, width: 240, height: 300, perspective: 1800 });
+  const [geometry, setGeometry] = useState({ radius: 320, width: 240, height: 300, perspective: 1800, stagePad: 160 });
 
   useEffect(() => {
     function recompute() {
       const w = window.innerWidth;
       if (w < 640) {
-        setGeometry({ radius: 115, width: 125, height: 170, perspective: 900 });
+        setGeometry({ radius: 155, width: 160, height: 215, perspective: 1050, stagePad: 80 });
       } else if (w < 1024) {
-        setGeometry({ radius: 215, width: 175, height: 235, perspective: 1300 });
+        setGeometry({ radius: 215, width: 175, height: 235, perspective: 1300, stagePad: 160 });
       } else {
-        setGeometry({ radius: 320, width: 240, height: 300, perspective: 1800 });
+        setGeometry({ radius: 320, width: 240, height: 300, perspective: 1800, stagePad: 160 });
       }
     }
     recompute();
@@ -965,7 +965,7 @@ function ProjectsSection() {
   const { scrollYProgress } = useScroll({ target: sectionRef, offset: ['start start', 'end end'] });
   const rawRotation = useTransform(scrollYProgress, [0, 1], [0, 360]);
   const rotation = useSpring(rawRotation, { stiffness: 60, damping: 26, mass: 0.6 });
-  const { radius, width, height, perspective } = useCarouselGeometry();
+  const { radius, width, height, perspective, stagePad } = useCarouselGeometry();
   const angleStep = 360 / featuredProjects.length;
 
   return (
@@ -975,27 +975,46 @@ function ProjectsSection() {
       className="relative bg-white"
       style={{ scrollSnapAlign: 'start', minHeight: '400vh' }}
     >
+      {/* Mobile only: text in normal scroll flow so the card is fully visible when pinning */}
+      <div className="sm:hidden px-6 pt-20 pb-8 bg-white relative z-10">
+        <p className="text-xs tracking-[0.2em] uppercase text-gray-400 font-semibold mb-2">
+          Built Inside the Centre
+        </p>
+        <h2 className="text-2xl font-black text-gray-950 mb-2" style={{ letterSpacing: '-0.02em' }}>
+          These are not assignments. They are products.
+        </h2>
+        <p className="text-gray-600 text-sm leading-relaxed">
+          Every project here was built by fellows working on a real problem, in a real community, through the REACT
+          methodology. Each went through field validation, a proof of concept, and user testing before it became what you see.
+        </p>
+      </div>
+
       <div className="sticky top-0 min-h-screen flex items-center px-6 overflow-hidden">
         <div className="max-w-6xl mx-auto w-full">
-          <p className="text-xs tracking-[0.2em] uppercase text-gray-400 font-semibold mb-4">
-            Built Inside the Centre
-          </p>
-          <motion.h2
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
-            className="text-3xl md:text-4xl font-black text-gray-950 mb-3"
-            style={{ letterSpacing: '-0.02em' }}
-          >
-            These are not assignments. They are products.
-          </motion.h2>
-          <p className="text-gray-600 text-base mb-12 max-w-2xl leading-relaxed">
-            Every project here was built by fellows working on a real problem, in a real community, through the REACT
-            methodology. Each went through field validation, a proof of concept, and user testing before it became what you see.
-          </p>
 
-          <div className="relative mx-auto" style={{ perspective, height: height + 160, width: '100%' }}>
+          {/* Desktop only: text inside the sticky container */}
+          <div className="hidden sm:block">
+            <p className="text-xs tracking-[0.2em] uppercase text-gray-400 font-semibold mb-4">
+              Built Inside the Centre
+            </p>
+            <motion.h2
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6 }}
+              className="text-3xl md:text-4xl font-black text-gray-950 mb-3"
+              style={{ letterSpacing: '-0.02em' }}
+            >
+              These are not assignments. They are products.
+            </motion.h2>
+            <p className="text-gray-600 text-base mb-12 max-w-2xl leading-relaxed">
+              Every project here was built by fellows working on a real problem, in a real community, through the REACT
+              methodology. Each went through field validation, a proof of concept, and user testing before it became what you see.
+            </p>
+          </div>
+
+          {/* Carousel — both mobile and desktop */}
+          <div className="relative mx-auto" style={{ perspective, height: height + stagePad, width: '100%' }}>
             <motion.div className="absolute inset-0" style={{ rotateY: rotation, transformStyle: 'preserve-3d' }}>
               {featuredProjects.map((p, i) => (
                 <ProjectCarousel3DCard
