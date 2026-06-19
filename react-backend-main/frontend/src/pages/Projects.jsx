@@ -94,10 +94,10 @@ const PROJECTS = [
 ];
 
 // ─── Card dimensions ─────────────────────────────────────────────────────────
-const CARD_W = 340;
-const CARD_H = 400;
-const COL    = 360;
-const ROW    = 415;
+const CARD_W = 320;
+const CARD_H = 360;
+const COL    = 340;
+const ROW    = 165;
 
 const GRID_POS = [
   { x: -COL, y: -ROW },  // top-left
@@ -185,7 +185,7 @@ function ScrollRevealSection() {
 
   // ── Card 0: hero (Solar Dryer) → top-center (2nd position) ─────────────
   const c0x     = useTransform(smooth, [0.06, 0.76], [0, GRID_POS[1].x]);
-  const c0y     = useTransform(smooth, [0.06, 0.76], [60, GRID_POS[1].y]);
+  const c0y     = useTransform(smooth, [0.06, 0.76], [0, GRID_POS[1].y]);
   const c0scale = useTransform(smooth, [0,    0.72], [1.2, 1]);
 
   // ── Card 1: Flushable Napkin → top-left ─────────────────────────────────
@@ -458,7 +458,7 @@ export const Projects = () => {
   const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
-    const check = () => setIsMobile(window.innerWidth < 1100);
+    const check = () => setIsMobile(window.innerWidth < 1100 || window.innerHeight < 820);
     check();
     window.addEventListener('resize', check);
     return () => window.removeEventListener('resize', check);
@@ -469,7 +469,6 @@ export const Projects = () => {
       {isMobile ? <MobileGrid /> : (
         <>
           <ScrollRevealSection />
-          <DesktopGrid />
         </>
       )}
       <CtaSection />

@@ -24,7 +24,6 @@ import {
   Award,
   Users,
   Calendar,
-  ChevronDown,
 } from 'lucide-react';
 
 gsap.registerPlugin(ScrollTrigger);
@@ -296,7 +295,9 @@ function SectionWatermark({ text, light = false }) {
 }
 
 // ─────────────────────────────────────────────────────────────
-// MODAL — spring scale + blur backdrop (unchanged)
+// MODAL — spring scale + blur backdrop
+// Mobile: full-screen single column with compact header + sticky actions
+// Desktop (sm+): unchanged two-column side-by-side layout
 // ─────────────────────────────────────────────────────────────
 function ProgrammeModal({ programme, onClose }) {
   const applyHref = programme.applyHref || '/apply';
@@ -315,7 +316,7 @@ function ProgrammeModal({ programme, onClose }) {
 
   return (
     <motion.div
-      className="fixed inset-0 z-[200] flex items-center justify-center p-3 sm:p-6"
+      className="fixed inset-0 z-[200] flex items-center justify-center p-0 sm:p-6"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
@@ -331,7 +332,7 @@ function ProgrammeModal({ programme, onClose }) {
       />
 
       <motion.div
-        className="relative z-10 w-full max-w-5xl max-h-[92vh] flex flex-col lg:flex-row overflow-hidden rounded-3xl"
+        className="relative z-10 w-full h-full sm:h-auto sm:max-w-5xl sm:max-h-[92vh] flex flex-col lg:flex-row overflow-hidden rounded-none sm:rounded-3xl"
         initial={{ opacity: 0, scale: shouldReduce ? 1 : 0.84, y: shouldReduce ? 0 : 60 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: shouldReduce ? 1 : 0.93, y: shouldReduce ? 0 : 24 }}
@@ -345,9 +346,36 @@ function ProgrammeModal({ programme, onClose }) {
             '0 0 0 1px rgba(255,255,255,0.07), 0 56px 100px rgba(0,0,0,0.55), 0 8px 24px rgba(0,0,0,0.30)',
         }}
       >
-        {/* LEFT PANEL */}
+        {/* ── MOBILE HEADER (hidden sm+) ── */}
         <div
-          className="relative shrink-0 flex flex-col lg:w-[320px] xl:w-[360px] text-white"
+          className="sm:hidden shrink-0 relative px-5 pt-6 pb-5 text-white"
+          style={{
+            background: `linear-gradient(160deg, ${programme.gradientFrom} 0%, ${programme.gradientTo} 100%)`,
+          }}
+        >
+          <button
+            onClick={onClose}
+            className="absolute top-4 right-4 p-2 rounded-full bg-white/15 hover:bg-white/28 text-white transition-colors"
+            aria-label="Close"
+          >
+            <X className="h-4 w-4" />
+          </button>
+          <span className="block text-[10px] font-bold uppercase tracking-[0.3em] text-white/50 mb-2">
+            Programme {programme.number}
+          </span>
+          <span
+            className="inline-block text-[10px] font-bold uppercase tracking-[0.18em] px-2.5 py-1 rounded-full mb-3"
+            style={{ background: 'rgba(255,255,255,0.18)', color: '#fff' }}
+          >
+            {programme.duration}
+          </span>
+          <h2 className="text-xl font-bold leading-snug">{programme.title}</h2>
+          <p className="mt-2 text-[13px] leading-relaxed text-white/75">{programme.summary}</p>
+        </div>
+
+        {/* ── LEFT PANEL (desktop sm+ only) ── */}
+        <div
+          className="hidden sm:flex relative shrink-0 flex-col lg:w-[320px] xl:w-[360px] text-white"
           style={{
             background: `linear-gradient(160deg, ${programme.gradientFrom} 0%, ${programme.gradientTo} 100%)`,
           }}
@@ -362,14 +390,6 @@ function ProgrammeModal({ programme, onClose }) {
               style={{ background: 'radial-gradient(circle, white, transparent 70%)' }}
             />
           </div>
-
-          <button
-            onClick={onClose}
-            className="absolute top-4 right-4 lg:hidden z-10 p-2 rounded-full bg-white/15 hover:bg-white/28 text-white transition-colors"
-            aria-label="Close"
-          >
-            <X className="h-4 w-4" />
-          </button>
 
           <div className="relative flex-1 overflow-y-auto min-h-0 px-7 pt-8 pb-4 scroll-modern-light">
             <span className="text-white/50 text-[11px] font-bold uppercase tracking-[0.3em]">
@@ -423,8 +443,8 @@ function ProgrammeModal({ programme, onClose }) {
           </div>
         </div>
 
-        {/* RIGHT PANEL */}
-        <div className="flex-1 flex flex-col overflow-hidden bg-white">
+        {/* ── RIGHT PANEL / MOBILE SCROLLABLE BODY ── */}
+        <div className="flex-1 flex flex-col overflow-hidden bg-white min-h-0">
           <div className="hidden lg:flex shrink-0 items-center justify-between px-8 pt-6 pb-4 border-b border-slate-100">
             <span className="text-xs font-bold uppercase tracking-[0.22em] text-slate-400">Programme details</span>
             <button
@@ -436,8 +456,24 @@ function ProgrammeModal({ programme, onClose }) {
             </button>
           </div>
 
-          <div className="flex-1 overflow-y-auto px-7 sm:px-8 py-7 scroll-modern-dark">
-            <div className="space-y-8">
+          <div className="flex-1 overflow-y-auto px-5 sm:px-8 py-5 sm:py-7 scroll-modern-dark">
+            {/* Mobile key info — shown only below sm */}
+            <dl className="sm:hidden space-y-3 mb-5 pb-5 border-b border-slate-100">
+              {[
+                { label: 'Credential', value: programme.credential },
+                { label: 'Open to', value: programme.openTo },
+                { label: 'Window', value: programme.applicationWindow },
+              ].map(({ label, value }) => (
+                <div key={label} className="flex gap-3">
+                  <dt className="text-[11px] font-bold uppercase tracking-[0.2em] text-slate-400 w-20 shrink-0 pt-0.5">
+                    {label}
+                  </dt>
+                  <dd className="text-[13px] font-medium text-slate-700 leading-snug">{value}</dd>
+                </div>
+              ))}
+            </dl>
+
+            <div className="space-y-6 sm:space-y-8">
               {programme.details.map((detail, i) => (
                 <motion.section
                   key={detail.heading}
@@ -451,26 +487,28 @@ function ProgrammeModal({ programme, onClose }) {
                 >
                   <div className="flex items-center gap-3 mb-3">
                     <span
-                      className="h-0.5 w-6 rounded-full shrink-0"
+                      className="h-0.5 w-5 rounded-full shrink-0"
                       style={{ background: programme.accent }}
                       aria-hidden="true"
                     />
                     <h3
-                      className="text-[12.5px] font-black uppercase tracking-[0.26em]"
+                      className="text-[11.5px] font-black uppercase tracking-[0.26em]"
                       style={{ color: programme.accent }}
                     >
                       {detail.heading}
                     </h3>
                   </div>
                   {detail.body && (
-                    <p className="text-[16px] leading-relaxed text-slate-700 font-medium pl-9">{detail.body}</p>
+                    <p className="text-[14px] sm:text-[16px] leading-relaxed text-slate-700 font-medium pl-8">
+                      {detail.body}
+                    </p>
                   )}
                   {detail.items && (
-                    <ul className="pl-9 mt-1 space-y-2.5">
+                    <ul className="pl-8 mt-1 space-y-2">
                       {detail.items.map((item) => (
-                        <li key={item} className="flex gap-3 text-[16px] leading-relaxed text-slate-700 font-medium">
+                        <li key={item} className="flex gap-2.5 text-[13.5px] sm:text-[16px] leading-relaxed text-slate-700 font-medium">
                           <span
-                            className="mt-[7px] h-2 w-2 shrink-0 rounded-full"
+                            className="mt-[7px] h-1.5 w-1.5 shrink-0 rounded-full"
                             style={{ background: programme.accent }}
                             aria-hidden="true"
                           />
@@ -482,6 +520,38 @@ function ProgrammeModal({ programme, onClose }) {
                 </motion.section>
               ))}
             </div>
+          </div>
+
+          {/* Mobile action buttons — hidden sm+ */}
+          <div className="sm:hidden shrink-0 px-5 pt-4 pb-6 flex flex-col gap-2.5 border-t border-slate-100">
+            {applyExternal ? (
+              <a
+                href={applyHref}
+                className="inline-flex items-center justify-center gap-2 rounded-xl px-5 py-3.5 text-sm font-bold text-white transition-opacity active:opacity-80"
+                style={{ background: programme.accent }}
+              >
+                <Mail className="h-4 w-4" aria-hidden="true" />
+                {programme.applyLabel}
+              </a>
+            ) : (
+              <Link
+                to={applyHref}
+                onClick={onClose}
+                className="inline-flex items-center justify-center gap-2 rounded-xl px-5 py-3.5 text-sm font-bold text-white transition-opacity active:opacity-80"
+                style={{ background: programme.accent }}
+              >
+                {programme.applyLabel}
+                <ArrowRight className="h-4 w-4" aria-hidden="true" />
+              </Link>
+            )}
+            <Link
+              to={programme.learnHref}
+              onClick={onClose}
+              className="inline-flex items-center justify-center gap-2 rounded-xl px-5 py-3.5 text-sm font-semibold text-slate-900 border border-slate-200 transition-colors active:bg-slate-50"
+            >
+              {programme.learnLabel}
+              <ArrowRight className="h-4 w-4" aria-hidden="true" />
+            </Link>
           </div>
         </div>
       </motion.div>
@@ -641,7 +711,6 @@ function ProgrammeStackSection({ externalRef, setSelectedProgramme }) {
   const gridRef    = useRef(null);
   const cardRefs   = useRef([]);
   const ctxRef     = useRef(null);
-  const [openId, setOpenId] = useState(null);
 
   useEffect(() => {
     const section = sectionRef.current;
@@ -848,92 +917,62 @@ function ProgrammeStackSection({ externalRef, setSelectedProgramme }) {
       </div>
 
       {/* ══ MOBILE (< lg) ════════════════════════════════════════
-          Stacked accordion cards — tap to expand each programme. */}
+          Individual programme cards stacked vertically. */}
       <div className="lg:hidden">
-        <div className="px-6 py-12 border-b border-slate-200">
+        <div className="px-5 py-10 border-b border-slate-200">
           <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-[#E76758]">
             The Programmes
           </p>
-          <h2 className="mt-4 text-3xl font-semibold tracking-tight text-slate-950">
+          <h2 className="mt-3 text-3xl font-semibold tracking-tight text-slate-950">
             Four programmes. Every one built on REACT.
           </h2>
-          <p className="mt-4 text-base leading-relaxed text-slate-600">
+          <p className="mt-3 text-base leading-relaxed text-slate-600">
             From a two-year fellowship with a degree to a semester-long certification — every
             programme runs on the same methodology, demands the same rigour, and produces people
             who have worked on real problems with something real to show for it.
           </p>
         </div>
 
-        <div className="flex flex-col">
+        <div className="px-4 py-6 space-y-4">
           {programmes.map((p) => (
-            <div key={p.id} className="border-b border-slate-200 bg-white">
-              {/* Gradient accent bar */}
+            <div key={p.id} className="bg-white rounded-2xl overflow-hidden shadow-sm border border-slate-200/60">
               <div
-                className="h-1 w-full shrink-0"
+                className="h-1.5 w-full shrink-0"
                 style={{ background: `linear-gradient(90deg, ${p.gradientFrom}, ${p.gradientTo})` }}
               />
-              {/* Tap header */}
-              <button
-                type="button"
-                onClick={() => setOpenId(openId === p.id ? null : p.id)}
-                className="w-full flex items-center justify-between gap-3 px-5 py-4 text-left focus:outline-none"
-              >
-                <div className="flex items-center gap-3 min-w-0">
-                  <span
-                    className="shrink-0 text-[10px] font-bold uppercase tracking-[0.18em] px-2.5 py-1 rounded-full"
-                    style={{ color: p.accent, background: `${p.accent}16` }}
-                  >
-                    {p.duration}
-                  </span>
-                  <h3 className="text-[15px] font-bold text-slate-900 leading-snug">{p.title}</h3>
-                </div>
-                <ChevronDown
-                  className="h-5 w-5 shrink-0 text-slate-400 transition-transform duration-300"
-                  style={{ transform: openId === p.id ? 'rotate(180deg)' : 'rotate(0deg)' }}
-                  aria-hidden="true"
-                />
-              </button>
-
-              {/* Expandable content */}
-              <AnimatePresence initial={false}>
-                {openId === p.id && (
-                  <motion.div
-                    key="content"
-                    initial={{ height: 0, opacity: 0 }}
-                    animate={{ height: 'auto', opacity: 1 }}
-                    exit={{ height: 0, opacity: 0 }}
-                    transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
-                    className="overflow-hidden"
-                  >
-                    <div className="px-5 pb-6">
-                      <p className="text-[14px] leading-relaxed text-slate-600 mb-4">{p.summary}</p>
-                      <dl className="space-y-2.5 mb-5">
-                        <div className="flex items-start gap-2">
-                          <Award className="h-4 w-4 mt-0.5 shrink-0 text-slate-400" aria-hidden="true" />
-                          <dd className="text-[13px] text-slate-600 leading-snug">{p.credential}</dd>
-                        </div>
-                        <div className="flex items-start gap-2">
-                          <Users className="h-4 w-4 mt-0.5 shrink-0 text-slate-400" aria-hidden="true" />
-                          <dd className="text-[13px] text-slate-600 leading-snug">{p.openTo}</dd>
-                        </div>
-                        <div className="flex items-start gap-2">
-                          <Calendar className="h-4 w-4 mt-0.5 shrink-0 text-slate-400" aria-hidden="true" />
-                          <dd className="text-[13px] text-slate-600 leading-snug">{p.applicationWindow}</dd>
-                        </div>
-                      </dl>
-                      <button
-                        type="button"
-                        onClick={() => setSelectedProgramme(p)}
-                        className="inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-sm font-semibold text-white transition-opacity hover:opacity-90"
-                        style={{ background: p.accent }}
-                      >
-                        View Programme
-                        <ArrowRight className="h-4 w-4" aria-hidden="true" />
-                      </button>
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
+              <div className="p-5">
+                <span
+                  className="inline-block text-[10px] font-bold uppercase tracking-[0.18em] px-2.5 py-1 rounded-full mb-3"
+                  style={{ color: p.accent, background: `${p.accent}16` }}
+                >
+                  {p.duration}
+                </span>
+                <h3 className="text-[17px] font-bold text-slate-900 leading-snug mb-2">{p.title}</h3>
+                <p className="text-[13.5px] leading-relaxed text-slate-600 mb-4">{p.summary}</p>
+                <dl className="space-y-2 mb-5">
+                  <div className="flex items-start gap-2">
+                    <Award className="h-4 w-4 mt-0.5 shrink-0 text-slate-400" aria-hidden="true" />
+                    <dd className="text-[12.5px] text-slate-600 leading-snug">{p.credential}</dd>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <Users className="h-4 w-4 mt-0.5 shrink-0 text-slate-400" aria-hidden="true" />
+                    <dd className="text-[12.5px] text-slate-600 leading-snug">{p.openTo}</dd>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <Calendar className="h-4 w-4 mt-0.5 shrink-0 text-slate-400" aria-hidden="true" />
+                    <dd className="text-[12.5px] text-slate-600 leading-snug">{p.applicationWindow}</dd>
+                  </div>
+                </dl>
+                <button
+                  type="button"
+                  onClick={() => setSelectedProgramme(p)}
+                  className="w-full inline-flex items-center justify-center gap-2 rounded-xl py-3 text-sm font-semibold text-white transition-opacity active:opacity-80"
+                  style={{ background: p.accent }}
+                >
+                  View Programme
+                  <ArrowRight className="h-4 w-4" aria-hidden="true" />
+                </button>
+              </div>
             </div>
           ))}
         </div>
