@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useLayoutEffect, useRef, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, useScroll, useTransform, useSpring } from 'framer-motion';
-import { ArrowRight, Globe, Mail, ExternalLink, Copy, Check, BadgeCheck } from 'lucide-react';
+import { ArrowRight, Globe, Mail, ExternalLink, Copy, Check, BadgeCheck, Linkedin } from 'lucide-react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
@@ -90,55 +90,55 @@ const domains = [
     title: 'Agriculture and Food Systems',
     desc: 'Smallholder farming, supply chains, food security, postharvest loss, agricultural markets.',
     Icon: AgricultureIcon,
-    color: 'from-amber-50 to-orange-50',
-    border: 'border-amber-200',
     iconBg: 'bg-amber-100',
-    shadowColor: 'rgba(251,191,36,0.35)',
+    shadowColor: 'rgba(251,191,36,0.45)',
+    conicColors: '#F59E0B 0%, #EA580C 25%, #FCD34D 55%, #F97316 80%, #F59E0B 100%',
+    maskBg: 'linear-gradient(135deg, #fffbeb, #fff7ed)',
   },
   {
     title: 'Health and Wellbeing',
     desc: 'Primary care access, diagnostics, maternal health, mental health, community health systems.',
     Icon: HealthIcon,
-    color: 'from-rose-50 to-pink-50',
-    border: 'border-rose-200',
     iconBg: 'bg-rose-100',
-    shadowColor: 'rgba(251,113,133,0.35)',
+    shadowColor: 'rgba(251,113,133,0.45)',
+    conicColors: '#FB7185 0%, #EC4899 25%, #FCA5A5 55%, #F43F5E 80%, #FB7185 100%',
+    maskBg: 'linear-gradient(135deg, #fff1f2, #fdf2f8)',
   },
   {
     title: 'Environment and Climate',
     desc: 'Water, waste, energy, climate adaptation, ecological restoration, urban sustainability.',
     Icon: EnvironmentIcon,
-    color: 'from-emerald-50 to-teal-50',
-    border: 'border-emerald-200',
     iconBg: 'bg-emerald-100',
-    shadowColor: 'rgba(52,211,153,0.35)',
+    shadowColor: 'rgba(52,211,153,0.45)',
+    conicColors: '#34D399 0%, #0D9488 25%, #6EE7B7 55%, #10B981 80%, #34D399 100%',
+    maskBg: 'linear-gradient(135deg, #ecfdf5, #f0fdfa)',
   },
   {
     title: 'Culture and Creative Economy',
     desc: 'Indigenous knowledge, craft, performing arts, creative livelihoods, cultural heritage.',
     Icon: CultureIcon,
-    color: 'from-violet-50 to-purple-50',
-    border: 'border-violet-200',
     iconBg: 'bg-violet-100',
-    shadowColor: 'rgba(167,139,250,0.35)',
+    shadowColor: 'rgba(167,139,250,0.45)',
+    conicColors: '#A78BFA 0%, #7C3AED 25%, #C4B5FD 55%, #8B5CF6 80%, #A78BFA 100%',
+    maskBg: 'linear-gradient(135deg, #f5f3ff, #faf5ff)',
   },
   {
     title: 'Sustainable Communities',
     desc: 'Housing, infrastructure, governance, mobility, civic systems, community resilience.',
     Icon: CommunityIcon,
-    color: 'from-sky-50 to-blue-50',
-    border: 'border-sky-200',
     iconBg: 'bg-sky-100',
-    shadowColor: 'rgba(56,189,248,0.35)',
+    shadowColor: 'rgba(56,189,248,0.45)',
+    conicColors: '#38BDF8 0%, #3B82F6 25%, #7DD3FC 55%, #0EA5E9 80%, #38BDF8 100%',
+    maskBg: 'linear-gradient(135deg, #f0f9ff, #eff6ff)',
   },
   {
     title: 'Education and Livelihood',
     desc: 'Learning access, vocational pathways, skills systems, income security, economic mobility.',
     Icon: EducationIcon,
-    color: 'from-yellow-50 to-lime-50',
-    border: 'border-yellow-200',
     iconBg: 'bg-yellow-100',
-    shadowColor: 'rgba(250,204,21,0.35)',
+    shadowColor: 'rgba(250,204,21,0.45)',
+    conicColors: '#FDE047 0%, #84CC16 25%, #FEF08A 55%, #FACC15 80%, #FDE047 100%',
+    maskBg: 'linear-gradient(135deg, #fefce8, #f7fee7)',
   },
 ];
 
@@ -154,8 +154,8 @@ const outputs = [
 
 const testimonials = [
   {
-    name: 'Jana',
-    title: 'Young Innovator (TNSPC)',
+    name: 'Janarthanan V',
+    title: 'Chevening Scholar, Imperial College London',
     quote: "Working in policy and grassroots innovation, I've always believed in the power of field-based education. REACT is the first program I've seen that truly embodies that vision.",
     img: Jana,
     linkedin: 'https://www.linkedin.com/in/connectwithjana/',
@@ -194,6 +194,7 @@ const featuredProjects = [
   {
     name: 'Flushable Napkin',
     domain: 'Health and Wellbeing',
+    stripGradient: 'linear-gradient(180deg, #fb7185, #be123c)',
     domainColor: 'bg-rose-100 text-rose-800',
     desc: 'A biodegradable, flushable sanitary napkin co-developed with rural women to address menstrual hygiene and waste disposal challenges.',
     link: '/projects',
@@ -212,6 +213,7 @@ const featuredProjects = [
     stack: ['IoT Sensors', 'Water Analytics', 'Community Ops'],
     pastel: '#d1fae5',
     pastelDeep: '#a7f3d0',
+    stripGradient: 'linear-gradient(180deg, #34d399, #065F46)',
   },
   {
     name: 'Mushroom Farming',
@@ -223,6 +225,7 @@ const featuredProjects = [
     stack: ['Low-cost Cultivation', 'Farmer Training', 'Bio Inputs'],
     pastel: '#fef3c7',
     pastelDeep: '#fde68a',
+    stripGradient: 'linear-gradient(180deg, #fbbf24, #92400E)',
   },
   {
     name: 'Shrimp Farming',
@@ -234,6 +237,7 @@ const featuredProjects = [
     stack: ['Embedded Systems', 'Automation', 'Sensor Hardware'],
     pastel: '#ffedd5',
     pastelDeep: '#fed7aa',
+    stripGradient: 'linear-gradient(180deg, #fb923c, #9A3412)',
   },
   {
     name: 'VR Simulator',
@@ -245,6 +249,7 @@ const featuredProjects = [
     accentColor: '#5B21B6',
     pastel: '#ede9fe',
     pastelDeep: '#ddd6fe',
+    stripGradient: 'linear-gradient(180deg, #a78bfa, #5B21B6)',
   },
 ];
 
@@ -257,6 +262,8 @@ const programmes = [
     tag: 'Flagship',
     link: '/fellowship/social-innovation-fellowship',
     accentColor: '#F59E0B',
+    cardBg: '#160e00',
+    conicColors: '#f59e0b 0%, #f97316 22%, #fbbf24 50%, #ef4444 75%, #f59e0b 100%',
   },
   {
     title: 'Social Innovation Programme',
@@ -266,6 +273,8 @@ const programmes = [
     tag: null,
     link: '/fellowship/social-impact-fellowship',
     accentColor: '#38BDF8',
+    cardBg: '#001826',
+    conicColors: '#38bdf8 0%, #0ea5e9 22%, #7dd3fc 50%, #6366f1 75%, #38bdf8 100%',
   },
   {
     title: 'Social Innovation Certification',
@@ -275,6 +284,8 @@ const programmes = [
     tag: null,
     link: '/fellowship/social-innovation-certification',
     accentColor: '#A78BFA',
+    cardBg: '#0c0020',
+    conicColors: '#a78bfa 0%, #7c3aed 22%, #c4b5fd 50%, #ec4899 75%, #a78bfa 100%',
   },
   {
     title: 'Field Internship',
@@ -284,6 +295,8 @@ const programmes = [
     tag: 'Rolling',
     link: '/fellowship/field-internship',
     accentColor: '#34D399',
+    cardBg: '#001a0e',
+    conicColors: '#34d399 0%, #10b981 22%, #6ee7b7 50%, #06b6d4 75%, #34d399 100%',
   },
 ];
 
@@ -291,12 +304,6 @@ const cohortLinks = [
   {
     label: 'reactfellowship.kumaraguru.in',
     href: 'https://reactfellowship.kumaraguru.in',
-    Icon: Globe,
-    action: 'link',
-  },
-  {
-    label: 'react.kct.ac.in',
-    href: 'https://react.kct.ac.in',
     Icon: Globe,
     action: 'link',
   },
@@ -573,7 +580,7 @@ function DomainCard({ d, i }) {
       whileInView={{ opacity: 1, y: 0, scale: 1 }}
       viewport={{ once: true }}
       transition={{ duration: 0.5, delay: i * 0.09, ease: [0.16, 1, 0.3, 1] }}
-      whileHover={{ scale: 1.07, y: -8, zIndex: 10 }}
+      whileHover={{ scale: 1.1, y: -10, zIndex: 10 }}
       onMouseMove={onMouseMove}
       onMouseLeave={onMouseLeave}
       style={{
@@ -585,31 +592,50 @@ function DomainCard({ d, i }) {
           ? `0 24px 48px ${d.shadowColor}, 0 8px 20px rgba(0,0,0,0.12)`
           : '0 2px 8px rgba(0,0,0,0.06)',
         position: 'relative',
+        background: d.maskBg,
       }}
-      className={`bg-gradient-to-br ${d.color} border ${d.border} rounded-2xl p-6 cursor-pointer overflow-hidden`}
+      className="relative rounded-2xl cursor-pointer overflow-hidden"
     >
+      {/* Rotating conic gradient — covers entire card at 35% opacity so it sweeps the full face */}
+      <div
+        className="domain-border-anim"
+        style={{
+          position: 'absolute',
+          width: '200%',
+          height: '200%',
+          top: '-50%',
+          left: '-50%',
+          background: `conic-gradient(from 0deg at 50% 50%, ${d.conicColors})`,
+          opacity: 0.35,
+          zIndex: 0,
+        }}
+      />
+
       {/* Glare */}
       <div
         className="absolute inset-0 rounded-2xl pointer-events-none"
         style={{
-          background: `radial-gradient(circle at ${tilt.glare.x}% ${tilt.glare.y}%, rgba(255,255,255,0.22) 0%, transparent 60%)`,
+          background: `radial-gradient(circle at ${tilt.glare.x}% ${tilt.glare.y}%, rgba(255,255,255,0.28) 0%, transparent 60%)`,
           opacity: isActive ? 1 : 0,
           transition: 'opacity 0.3s',
+          zIndex: 12,
         }}
       />
 
-      {/* Icon */}
-      <div
-        className={`w-14 h-14 ${d.iconBg} rounded-2xl flex items-center justify-center mb-5`}
-        style={{ boxShadow: `0 4px 14px ${d.shadowColor}` }}
-      >
-        <d.Icon className="w-8 h-8" />
-      </div>
+      {/* Content */}
+      <div style={{ position: 'relative', zIndex: 2, padding: '24px' }}>
+        <div
+          className={`w-14 h-14 ${d.iconBg} rounded-2xl flex items-center justify-center mb-5`}
+          style={{ boxShadow: `0 4px 14px ${d.shadowColor}` }}
+        >
+          <d.Icon className="w-8 h-8" />
+        </div>
 
-      <h3 className="font-black text-gray-900 text-base mb-2" style={{ letterSpacing: '-0.01em' }}>
-        {d.title}
-      </h3>
-      <p className="text-sm text-gray-600 leading-relaxed">{d.desc}</p>
+        <h3 className="font-black text-gray-900 text-base mb-2" style={{ letterSpacing: '-0.01em' }}>
+          {d.title}
+        </h3>
+        <p className="text-sm text-gray-600 leading-relaxed">{d.desc}</p>
+      </div>
     </motion.div>
   );
 }
@@ -861,17 +887,17 @@ const PROJECT_DOMAIN_ICON = {
 // True cylinder: 5 cards evenly spaced (360 / count) around a ring, all the same
 // size. No card is stacked behind another — they're spread around the full circle.
 function useCarouselGeometry() {
-  const [geometry, setGeometry] = useState({ radius: 320, width: 240, height: 300, perspective: 1800, stagePad: 160 });
+  const [geometry, setGeometry] = useState({ radius: 340, width: 260, height: 370, perspective: 1800, stagePad: 40 });
 
   useEffect(() => {
     function recompute() {
       const w = window.innerWidth;
       if (w < 640) {
-        setGeometry({ radius: 155, width: 160, height: 215, perspective: 1050, stagePad: 80 });
+        setGeometry({ radius: 165, width: 175, height: 280, perspective: 1050, stagePad: 20 });
       } else if (w < 1024) {
-        setGeometry({ radius: 215, width: 175, height: 235, perspective: 1300, stagePad: 160 });
+        setGeometry({ radius: 230, width: 190, height: 310, perspective: 1300, stagePad: 40 });
       } else {
-        setGeometry({ radius: 320, width: 240, height: 300, perspective: 1800, stagePad: 160 });
+        setGeometry({ radius: 340, width: 260, height: 370, perspective: 1800, stagePad: 40 });
       }
     }
     recompute();
@@ -891,12 +917,14 @@ function ProjectCarousel3DCard({ p, angle, radius, width, height, rotation }) {
   const Icon = PROJECT_DOMAIN_ICON[p.domain] || AgricultureIcon;
 
   const facing = useTransform(rotation, (r) => Math.cos(((r + angle) * Math.PI) / 180));
-  const scale = useTransform(facing, (f) => 0.76 + 0.32 * Math.max(f, 0));
-  const opacity = useTransform(facing, (f) => 0.7 + 0.3 * Math.max(f, 0));
+  // Cards are invisible until they near the front (facing > 0.3), then fade in sharply.
+  // At ±72° (facing ≈ 0.31) cards are nearly invisible; only the front card shows clearly.
+  const opacity = useTransform(facing, [-1, 0.25, 0.65, 1], [0, 0, 1, 1], { clamp: true });
+  const scale  = useTransform(facing, [-1, 0.25, 0.65, 1], [0.55, 0.55, 0.9, 1], { clamp: true });
   const zIndex = useTransform(facing, (f) => Math.round(f * 100));
-  const pointerEvents = useTransform(facing, (f) => (f > 0.5 ? 'auto' : 'none'));
+  const pointerEvents = useTransform(facing, (f) => (f > 0.6 ? 'auto' : 'none'));
   // Full project details only reveal once this card has rotated close to front-facing.
-  const detailsOpacity = useTransform(facing, [0.65, 0.75], [0, 1], { clamp: true });
+  const detailsOpacity = useTransform(facing, [0.65, 0.80], [0, 1], { clamp: true });
 
   return (
     <div
@@ -916,42 +944,56 @@ function ProjectCarousel3DCard({ p, angle, radius, width, height, rotation }) {
       >
         <div
           className="relative w-full h-full rounded-[20px] overflow-hidden [backface-visibility:hidden]"
-          style={{ border: '1px solid rgba(0,0,0,0.08)', WebkitBackfaceVisibility: 'hidden' }}
+          style={{ WebkitBackfaceVisibility: 'hidden' }}
         >
-          {/* Image / background */}
           <div
-            className="absolute inset-0"
-            style={{ background: `linear-gradient(150deg, ${p.pastel}, ${p.pastelDeep})` }}
+            style={{
+              position: 'absolute',
+              inset: 0,
+              borderRadius: '20px',
+              background: `linear-gradient(150deg, ${p.pastel}, ${p.pastelDeep})`,
+              overflow: 'hidden',
+              zIndex: 1,
+              display: 'flex',
+              flexDirection: 'column',
+            }}
           >
-            <div className="w-full h-full flex items-center justify-center opacity-20">
-              <Icon className="w-9 h-9 sm:w-12 sm:h-12" />
+            {/* Background icon watermark */}
+            <div className="absolute inset-0 flex items-center justify-center" style={{ opacity: 0.12 }}>
+              <Icon className="w-20 h-20 sm:w-24 sm:h-24" />
             </div>
-          </div>
 
-          {/* Title + content — anchored to the top */}
-          <div className="absolute inset-x-0 top-0 px-4 pt-4 pb-4">
-            <h3
-              className="text-gray-900 font-black mb-1.5"
-              style={{ fontSize: 'clamp(0.95rem, 1.6vw, 1.3rem)', letterSpacing: '-0.01em' }}
+            {/* Title always visible */}
+            <div className="px-5 pt-5 pb-2" style={{ position: 'relative', zIndex: 2 }}>
+              <h3
+                className="text-gray-900 font-black"
+                style={{ fontSize: 'clamp(1.05rem, 1.6vw, 1.4rem)', letterSpacing: '-0.01em', lineHeight: 1.2 }}
+              >
+                {p.name}
+              </h3>
+            </div>
+
+            {/* Details — fade in as card reaches front; flex:1 fills remaining height */}
+            <motion.div
+              style={{ opacity: detailsOpacity, flex: 1, display: 'flex', flexDirection: 'column', position: 'relative', zIndex: 2 }}
+              className="px-5 pb-5"
             >
-              {p.name}
-            </h3>
-
-            {/* Full project details — revealed only as this card spins to the front */}
-            <motion.div style={{ opacity: detailsOpacity }}>
               <span
-                className={`inline-block px-2.5 py-1 rounded-full text-[10px] font-bold mb-2 ${p.domainColor}`}
+                className={`inline-block px-2.5 py-1 rounded-full text-[10px] font-bold mb-2 mt-1 ${p.domainColor}`}
               >
                 {p.domain}
               </span>
-              <p className="text-gray-800 text-xs leading-relaxed mb-3">{p.desc}</p>
-              <Link
-                to={p.link}
-                className="inline-flex items-center gap-1 text-[11px] font-bold text-gray-900 bg-black/5 hover:bg-black/10 border border-black/15 rounded-full px-2.5 py-1 transition-colors"
-              >
-                View Project
-                <ArrowRight size={10} />
-              </Link>
+              <p className="text-gray-800 text-xs leading-relaxed" style={{ flex: 1 }}>{p.desc}</p>
+              {/* Button pinned to bottom */}
+              <div className="mt-4">
+                <Link
+                  to={p.link}
+                  className="inline-flex items-center gap-1 text-[11px] font-bold text-gray-900 bg-black/5 hover:bg-black/10 border border-black/15 rounded-full px-3 py-1.5 transition-colors"
+                >
+                  View Project
+                  <ArrowRight size={10} />
+                </Link>
+              </div>
             </motion.div>
           </div>
         </div>
@@ -963,17 +1005,32 @@ function ProjectCarousel3DCard({ p, angle, radius, width, height, rotation }) {
 function ProjectsSection() {
   const sectionRef = useRef(null);
   const { scrollYProgress } = useScroll({ target: sectionRef, offset: ['start start', 'end end'] });
-  const rawRotation = useTransform(scrollYProgress, [0, 1], [0, 360]);
-  const rotation = useSpring(rawRotation, { stiffness: 60, damping: 26, mass: 0.6 });
   const { radius, width, height, perspective, stagePad } = useCarouselGeometry();
-  const angleStep = 360 / featuredProjects.length;
+  const n = featuredProjects.length;
+  const angleStep = 360 / n;
+
+  // Step-function: each card occupies 1/n of scrollYProgress.
+  // Hold for 88% of the segment, snap in the final 12% so each scroll = one card.
+  const seg = 1 / n;
+  const transitionFrac = 0.12; // 12% of each segment = transition; rest = hold
+  const inputStops  = [0];
+  const outputStops = [0];
+  for (let i = 0; i < n; i++) {
+    const holdEnd   = (i + 1) * seg - transitionFrac * seg;
+    const snapEnd   = (i + 1) * seg;
+    inputStops.push(holdEnd,        snapEnd);
+    outputStops.push(i * angleStep, (i + 1) * angleStep);
+  }
+  const rawRotation = useTransform(scrollYProgress, inputStops, outputStops);
+  // Stiff spring: snaps crisply to each card with no bounce
+  const rotation = useSpring(rawRotation, { stiffness: 160, damping: 50, mass: 0.3 });
 
   return (
     <section
       id="featured-projects"
       ref={sectionRef}
       className="relative bg-white"
-      style={{ scrollSnapAlign: 'start', minHeight: '400vh' }}
+      style={{ scrollSnapAlign: 'start', minHeight: '700vh' }}
     >
       {/* Mobile only: text in normal scroll flow so the card is fully visible when pinning */}
       <div className="sm:hidden px-6 pt-20 pb-8 bg-white relative z-10">
@@ -989,7 +1046,7 @@ function ProjectsSection() {
         </p>
       </div>
 
-      <div className="sticky top-0 min-h-screen flex items-center px-6 overflow-hidden">
+      <div className="sticky top-0 min-h-screen flex flex-col justify-center px-6 py-8">
         <div className="max-w-6xl mx-auto w-full">
 
           {/* Desktop only: text inside the sticky container */}
@@ -1007,7 +1064,7 @@ function ProjectsSection() {
             >
               These are not assignments. They are products.
             </motion.h2>
-            <p className="text-gray-600 text-base mb-12 max-w-2xl leading-relaxed">
+            <p className="text-gray-600 text-base mb-6 max-w-2xl leading-relaxed">
               Every project here was built by fellows working on a real problem, in a real community, through the REACT
               methodology. Each went through field validation, a proof of concept, and user testing before it became what you see.
             </p>
@@ -1069,19 +1126,22 @@ function TestimonialDarkCard({ item }) {
           />
           <div className="min-w-0">
             <div className="flex items-center gap-1.5">
-              <p className="font-bold text-white text-[15px] leading-tight truncate">{item.name}</p>
+              <p className="font-bold text-white text-[15px] leading-tight">{item.name}</p>
               <BadgeCheck size={14} className="flex-shrink-0 text-amber-500" />
             </div>
-            <p className="text-[13px] text-white/50 leading-tight mt-0.5 truncate">{item.title}</p>
+            <p className="text-[13px] text-white/50 leading-snug mt-0.5">{item.title}</p>
           </div>
         </div>
 
-        <span
-          className="flex-shrink-0 text-xs font-black uppercase tracking-wider"
-          style={{ color: '#D97706', letterSpacing: '0.08em' }}
+        <a
+          href={item.linkedin}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex-shrink-0 text-white/40 hover:text-[#0A66C2] transition-colors duration-200"
+          onClick={(e) => e.stopPropagation()}
         >
-          REACT
-        </span>
+          <Linkedin size={18} />
+        </a>
       </div>
     </div>
   );
@@ -1221,7 +1281,7 @@ function ScrollDrivenTestimonials({ testimonials }) {
 
       {/* Card overlay — scrolls over the pinned background */}
       <div style={{ position: 'relative', zIndex: 2, marginTop: '-100vh', pointerEvents: 'none' }}>
-        <div style={{ maxWidth: '860px', margin: '0 auto' }}>
+        <div style={{ maxWidth: '860px', margin: '0 auto', paddingBottom: '10rem' }}>
         {testimonials.map((item, i) => {
           const slot = TESTIMONIAL_SLOTS[i % TESTIMONIAL_SLOTS.length];
           return (
@@ -1241,7 +1301,7 @@ function ScrollDrivenTestimonials({ testimonials }) {
                 ref={(el) => (cardRefs.current[i] = el)}
                 style={{
                   position: 'relative',
-                  width: 'min(410px, 86vw)',
+                  width: 'min(460px, 90vw)',
                   transformStyle: 'preserve-3d',
                   willChange: 'transform, opacity',
                   pointerEvents: 'auto',
@@ -1271,43 +1331,60 @@ function ScrollDrivenTestimonials({ testimonials }) {
   );
 }
 
-function StickyNote() {
+function RecognitionSection() {
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20, rotate: 0, scale: 0.94 }}
-      whileInView={{ opacity: 1, y: 0, rotate: 1, scale: 1 }}
-      viewport={{ once: true }}
-      transition={{ type: 'spring', stiffness: 80, damping: 14, delay: 0.2 }}
-      whileHover={{ rotate: 0, scale: 1.04, y: -4 }}
-      className="relative"
-      style={{
-        background: 'linear-gradient(145deg, #FEF9C3 0%, #FDE68A 100%)',
-        borderRadius: '3px',
-        boxShadow: '4px 5px 14px rgba(0,0,0,0.16), 0 1px 2px rgba(0,0,0,0.08)',
-        maxWidth: 280,
-        width: '100%',
-      }}
-    >
-      {/* Tape */}
-      <div
-        className="absolute -top-2.5 left-1/2 -translate-x-1/2 w-10 h-4 rounded-sm"
-        style={{ background: 'rgba(251,191,36,0.55)', boxShadow: '0 1px 2px rgba(0,0,0,0.12)' }}
-      />
-      <div className="px-4 py-5 flex items-start gap-3">
+    <section className="bg-white py-8 px-6 flex justify-center items-center">
+      <motion.div
+        initial={{ opacity: 0, y: 36, scale: 0.96 }}
+        whileInView={{ opacity: 1, y: 0, scale: 1 }}
+        viewport={{ once: true, amount: 0.4 }}
+        transition={{ duration: 0.65, ease: [0.22, 1, 0.36, 1] }}
+        className="relative rounded-2xl overflow-hidden"
+        style={{ maxWidth: 900, width: '100%' }}
+      >
+        {/* Rotating conic gradient border */}
         <div
-          className="flex-shrink-0 w-7 h-7 rounded-lg flex items-center justify-center text-sm mt-0.5"
-          style={{ background: 'rgba(251,191,36,0.45)' }}
-        >
-          🌐
+          className="prog-border-anim"
+          style={{
+            position: 'absolute', width: '200%', height: '200%',
+            top: '-50%', left: '-50%',
+            background: 'conic-gradient(from 0deg at 50% 50%, #38bdf8 0%, #0ea5e9 15%, #22d3ee 32%, #10b981 52%, #6366f1 72%, #38bdf8 100%)',
+            filter: 'blur(2px) brightness(1.35)',
+            zIndex: 0,
+          }}
+        />
+        {/* Inner mask */}
+        <div style={{ position: 'absolute', inset: '5px', borderRadius: '11px', background: '#00111f', zIndex: 1 }} />
+        {/* Content — single compact row */}
+        <div className="relative flex items-center gap-5 px-8 py-5" style={{ zIndex: 2 }}>
+          <div style={{ fontSize: '1.8rem', lineHeight: 1, flexShrink: 0 }}>🌐</div>
+          <div className="flex-1 min-w-0">
+            <p className="text-white font-medium leading-snug" style={{ fontSize: 'clamp(0.85rem, 1.2vw, 0.98rem)' }}>
+              <span className="text-xs tracking-[0.18em] uppercase font-bold mr-3" style={{ color: '#38bdf8' }}>Global Recognition</span>
+              The centre's work is{' '}
+              <span className="font-black" style={{ color: '#7dd3fc' }}>featured in</span>{' '}
+              the YOUNGO Youth Project Compilation on Food, Agriculture and Climate Action (Vol. 1, 2025),
+              published by the official Youth Constituency of the United Nations Framework Convention on Climate Change.
+            </p>
+          </div>
+          <div className="flex items-center gap-2 flex-shrink-0">
+            {['YOUNGO', 'UNFCCC', '2025'].map((label, i) => (
+              <span
+                key={label}
+                className="text-xs font-semibold px-3 py-1 rounded-full"
+                style={{
+                  background: i === 0 ? 'rgba(56,189,248,0.14)' : i === 1 ? 'rgba(16,185,129,0.14)' : 'rgba(255,255,255,0.07)',
+                  color: i === 0 ? '#7dd3fc' : i === 1 ? '#6ee7b7' : '#94a3b8',
+                  border: `1px solid ${i === 0 ? 'rgba(56,189,248,0.3)' : i === 1 ? 'rgba(16,185,129,0.3)' : 'rgba(255,255,255,0.14)'}`,
+                }}
+              >
+                {label}
+              </span>
+            ))}
+          </div>
         </div>
-        <p className="text-gray-800 text-xs leading-relaxed font-medium">
-          The centre's work is{' '}
-          <span className="font-black text-gray-950">featured in</span> the YOUNGO Youth Project Compilation on
-          Food, Agriculture and Climate Action (Vol. 1, 2025), published by the official Youth Constituency of the
-          United Nations Framework Convention on Climate Change.
-        </p>
-      </div>
-    </motion.div>
+      </motion.div>
+    </section>
   );
 }
 
@@ -1318,24 +1395,16 @@ function TestimonialsSection() {
 
   return (
     <section id="testimonials" className="bg-white" style={{ scrollSnapAlign: 'start' }}>
-      {/* Header + sticky note side by side */}
-      <div className="max-w-6xl mx-auto px-6 pt-14 pb-10 flex flex-col lg:flex-row lg:items-end lg:justify-between gap-8">
-        <div>
-          <p className="text-xs tracking-[0.2em] uppercase text-gray-400 font-semibold mb-4">
-            From the People Inside It
-          </p>
-          <h2 className="text-3xl md:text-4xl font-black text-gray-950" style={{ letterSpacing: '-0.02em' }}>
-            From the people who have been inside it.
-          </h2>
-          <p className="text-gray-600 text-base mt-3 max-w-xl leading-relaxed">
-            Fellows, mentors, and community members on what the work looks like from where they stand.
-          </p>
-        </div>
-
-        {/* Sticky note pinned alongside the heading */}
-        <div className="flex-shrink-0 flex justify-center lg:justify-end" style={{ paddingTop: '3rem' }}>
-          <StickyNote />
-        </div>
+      <div className="max-w-6xl mx-auto px-6 pt-14 pb-10">
+        <p className="text-xs tracking-[0.2em] uppercase text-gray-400 font-semibold mb-4">
+          From the People Inside It
+        </p>
+        <h2 className="text-3xl md:text-4xl font-black text-gray-950" style={{ letterSpacing: '-0.02em' }}>
+          From the people who have been inside it.
+        </h2>
+        <p className="text-gray-600 text-base mt-3 max-w-xl leading-relaxed">
+          Fellows, mentors, and community members on what the work looks like from where they stand.
+        </p>
       </div>
 
       {reducedMotion ? (
@@ -1370,25 +1439,46 @@ function ProgrammeCard({ prog, i }) {
           : undefined,
         transition: 'box-shadow 0.35s ease',
         boxShadow: isHovered
-          ? `0 24px 48px rgba(0,0,0,0.3), 0 0 0 1px ${prog.accentColor}40`
-          : '0 4px 16px rgba(0,0,0,0.15)',
+          ? `0 24px 48px rgba(0,0,0,0.5), 0 0 32px ${prog.accentColor}40`
+          : `0 4px 24px ${prog.accentColor}18`,
         minHeight: 280,
       }}
-      className="relative bg-gradient-to-b from-slate-800 to-slate-900 rounded-2xl p-6 overflow-hidden"
+      className="relative rounded-2xl overflow-hidden"
     >
-      {/* Accent top border */}
+      {/* Rotating conic gradient — clipped by overflow:hidden to create the glowing border */}
       <div
-        className="absolute top-0 left-0 right-0 h-1 rounded-t-2xl z-10"
-        style={{ background: prog.accentColor }}
+        className="prog-border-anim"
+        style={{
+          position: 'absolute',
+          width: '200%',
+          height: '200%',
+          top: '-50%',
+          left: '-50%',
+          background: `conic-gradient(from 0deg at 50% 50%, ${prog.conicColors})`,
+          filter: 'blur(3px) brightness(1.4)',
+          zIndex: 0,
+        }}
       />
 
-      {/* Glare */}
+      {/* Inner mask — hides the rotating gradient except at the border edge */}
       <div
-        className="absolute inset-0 rounded-2xl pointer-events-none z-10"
         style={{
-          background: `radial-gradient(circle at ${tilt.glare.x}% ${tilt.glare.y}%, rgba(255,255,255,0.08) 0%, transparent 55%)`,
+          position: 'absolute',
+          inset: '5px',
+          borderRadius: '11px',
+          background: prog.cardBg,
+          zIndex: 1,
+        }}
+      />
+
+      {/* Glare on hover */}
+      <div
+        className="absolute inset-0 rounded-2xl pointer-events-none"
+        style={{
+          background: `radial-gradient(circle at ${tilt.glare.x}% ${tilt.glare.y}%, rgba(255,255,255,0.1) 0%, transparent 55%)`,
           opacity: isHovered ? 1 : 0,
           transition: 'opacity 0.3s',
+          zIndex: 12,
         }}
       />
 
@@ -1399,11 +1489,13 @@ function ProgrammeCard({ prog, i }) {
           transformStyle: 'preserve-3d',
           transition: 'transform 0.6s cubic-bezier(0.4, 0.2, 0.2, 1)',
           transform: isHovered ? 'rotateY(180deg)' : 'rotateY(0deg)',
+          zIndex: 2,
+          minHeight: 280,
         }}
       >
-        {/* Front face — everything except the CTA */}
+        {/* Front face */}
         <div
-          className="absolute inset-0 flex flex-col justify-between"
+          className="absolute inset-0 flex flex-col justify-between p-6"
           style={{
             backfaceVisibility: 'hidden',
             WebkitBackfaceVisibility: 'hidden',
@@ -1412,7 +1504,7 @@ function ProgrammeCard({ prog, i }) {
         >
           {prog.tag && (
             <span
-              className="absolute top-0 right-0 px-2 py-0.5 text-[10px] uppercase tracking-wider rounded-full font-bold"
+              className="absolute top-4 right-4 px-2 py-0.5 text-[10px] uppercase tracking-wider rounded-full font-bold"
               style={{ background: `${prog.accentColor}25`, color: prog.accentColor }}
             >
               {prog.tag}
@@ -1429,9 +1521,9 @@ function ProgrammeCard({ prog, i }) {
           </div>
         </div>
 
-        {/* Back face — only the CTA */}
+        {/* Back face — CTA only */}
         <div
-          className="absolute inset-0 flex items-center justify-center"
+          className="absolute inset-0 flex items-center justify-center p-6"
           style={{
             backfaceVisibility: 'hidden',
             WebkitBackfaceVisibility: 'hidden',
@@ -1574,6 +1666,7 @@ export default function HomeLanding() {
       <PartnersSection />
       <ProjectsSection />
       <TestimonialsSection />
+      <RecognitionSection />
       <ProgrammesSection />
       <ClosingCTASection />
     </main>

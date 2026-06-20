@@ -12,8 +12,8 @@ import Sivakeerthana from "../../assets/people/Sivakeerthana.jpg";
 
 const testimonials = [
   {
-    name: "Jana",
-    title: "Young Innovator (TNSPC)",
+    name: "Janarthanan V",
+    title: "Chevening Scholar, Imperial College London",
     quote: "Working in policy and grassroots innovation, I've always believed in the power of field-based education. REACT is the first program I've seen that truly embodies that vision.",
     img: Jana,
     linkedin: "https://www.linkedin.com/in/connectwithjana/",

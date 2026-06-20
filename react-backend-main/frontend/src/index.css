@@ -26,6 +26,19 @@ html {
   animation: navbar-float 2.5s ease-in-out infinite;
 }
 
+@keyframes rotateAnim {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+.prog-border-anim {
+  animation: rotateAnim 3s linear infinite;
+}
+
+.domain-border-anim {
+  animation: rotateAnim 3s linear infinite;
+}
+
 /* ── Journey page: Five Phases — mobile overrides (desktop untouched) ── */
 @media (max-width: 1023px) {
   .phase-stack-card {

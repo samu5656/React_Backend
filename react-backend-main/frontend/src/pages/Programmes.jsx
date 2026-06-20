@@ -238,12 +238,6 @@ const cohortLinks = [
     action: 'link',
   },
   {
-    label: 'react.kct.ac.in',
-    href: 'https://react.kct.ac.in',
-    Icon: Globe,
-    action: 'link',
-  },
-  {
     label: 'info.react@kumaraguru.in',
     href: 'mailto:info.react@kumaraguru.in',
     Icon: Mail,

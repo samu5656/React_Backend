@@ -10,7 +10,7 @@ const PROJECTS = [
   {
     id: 1, number: '01',
     title: 'Fully Disintegrable Sanitary Pads',
-    domain: 'Sustainable Hygiene',
+    domain: 'Health and Wellbeing',
     tags: ['Biodegradable', 'Biotech', "Women's Health"],
     description: 'A sustainable sanitary pad developed using natural fibers and a biodegradable bio-superabsorbent system to replace plastic-based materials. It provides effective absorbency, comfort, and leakage protection while safely degrading after disposal, reducing menstrual waste pollution and supporting eco-friendly menstrual hygiene.',
     website: 'https://khyora.vercel.app/',
@@ -19,7 +19,7 @@ const PROJECTS = [
   {
     id: 2, number: '02',
     title: 'Modular Solar Drying Sheet',
-    domain: 'Renewable Energy',
+    domain: 'Environment and Climate',
     tags: ['Solar', 'Thermal', 'Post-harvest'],
     description: 'A flexible solar thermal system designed to efficiently convert sunlight into heat through advanced photothermal materials, enabling effective drying of agricultural and marine products. It reduces post-harvest losses by providing a portable, low-cost alternative to fossil fuel dryers.',
     website: 'https://react.kct.ac.in/projects/therbel',
@@ -28,7 +28,7 @@ const PROJECTS = [
   {
     id: 3, number: '03',
     title: 'Plug-and-Play Smart Microclimate Control for Mushroom Cultivation',
-    domain: 'Agricultural IoT',
+    domain: 'Agriculture and Food Systems',
     tags: ['IoT', 'Automation', 'Sustainable Farming'],
     description: 'A portable automated climate-control system designed for mushroom growing chambers, maintaining optimal humidity, temperature, CO₂, and light levels through continuous monitoring and real-time adjustments to maximise yield and minimise crop failure.',
     website: 'https://flow-sync-lilac.vercel.app/',
@@ -37,7 +37,7 @@ const PROJECTS = [
   {
     id: 4, number: '04',
     title: 'Precision Feeding and Health Monitoring for Shrimp Farming',
-    domain: 'Aquaculture IoT',
+    domain: 'Agriculture and Food Systems',
     tags: ['Precision Feeding', 'IoT', 'Aquaculture'],
     description: 'An intelligent feeding solution for shrimp farms that delivers precise and timely feed distribution by tracking real-time shrimp behaviour and health indicators, reducing feed waste and improving overall pond health and harvest productivity.',
     website: 'https://shrimpfeeder.vercel.app/',
@@ -46,7 +46,7 @@ const PROJECTS = [
   {
     id: 5, number: '05',
     title: 'Immersive Medical Training Simulator for Retinoscope',
-    domain: 'Immersive Technology',
+    domain: 'Education and Livelihood',
     tags: ['Virtual Reality', 'EdTech', 'Simulation'],
     description: 'A virtual reality training platform that simulates retinoscopy procedures, allowing medical students and ophthalmology trainees to practise refraction and eye examination skills in a realistic, risk-free environment without the need for real patients.',
     website: 'http://react.kct.ac.in/projects/vrsimulator',
@@ -55,7 +55,7 @@ const PROJECTS = [
   {
     id: 6, number: '06',
     title: 'Converting Food Waste into Biogas',
-    domain: 'Clean Energy',
+    domain: 'Agriculture and Food Systems',
     tags: ['Biogas', 'Circular Economy', 'Waste-to-Energy'],
     description: 'An advanced two-stage bioreactor that converts food waste into high-purity methane through optimised anaerobic digestion, providing a scalable clean energy solution for households and small institutions while reducing organic waste disposal.',
     website: 'https://react.kct.ac.in/projects/biopod',
@@ -64,7 +64,7 @@ const PROJECTS = [
   {
     id: 7, number: '07',
     title: 'AI-Enabled Smart Patient Flow Monitoring System',
-    domain: 'Healthcare AI',
+    domain: 'Health and Wellbeing',
     tags: ['AI', 'IoT', 'Hospital Management'],
     description: 'An intelligent hospital management system that uses wearable patient wristbands, real-time tracking, and AI analytics to monitor patient movement and predict bottlenecks, improving care delivery and reducing emergency wait times.',
     website: '#',
@@ -73,7 +73,7 @@ const PROJECTS = [
   {
     id: 8, number: '08',
     title: 'Intelligent Early Warning System for Cardiac and Stroke Risks',
-    domain: 'Preventive Healthcare',
+    domain: 'Health and Wellbeing',
     tags: ['Cardiac Monitoring', 'AI', 'Wearable'],
     description: 'A real-time health monitoring system that continuously tracks vital cardiovascular parameters such as heart rate, ECG, SpO₂, and HRV, using AI to detect early warning signs of cardiac events and stroke, enabling timely medical intervention.',
     website: '#',
@@ -82,7 +82,7 @@ const PROJECTS = [
   {
     id: 9, number: '09',
     title: 'Non-Destructive Sex Determination in Papaya Seeds',
-    domain: 'AgriTech',
+    domain: 'Agriculture and Food Systems',
     tags: ['Spectroscopy', 'ML', 'Horticulture'],
     description: 'A spectroscopy-based system that identifies the sex of papaya seeds without damaging them, enabling farmers to selectively cultivate only female or hermaphrodite plants, significantly improving yield efficiency and reducing crop waste.',
     website: '#',
