@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useLayoutEffect, useRef, useCallback } from 'react';
 import { Link } from 'react-router-dom';
-import { motion, useScroll, useTransform, useSpring } from 'framer-motion';
+import { motion, useScroll, useTransform, useSpring, useAnimation } from 'framer-motion';
 import { ArrowRight, Globe, Mail, ExternalLink, Copy, Check, BadgeCheck, Linkedin } from 'lucide-react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
@@ -405,72 +405,141 @@ const heroHeading = {
 
 /* ── S01: Hero ── */
 function HeroSection() {
+  const [shimmerReady, setShimmerReady] = useState(false);
+  const breathControls  = useAnimation();
+
+  // cubic-bezier(0.22, 1, 0.36, 1) — smooth overshoot-free ease-out
+  const E = [0.22, 1, 0.36, 1];
+
+  // After the last line fully settles: start breathing + fire shimmer
+  const onLine3Done = useCallback(() => {
+    setShimmerReady(true);
+    breathControls.start({
+      scale: [1, 1.022, 1],
+      transition: { duration: 4.2, ease: 'easeInOut', repeat: Infinity },
+    });
+  }, [breathControls]);
+
   return (
     <section
       id="home-hero"
       className="relative w-full min-h-screen overflow-hidden flex items-center justify-center"
       style={{ scrollSnapAlign: 'start' }}
     >
-      {/* Video — slow Ken Burns zoom-out on load */}
+      {/* ── Background — completely untouched ── */}
       <motion.video
-        src={Video}
-        autoPlay
-        loop
-        muted
-        playsInline
+        src={Video} autoPlay loop muted playsInline
         initial={{ scale: 1.12, opacity: 0 }}
         animate={{ scale: 1, opacity: 0.38 }}
         transition={{ duration: 2.4, ease: 'easeOut' }}
         className="absolute inset-0 w-full h-full object-cover"
       />
-
-      {/* Dark overlay — fades in after video */}
       <motion.div
         className="absolute inset-0 bg-gray-950"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 0.68 }}
+        initial={{ opacity: 0 }} animate={{ opacity: 0.68 }}
         transition={{ duration: 1.8, ease: 'easeOut' }}
       />
       <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/65" />
-
-      {/* Grain texture */}
       <div
         className="absolute inset-0 opacity-[0.04] pointer-events-none"
-        style={{
-          backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`,
-        }}
+        style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")` }}
       />
 
-      {/* Staggered content */}
-      <motion.div
-        className="relative z-10 flex flex-col items-center justify-center text-center px-6 max-w-5xl mx-auto"
-        variants={heroContainer}
-        initial="hidden"
-        animate="visible"
-      >
+      {/* ── Text content ── */}
+      <div className="relative z-10 flex flex-col items-center justify-center text-center px-6 max-w-5xl mx-auto">
+
         {/* Eyebrow */}
         <motion.p
-          variants={heroItem}
+          initial={{ opacity: 0, y: 20, filter: 'blur(10px)' }}
+          animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+          transition={{ duration: 0.75, delay: 0.1, ease: E }}
           className="text-xs sm:text-sm tracking-[0.28em] uppercase font-bold mb-6"
           style={{ color: '#D97706' }}
         >
           {CENTRE_NAME} · Kumaraguru Institutions, Coimbatore
         </motion.p>
 
-        {/* Main heading — own variant for bigger pop */}
-        <motion.h1
-          variants={heroHeading}
-          className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black text-white leading-[1.08] mb-8"
-          style={{ fontWeight: 900, textShadow: '0 4px 48px rgba(0,0,0,0.7)', letterSpacing: '-0.02em' }}
-        >
-          Where real problems meet<br className="hidden sm:block" />{' '}
-          <span style={{ color: '#D97706' }}>people willing</span>
-          <br className="hidden sm:block" /> to solve them.
-        </motion.h1>
+        {/* ── Heading ──────────────────────────────────────────────────────────
+             Each span uses display:block so CSS transforms actually apply.
+             (Browsers silently ignore translateY / scale on inline elements.)
+             breathControls wraps all three lines in one breathing container.
+             ──────────────────────────────────────────────────────────────── */}
+        <div className="relative mb-8">
+          <motion.div animate={breathControls} style={{ originX: '50%', originY: '50%' }}>
+            <h1
+              className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black text-white leading-[1.08]"
+              style={{ fontWeight: 900, letterSpacing: '-0.02em' }}
+            >
+              {/* LINE 1 */}
+              <motion.span
+                initial={{ opacity: 0, y: 80, scale: 0.45, filter: 'blur(30px)' }}
+                animate={{ opacity: 1, y: 0,  scale: 1,    filter: 'blur(0px)'  }}
+                transition={{ duration: 0.95, delay: 0.3, ease: E }}
+                style={{ display: 'block', textShadow: '0 4px 48px rgba(0,0,0,0.7)' }}
+              >
+                Where real problems meet
+              </motion.span>
+
+              {/* LINE 2 — orange + strong glow burst then fade */}
+              <motion.span
+                initial={{ opacity: 0, y: 80, scale: 0.45, filter: 'blur(30px)' }}
+                animate={{
+                  opacity: 1,
+                  y: 0,
+                  scale: 1,
+                  filter: 'blur(0px)',
+                  textShadow: [
+                    '0 0 0px   rgba(217,119,6,0)',
+                    '0 0 60px  rgba(217,119,6,0.95)',
+                    '0 0 0px   rgba(217,119,6,0)',
+                  ],
+                }}
+                transition={{
+                  opacity:    { duration: 0.95, delay: 0.48, ease: E },
+                  y:          { duration: 0.95, delay: 0.48, ease: E },
+                  scale:      { duration: 0.95, delay: 0.48, ease: E },
+                  filter:     { duration: 0.95, delay: 0.48, ease: E },
+                  textShadow: { duration: 2.6,  delay: 0.48, ease: 'easeOut', times: [0, 0.28, 1] },
+                }}
+                style={{ display: 'block', color: '#D97706' }}
+              >
+                people willing
+              </motion.span>
+
+              {/* LINE 3 — fires breathing + shimmer when complete */}
+              <motion.span
+                initial={{ opacity: 0, y: 80, scale: 0.45, filter: 'blur(30px)' }}
+                animate={{ opacity: 1, y: 0,  scale: 1,    filter: 'blur(0px)'  }}
+                transition={{ duration: 0.95, delay: 0.66, ease: E }}
+                style={{ display: 'block', textShadow: '0 4px 48px rgba(0,0,0,0.7)' }}
+                onAnimationComplete={onLine3Done}
+              >
+                to solve them.
+              </motion.span>
+            </h1>
+          </motion.div>
+
+          {/* One-shot cinematic glow sweep — fires once after reveal */}
+          {shimmerReady && (
+            <motion.div
+              aria-hidden
+              className="absolute inset-0 pointer-events-none"
+              initial={{ x: '-120%' }}
+              animate={{ x: '210%' }}
+              transition={{ duration: 0.82, ease: E }}
+              style={{
+                background:
+                  'linear-gradient(108deg, transparent 18%, rgba(255,255,255,0.14) 50%, transparent 82%)',
+              }}
+            />
+          )}
+        </div>
 
         {/* Sub-headline */}
         <motion.p
-          variants={heroItem}
+          initial={{ opacity: 0, y: 28, filter: 'blur(8px)' }}
+          animate={{ opacity: 1, y: 0,  filter: 'blur(0px)' }}
+          transition={{ duration: 0.9, delay: 1.3, ease: E }}
           className="max-w-3xl text-base sm:text-lg text-white/70 leading-relaxed mb-12"
         >
           REACT — Real World Engineering And Application through Collaborative Transformation — is a methodology
@@ -479,17 +548,18 @@ function HeroSection() {
         </motion.p>
 
         {/* CTA buttons */}
-        <motion.div variants={heroItem} className="flex flex-col sm:flex-row gap-4 items-center">
+        <motion.div
+          initial={{ opacity: 0, y: 28, filter: 'blur(8px)' }}
+          animate={{ opacity: 1, y: 0,  filter: 'blur(0px)' }}
+          transition={{ duration: 0.9, delay: 1.5, ease: E }}
+          className="flex flex-col sm:flex-row gap-4 items-center"
+        >
           <Link to="/apply">
             <button
               className="px-9 py-4 font-black text-sm uppercase tracking-widest rounded-full transition-all duration-300 hover:bg-white hover:text-black hover:-translate-y-1"
-              style={{
-                background: '#D97706',
-                color: '#000',
-                boxShadow: '0 8px 28px rgba(217,119,6,0.35)',
-              }}
+              style={{ background: '#D97706', color: '#000', boxShadow: '0 8px 28px rgba(217,119,6,0.35)' }}
               onMouseOver={(e) => { e.currentTarget.style.boxShadow = '0 8px 28px rgba(255,255,255,0.2)'; }}
-              onMouseOut={(e) => { e.currentTarget.style.boxShadow = '0 8px 28px rgba(217,119,6,0.35)'; }}
+              onMouseOut={(e)  => { e.currentTarget.style.boxShadow = '0 8px 28px rgba(217,119,6,0.35)'; }}
             >
               Apply Now
             </button>
@@ -500,11 +570,64 @@ function HeroSection() {
             </button>
           </Link>
         </motion.div>
-      </motion.div>
 
+      </div>
     </section>
   );
 }
+
+/* ── REACT acronym items ── */
+const reactPrinciples = [
+  {
+    letter: 'R',
+    word: 'eal world',
+    desc: '— because the field is the classroom.',
+  },
+  {
+    letter: 'E',
+    word: 'ngineering',
+    desc: '— the disciplined application of knowledge to build something that functions.',
+  },
+  {
+    letter: 'A',
+    word: 'pplication',
+    desc: '— because knowledge that cannot be used on a real problem is incomplete.',
+  },
+  {
+    letter: 'C',
+    word: 'ollaborative',
+    desc: '— because no meaningful social problem has ever been solved by one person working alone.',
+  },
+  {
+    letter: 'T',
+    word: 'ransformation',
+    desc: '— because the measure of the work is whether something genuinely changed for the people it was built for.',
+  },
+];
+
+/* ── Variants for REACT principle rows — three named states so variant
+     propagation carries "hovered" down to the letter span automatically ── */
+const rowVariants = {
+  hidden:   { opacity: 0, x: -32, backgroundColor: 'rgba(255,255,255,0)' },
+  rest:     { opacity: 1, x: 0,   backgroundColor: 'rgba(255,255,255,0)' },
+  hovered:  { opacity: 1, x: 8,   backgroundColor: 'rgba(251,191,36,0.07)',
+               transition: { duration: 0.28, ease: [0.16, 1, 0.3, 1] } },
+};
+
+const letterVariants = {
+  hidden:   { scale: 1 },
+  rest:     { scale: 1,    textShadow: '0 0 0px rgba(217,119,6,0)' },
+  // scale 1.15 — visible emphasis without overflowing into adjacent text or rows.
+  // textShadow compensates for the smaller scale with a brighter orange glow.
+  hovered:  { scale: 1.15, textShadow: '0 0 22px rgba(217,119,6,0.9)',
+               transition: { duration: 0.28, ease: [0.16, 1, 0.3, 1] } },
+};
+
+const descVariants = {
+  hidden:  { color: '#4B5563' },
+  rest:    { color: '#4B5563' },
+  hovered: { color: '#1F2937', transition: { duration: 0.22 } },
+};
 
 /* ── S02: What REACT Is ── */
 function WhatReactIsSection() {
@@ -528,41 +651,110 @@ function WhatReactIsSection() {
         >
           Not a classroom. Not a competition.<br /> A way of working.
         </motion.h2>
-        <p className="text-lg text-amber-700 font-bold mb-8 italic">
+        <p className="text-lg text-amber-700 font-bold mb-10 italic">
           Real World Engineering and Application through Collaborative Transformation. Every word is a principle.
         </p>
 
-        <div className="grid md:grid-cols-2 gap-8 text-gray-700 text-base leading-relaxed">
-          <div className="space-y-5">
-            <p>
-              <span className="font-bold text-gray-900">Real world</span> — because the field is the classroom.{' '}
-              <span className="font-bold text-gray-900">Application</span> — because knowledge that cannot be used on a real problem is incomplete.
-            </p>
-            <p>
-              <span className="font-bold text-gray-900">Collaborative</span> — because no meaningful social problem has ever been solved by one person working alone.{' '}
-              <span className="font-bold text-gray-900">Transformation</span> — because the measure of the work is whether something genuinely changed for the people it was built for.
-            </p>
-          </div>
-          <div className="space-y-5">
-            <p>
+        <div className="grid md:grid-cols-2 gap-8">
+          {/* Left card — REACT acronym */}
+          <motion.div
+            initial={{ opacity: 0, x: -70 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.75, ease: [0.16, 1, 0.3, 1] }}
+            whileHover={{
+              boxShadow: '0 0 0 2px #D97706, 0 16px 48px rgba(217,119,6,0.18)',
+              transition: { duration: 0.3 },
+            }}
+            className="flex flex-col justify-between rounded-2xl p-8"
+            style={{ border: '2px solid #D97706' }}
+          >
+            <div className="space-y-3 text-base leading-relaxed">
+              {reactPrinciples.map(({ letter, word, desc }, i) => (
+                <motion.div
+                  key={letter}
+                  variants={rowVariants}
+                  initial="hidden"
+                  whileInView="rest"
+                  whileHover="hovered"
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.5, delay: 0.25 + i * 0.1, ease: [0.16, 1, 0.3, 1] }}
+                  className="flex items-baseline gap-0 cursor-default rounded-lg px-2 py-1"
+                >
+                  <motion.span
+                    variants={letterVariants}
+                    className="font-black inline-block"
+                    style={{
+                      fontSize: '1.55rem',
+                      color: '#D97706',
+                      lineHeight: 1,
+                      minWidth: '1.05ch',
+                      display: 'inline-block',
+                      // center-bottom anchor: all scale growth goes UPWARD into the
+                      // existing py-1 padding — never sideways into the adjacent word.
+                      transformOrigin: '50% 100%',
+                    }}
+                  >
+                    {letter}
+                  </motion.span>
+                  <span className="font-bold text-gray-900">{word}</span>
+                  <motion.span variants={descVariants} className="ml-1 text-gray-600">{desc}</motion.span>
+                </motion.div>
+              ))}
+            </div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 12 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5, delay: 0.85 }}
+            >
+              <Link
+                to="/about"
+                className="inline-flex items-center gap-2 mt-8 text-sm font-bold text-gray-900 hover:text-amber-600 transition-colors group self-start"
+              >
+                About the REACT methodology
+                <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
+              </Link>
+            </motion.div>
+          </motion.div>
+
+          {/* Right card — fellows description */}
+          <motion.div
+            initial={{ opacity: 0, x: 70 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.75, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
+            whileHover={{
+              y: -6,
+              boxShadow: '0 0 0 2px #F59E0B, 0 20px 56px rgba(245,158,11,0.16)',
+              transition: { duration: 0.3 },
+            }}
+            className="rounded-2xl p-8 text-gray-700 text-base leading-relaxed"
+            style={{ border: '2px solid #F59E0B' }}
+          >
+            <motion.p
+              initial={{ opacity: 0, y: 18 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.55, delay: 0.3 }}
+              className="mb-5"
+            >
               Fellows do not study social problems from a distance. They live inside them. They work alongside communities.
               They build <em>with</em> people, not <em>for</em> them. And they do not leave until something real exists —
               a tested solution, a filed patent, a registered venture, a community that is measurably better off.
-            </p>
-            <p>
+            </motion.p>
+            <motion.p
+              initial={{ opacity: 0, y: 18 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.55, delay: 0.45 }}
+            >
               The centre exists to make that possible. It provides the structure, the methodology, the field access,
               the mentors, and the institutional backing. The fellow does the work.
-            </p>
-          </div>
+            </motion.p>
+          </motion.div>
         </div>
-
-        <Link
-          to="/about"
-          className="inline-flex items-center gap-2 mt-10 text-sm font-bold text-gray-900 hover:text-amber-600 transition-colors group"
-        >
-          About the REACT methodology
-          <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
-        </Link>
       </div>
     </section>
   );
