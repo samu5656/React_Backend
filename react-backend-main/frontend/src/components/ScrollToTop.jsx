@@ -5,11 +5,9 @@ const ScrollToTop = () => {
   const { pathname } = useLocation();
 
   useEffect(() => {
-    window.scrollTo({
-      top: 0,
-      left: 0,
-      behavior: "smooth", // optional
-    });
+    document.documentElement.style.scrollSnapType = '';
+    document.documentElement.style.scrollBehavior = '';
+    window.scrollTo(0, 0);
   }, [pathname]);
 
   return null;

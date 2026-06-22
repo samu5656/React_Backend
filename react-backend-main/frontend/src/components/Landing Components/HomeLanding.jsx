@@ -646,10 +646,10 @@ function WhatReactIsSection() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
-          className="text-3xl md:text-4xl lg:text-5xl font-black text-gray-950 mb-6 leading-tight"
+          className="text-2xl md:text-3xl lg:text-4xl font-black text-gray-950 mb-4 leading-tight"
           style={{ letterSpacing: '-0.02em' }}
         >
-          A discipline of building. A way of working.
+          A discipline of building. A way of working. A field of action. A way of working.
         </motion.h2>
         <p className="text-lg text-amber-700 font-bold mb-10 italic">
           Real World Engineering and Application through Collaborative Transformation. Every word is a principle.
@@ -851,7 +851,7 @@ function DomainsSection() {
           className="text-3xl md:text-4xl font-black text-gray-950 mb-3"
           style={{ letterSpacing: '-0.02em' }}
         >
-          Six domains. Real communities. No simulations.
+          Six domains. Real communities. Real-world challenges.
         </motion.h2>
         <p className="text-gray-600 text-base max-w-2xl mb-12 leading-relaxed">
           Every fellow chooses one domain at entry and works within it for the full duration of their programme.
@@ -1217,6 +1217,40 @@ function ProjectsSection() {
   // Stiff spring: snaps crisply to each card with no bounce
   const rotation = useSpring(rawRotation, { stiffness: 160, damping: 50, mass: 0.3 });
 
+  // ── Swipe / drag navigation ───────────────────────────────────────────────
+  const pointerStartX = useRef(null);
+
+  const navigateCarousel = useCallback((direction) => {
+    const section = sectionRef.current;
+    if (!section) return;
+    const sectionTop = window.scrollY + section.getBoundingClientRect().top;
+    const totalScrollable = section.scrollHeight - window.innerHeight;
+    const stepSize = totalScrollable / n;
+    const currentInSection = Math.max(0, window.scrollY - sectionTop);
+    const currentStep = Math.round(currentInSection / stepSize);
+    const targetStep = Math.min(Math.max(currentStep + direction, 0), n - 1);
+    // Instant scroll — spring on rawRotation handles the smooth card revolution
+    window.scrollTo(0, sectionTop + targetStep * stepSize);
+  }, [n]);
+
+  const handleMouseDown = useCallback((e) => { pointerStartX.current = e.clientX; }, []);
+  const handleMouseUp = useCallback((e) => {
+    if (pointerStartX.current === null) return;
+    const delta = pointerStartX.current - e.clientX;
+    pointerStartX.current = null;
+    if (Math.abs(delta) < 40) return;
+    navigateCarousel(delta > 0 ? 1 : -1);
+  }, [navigateCarousel]);
+
+  const handleTouchStart = useCallback((e) => { pointerStartX.current = e.touches[0].clientX; }, []);
+  const handleTouchEnd = useCallback((e) => {
+    if (pointerStartX.current === null) return;
+    const delta = pointerStartX.current - e.changedTouches[0].clientX;
+    pointerStartX.current = null;
+    if (Math.abs(delta) < 40) return;
+    navigateCarousel(delta > 0 ? 1 : -1);
+  }, [navigateCarousel]);
+
   return (
     <section
       id="featured-projects"
@@ -1238,7 +1272,13 @@ function ProjectsSection() {
         </p>
       </div>
 
-      <div className="sticky top-0 min-h-screen flex flex-col justify-center px-6 py-8">
+      <div
+        className="sticky top-0 min-h-screen flex flex-col justify-center px-6 py-8"
+        onMouseDown={handleMouseDown}
+        onMouseUp={handleMouseUp}
+        onTouchStart={handleTouchStart}
+        onTouchEnd={handleTouchEnd}
+      >
         <div className="max-w-6xl mx-auto w-full">
 
           {/* Desktop only: text inside the sticky container */}
@@ -1277,7 +1317,62 @@ function ProjectsSection() {
                 />
               ))}
             </motion.div>
+
+            {/* Left arrow — sits just left of the front card */}
+            <button
+              onMouseDown={(e) => e.stopPropagation()}
+              onClick={() => navigateCarousel(-1)}
+              aria-label="Previous project"
+              style={{
+                position: 'absolute',
+                left: `calc(50% - ${width / 2 + 84}px)`,
+                bottom: 12,
+                width: 44,
+                height: 44,
+                borderRadius: '50%',
+                border: '2px solid #D1D5DB',
+                background: 'white',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: 'pointer',
+                zIndex: 20,
+                transition: 'border-color 0.2s, background 0.2s',
+              }}
+              onMouseOver={(e) => { e.currentTarget.style.borderColor = '#111827'; e.currentTarget.style.background = '#F9FAFB'; }}
+              onMouseOut={(e) => { e.currentTarget.style.borderColor = '#D1D5DB'; e.currentTarget.style.background = 'white'; }}
+            >
+              <ArrowRight size={18} color="#374151" style={{ transform: 'rotate(180deg)' }} />
+            </button>
+
+            {/* Right arrow — sits just right of the front card */}
+            <button
+              onMouseDown={(e) => e.stopPropagation()}
+              onClick={() => navigateCarousel(1)}
+              aria-label="Next project"
+              style={{
+                position: 'absolute',
+                left: `calc(50% + ${width / 2 + 40}px)`,
+                bottom: 12,
+                width: 44,
+                height: 44,
+                borderRadius: '50%',
+                border: '2px solid #D1D5DB',
+                background: 'white',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: 'pointer',
+                zIndex: 20,
+                transition: 'border-color 0.2s, background 0.2s',
+              }}
+              onMouseOver={(e) => { e.currentTarget.style.borderColor = '#111827'; e.currentTarget.style.background = '#F9FAFB'; }}
+              onMouseOut={(e) => { e.currentTarget.style.borderColor = '#D1D5DB'; e.currentTarget.style.background = 'white'; }}
+            >
+              <ArrowRight size={18} color="#374151" />
+            </button>
           </div>
+
         </div>
       </div>
     </section>

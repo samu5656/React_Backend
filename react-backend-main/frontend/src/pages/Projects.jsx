@@ -9,10 +9,10 @@ import {
 const PROJECTS = [
   {
     id: 1, number: '01',
-    title: 'Fully Disintegrable Sanitary Pads',
+    title: 'Flushable Sanitary Pads',
     domain: 'Health and Wellbeing',
     tags: ['Biodegradable', 'Biotech', "Women's Health"],
-    description: 'A sustainable sanitary pad developed using natural fibers and a biodegradable bio-superabsorbent system to replace plastic-based materials. It provides effective absorbency, comfort, and leakage protection while safely degrading after disposal, reducing menstrual waste pollution and supporting eco-friendly menstrual hygiene.',
+    description: 'A Flushable sanitary pad developed using natural fibers and a biodegradable bio-superabsorbent system to replace plastic-based materials. It provides effective absorbency, comfort, and leakage protection while safely degrading after disposal, reducing menstrual waste pollution and supporting eco-friendly menstrual hygiene.',
     website: 'https://khyora.vercel.app/',
     accent: '#0d9488', lightBg: '#f0fdfa', Icon: Leaf,
   },
@@ -25,17 +25,9 @@ const PROJECTS = [
     website: 'https://react.kct.ac.in/projects/therbel',
     accent: '#ea580c', lightBg: '#fff7ed', Icon: Sun,
   },
+  
   {
     id: 3, number: '03',
-    title: 'Plug-and-Play Smart Microclimate Control for Mushroom Cultivation',
-    domain: 'Agriculture and Food Systems',
-    tags: ['IoT', 'Automation', 'Sustainable Farming'],
-    description: 'A portable automated climate-control system designed for mushroom growing chambers, maintaining optimal humidity, temperature, CO₂, and light levels through continuous monitoring and real-time adjustments to maximise yield and minimise crop failure.',
-    website: 'https://flow-sync-lilac.vercel.app/',
-    accent: '#d97706', lightBg: '#fffbeb', Icon: FlaskConical,
-  },
-  {
-    id: 4, number: '04',
     title: 'Precision Feeding and Health Monitoring for Shrimp Farming',
     domain: 'Agriculture and Food Systems',
     tags: ['Precision Feeding', 'IoT', 'Aquaculture'],
@@ -44,7 +36,7 @@ const PROJECTS = [
     accent: '#0284c7', lightBg: '#f0f9ff', Icon: Waves,
   },
   {
-    id: 5, number: '05',
+    id: 4, number: '04',
     title: 'Immersive Medical Training Simulator for Retinoscope',
     domain: 'Education and Livelihood',
     tags: ['Virtual Reality', 'EdTech', 'Simulation'],
@@ -53,7 +45,7 @@ const PROJECTS = [
     accent: '#7c3aed', lightBg: '#faf5ff', Icon: Monitor,
   },
   {
-    id: 6, number: '06',
+    id: 5, number: '05',
     title: 'Converting Food Waste into Biogas',
     domain: 'Agriculture and Food Systems',
     tags: ['Biogas', 'Circular Economy', 'Waste-to-Energy'],
@@ -62,13 +54,22 @@ const PROJECTS = [
     accent: '#16a34a', lightBg: '#f0fdf4', Icon: Flame,
   },
   {
-    id: 7, number: '07',
+    id: 6, number: '06',
     title: 'AI-Enabled Smart Patient Flow Monitoring System',
     domain: 'Health and Wellbeing',
     tags: ['AI', 'IoT', 'Hospital Management'],
     description: 'An intelligent hospital management system that uses wearable patient wristbands, real-time tracking, and AI analytics to monitor patient movement and predict bottlenecks, improving care delivery and reducing emergency wait times.',
-    website: '#',
+    website: 'https://flow-sync-lilac.vercel.app/',
     accent: '#0891b2', lightBg: '#ecfeff', Icon: Brain,
+  },
+  {
+    id: 7, number: '07',
+    title: 'Plug-and-Play Smart Microclimate Control for Mushroom Cultivation',
+    domain: 'Agriculture and Food Systems',
+    tags: ['IoT', 'Automation', 'Sustainable Farming'],
+    description: 'A portable automated climate-control system designed for mushroom growing chambers, maintaining optimal humidity, temperature, CO₂, and light levels through continuous monitoring and real-time adjustments to maximise yield and minimise crop failure.',
+    website:'#',
+    accent: '#d97706', lightBg: '#fffbeb', Icon: FlaskConical,
   },
   {
     id: 8, number: '08',
