@@ -1432,7 +1432,7 @@ export function Journey() {
         <SectionHeading
           eyebrow="The Identity Arc"
           title="Five phases. Five identities. One arc."
-          subtitle="Fellows do not just complete tasks across two years. They earn designations that mark a real shift in capability. Each phase has its own focus, its own courses, its own outputs, and its own gate. The arc moves from unlearning to founding."
+          subtitle="Across two years, fellows do more than complete tasks. They earn designations that mark a real shift in capability. Each phase has its own focus, its own courses, its own outputs, and its own gate. The arc moves from unlearning to founding."
         />
 
         {/* Phase cards arc */}
