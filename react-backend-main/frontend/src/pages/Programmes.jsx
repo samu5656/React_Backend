@@ -1212,8 +1212,7 @@ export const Programmes = () => {
                 </ul>
               </div>
               <blockquote className="border-l-4 border-[#E76758] pl-6 text-3xl font-semibold leading-tight text-white sm:text-4xl">
-                &ldquo;The designation cannot be applied for. The venture does not complete it. What comes
-                after does.&rdquo;
+                &ldquo;The designation is earned in the field. The venture opens the door. What comes after walks through it.&rdquo;
               </blockquote>
             </div>
           </FadeUp>

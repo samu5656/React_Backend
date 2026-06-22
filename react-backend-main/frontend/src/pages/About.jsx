@@ -609,7 +609,7 @@ export const About = () => {
               className="mt-5 text-4xl font-semibold leading-tight text-slate-950 sm:text-5xl"
               delay={0.05}
             >
-              Three qualities. No exceptions.
+              Three qualities. Every fellow, every time.
             </SpringHeading>
             <FadeUp delay={0.1}>
               <p className="mt-5 text-lg leading-relaxed text-slate-700">

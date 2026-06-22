@@ -591,12 +591,12 @@ const reactPrinciples = [
   {
     letter: 'A',
     word: 'pplication',
-    desc: '— because knowledge that cannot be used on a real problem is incomplete.',
+    desc: '— because knowledge that can be used on a real problem is complete.',
   },
   {
     letter: 'C',
     word: 'ollaborative',
-    desc: '— because no meaningful social problem has ever been solved by one person working alone.',
+    desc: '— because every meaningful social problem has been solved by people working together.',
   },
   {
     letter: 'T',
@@ -649,7 +649,7 @@ function WhatReactIsSection() {
           className="text-3xl md:text-4xl lg:text-5xl font-black text-gray-950 mb-6 leading-tight"
           style={{ letterSpacing: '-0.02em' }}
         >
-          Not a classroom. Not a competition.<br /> A way of working.
+          A discipline of building. A way of working.
         </motion.h2>
         <p className="text-lg text-amber-700 font-bold mb-10 italic">
           Real World Engineering and Application through Collaborative Transformation. Every word is a principle.
@@ -740,8 +740,8 @@ function WhatReactIsSection() {
               transition={{ duration: 0.55, delay: 0.3 }}
               className="mb-5"
             >
-              Fellows do not study social problems from a distance. They live inside them. They work alongside communities.
-              They build <em>with</em> people, not <em>for</em> them. And they do not leave until something real exists —
+              Fellows get close to social problems — close enough to live inside them. They work alongside communities.
+              They build <em>with</em> people, not <em>for</em> them. And they stay until something real exists —
               a tested solution, a filed patent, a registered venture, a community that is measurably better off.
             </motion.p>
             <motion.p
@@ -1230,7 +1230,7 @@ function ProjectsSection() {
           Built Inside the Centre
         </p>
         <h2 className="text-2xl font-black text-gray-950 mb-2" style={{ letterSpacing: '-0.02em' }}>
-          These are not assignments. They are products.
+          These are projects that became something more.
         </h2>
         <p className="text-gray-600 text-sm leading-relaxed">
           Every project here was built by fellows working on a real problem, in a real community, through the REACT
@@ -1254,7 +1254,7 @@ function ProjectsSection() {
               className="text-3xl md:text-4xl font-black text-gray-950 mb-3"
               style={{ letterSpacing: '-0.02em' }}
             >
-              These are not assignments. They are products.
+              These are projects that became something more.
             </motion.h2>
             <p className="text-gray-600 text-base mb-6 max-w-2xl leading-relaxed">
               Every project here was built by fellows working on a real problem, in a real community, through the REACT
