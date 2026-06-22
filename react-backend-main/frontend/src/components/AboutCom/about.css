@@ -32,19 +32,8 @@ html.lenis {
   will-change: opacity;
 }
 
-/* ── Marquee ── */
-@keyframes about-marquee {
-  0%   { transform: translateX(0);    }
-  100% { transform: translateX(-50%); }
-}
-.about-marquee-track {
-  width: max-content;
-  animation: about-marquee 28s linear infinite;
-  will-change: transform;
-}
-.about-marquee-root:hover .about-marquee-track {
-  animation-play-state: paused;
-}
+/* Marquee styles are fully inlined in Marquee.jsx — nothing needed here. */
+
 
 /* ── Gradient CTA button ── */
 .about-cta-gradient {
@@ -82,46 +71,63 @@ html.lenis {
   box-shadow: 0 14px 32px rgba(0,0,0,0.10), 0 4px 8px rgba(0,0,0,0.07);
 }
 
-/* ── WHO BELONGS HERE — coloured cards ── */
+/* ── WHO BELONGS HERE — fly-in cards ── */
+
+/* Start hidden — GSAP owns opacity/transform throughout */
 .about-who-card {
+  opacity: 0;
   border: 1px solid transparent;
+  /* Use individual CSS properties for hover so they don't
+     conflict with GSAP's inline matrix transform */
   transition:
-    transform 0.35s cubic-bezier(0.16, 1, 0.3, 1),
-    box-shadow 0.35s ease,
-    border-color 0.35s ease;
+    translate 0.38s cubic-bezier(0.16, 1, 0.3, 1),
+    scale     0.38s cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 0.38s ease,
+    border-color 0.38s ease;
 }
-/* Card 1 — indigo/violet: intellectual curiosity */
-.about-who-card--1 {
-  background: linear-gradient(135deg, #dbeafe 0%, #ede9fe 100%);
-  border-color: #c4b5fd;
-}
-/* Card 2 — emerald/teal: adaptability & growth */
-.about-who-card--2 {
-  background: linear-gradient(135deg, #d1fae5 0%, #cffafe 100%);
-  border-color: #6ee7b7;
-}
-/* Card 3 — rose/amber: collaborative warmth (echoes brand coral) */
-.about-who-card--3 {
-  background: linear-gradient(135deg, #fee2e2 0%, #fef3c7 100%);
-  border-color: #fca5a5;
-}
+.about-who-card--1 { background: linear-gradient(135deg,#dbeafe 0%,#ede9fe 100%); border-color:#c4b5fd; }
+.about-who-card--2 { background: linear-gradient(135deg,#d1fae5 0%,#cffafe 100%); border-color:#6ee7b7; }
+.about-who-card--3 { background: linear-gradient(135deg,#fee2e2 0%,#fef3c7 100%); border-color:#fca5a5; }
+
+/* Hover lift — uses CSS `translate` & `scale` (not `transform`)
+   so it stacks on top of GSAP's matrix without fighting it */
 .about-who-card:hover {
-  transform: translateY(-8px) scale(1.04);
-  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.13), 0 8px 16px rgba(0, 0, 0, 0.08);
+  translate: 0 -10px;
+  scale: 1.035;
+  box-shadow: 0 28px 52px rgba(0,0,0,0.14), 0 8px 18px rgba(0,0,0,0.08);
   border-color: transparent;
 }
 
-/* ── Who Belongs Here — body content reveals on scroll, title shows first ── */
-.about-quality-body {
+/* Watermark number — GSAP animates opacity to 0.07, not 1 */
+.about-who-num {
+  position: absolute;
+  top: 1rem;
+  right: 1.25rem;
+  font-size: 4.5rem;
+  font-weight: 900;
+  line-height: 1;
+  letter-spacing: -0.06em;
   opacity: 0;
-  will-change: transform, opacity, filter;
+  user-select: none;
+  pointer-events: none;
 }
+.about-who-card--1 .about-who-num { color: #6d28d9; }
+.about-who-card--2 .about-who-num { color: #059669; }
+.about-who-card--3 .about-who-num { color: #e76758; }
+
+/* Title and body start hidden — GSAP reveals them */
+.about-who-card h3,
+.about-who-card p { opacity: 0; }
 
 @media (prefers-reduced-motion: reduce) {
-  .about-quality-body {
+  .about-who-card,
+  .about-who-card h3,
+  .about-who-card p,
+  .about-who-num {
     opacity: 1 !important;
     transform: none !important;
-    filter: none !important;
+    translate: none !important;
+    clip-path: none !important;
   }
 }
 
@@ -395,7 +401,6 @@ button:hover .about-arrow-icon {
 
 /* ── Accessibility: reduce motion ── */
 @media (prefers-reduced-motion: reduce) {
-  .about-marquee-track,
   .about-pulse-ring,
   .about-pulse-dot,
   .about-card,

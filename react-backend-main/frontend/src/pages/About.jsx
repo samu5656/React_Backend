@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, Compass, Scale, ShieldCheck, MapPin, GraduationCap, Landmark } from 'lucide-react';
+import { ArrowRight, Compass, Scale, ShieldCheck } from 'lucide-react';
 import { motion, useInView } from 'framer-motion';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
@@ -9,8 +9,6 @@ import Lenis from 'lenis';
 import { FadeUp } from '../components/AboutCom/FadeUp';
 import { RotatingText } from '../components/AboutCom/RotatingText';
 import { StatusBadge } from '../components/AboutCom/StatusBadge';
-import { Marquee } from '../components/AboutCom/Marquee';
-import { WaveBackground } from '../components/AboutCom/WaveBackground';
 import '../components/AboutCom/about.css';
 
 gsap.registerPlugin(ScrollTrigger);
@@ -54,11 +52,6 @@ const frameworks = [
   },
 ];
 
-const institutionStats = [
-  { icon: MapPin, label: 'Coimbatore, Tamil Nadu' },
-  { icon: GraduationCap, label: '3 Academic Units' },
-  { icon: Landmark, label: 'Decades of Industry Ties' },
-];
 
 const qualities = [
   {
@@ -266,46 +259,87 @@ const FrameworkCard = ({ framework, index }) => {
   );
 };
 
-/* ── Who Belongs Here — title shown first, body reveals on scroll ── */
-const QualityCard = ({ quality, index }) => {
-  const cardRef = useRef(null);
-  const bodyRef = useRef(null);
+/* Each card flies in from a unique direction */
+const CARD_FROM = [
+  { x: -220, y: 0,   rotation: -15, scale: 0.80 }, // ← from left, tilted
+  { x: 0,   y: 200,  rotation:   0, scale: 0.65 }, // ↑ from below, squished
+  { x: 220, y: 0,   rotation:  15, scale: 0.80 }, // → from right, tilted
+];
+
+/* ── Who Belongs Here — fly-in / fly-out on every scroll pass ── */
+const QualityCard = ({ quality, index, sectionRef }) => {
+  const cardRef  = useRef(null);
+  const numRef   = useRef(null);
+  const titleRef = useRef(null);
+  const bodyRef  = useRef(null);
 
   useEffect(() => {
     const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     const card = cardRef.current;
-    const body = bodyRef.current;
-    if (prefersReduced || !card || !body) return;
+    if (prefersReduced || !card) return;
+
+    const delay = index * 0.07;
+    const from  = CARD_FROM[index];
+
+    /*
+      Trigger off the section heading (sectionRef) so all 3 cards start
+      animating the moment the section scrolls into view — not when each
+      individual card reaches the viewport.
+    */
+    const triggerEl = sectionRef?.current ?? card;
+    const st = {
+      trigger: triggerEl,
+      start: 'top 78%',
+      end: 'top 5%',
+      toggleActions: 'play reverse play reverse',
+    };
 
     const ctx = gsap.context(() => {
-      gsap.fromTo(
-        body,
-        { opacity: 0, y: 24, filter: 'blur(6px)' },
-        {
-          opacity: 1,
-          y: 0,
-          filter: 'blur(0px)',
-          ease: 'power2.out',
-          scrollTrigger: {
-            trigger: card,
-            start: 'top 80%',
-            end: 'top 38%',
-            scrub: 0.6,
-          },
-        }
+      /* Card: flies in from its unique direction with blur + tilt */
+      gsap.fromTo(card,
+        { opacity: 0, x: from.x, y: from.y, rotation: from.rotation,
+          scale: from.scale, filter: 'blur(14px)' },
+        { opacity: 1, x: 0, y: 0, rotation: 0, scale: 1, filter: 'blur(0px)',
+          duration: 0.9, delay, ease: 'power3.out', scrollTrigger: st }
+      );
+
+      /* Number: drops in from above and shrinks, low opacity target */
+      gsap.fromTo(numRef.current,
+        { opacity: 0, scale: 2.2, y: -30 },
+        { opacity: 0.07, scale: 1, y: 0,
+          duration: 0.75, delay: delay + 0.22, ease: 'power2.out', scrollTrigger: st }
+      );
+
+      /* Title: clips up from its own bottom edge */
+      gsap.fromTo(titleRef.current,
+        { opacity: 0, y: 36, clipPath: 'inset(0 0 100% 0)' },
+        { opacity: 1, y: 0, clipPath: 'inset(0 0 0% 0)',
+          duration: 0.65, delay: delay + 0.34, ease: 'power3.out', scrollTrigger: st }
+      );
+
+      /* Body: rises in last */
+      gsap.fromTo(bodyRef.current,
+        { opacity: 0, y: 22 },
+        { opacity: 1, y: 0,
+          duration: 0.6, delay: delay + 0.48, ease: 'power2.out', scrollTrigger: st }
       );
     });
 
     return () => ctx.revert();
-  }, []);
+  }, [index]);
 
   return (
     <article
       ref={cardRef}
-      className={`about-card about-who-card about-who-card--${index + 1} h-full rounded-lg p-6 shadow-sm`}
+      className={`about-who-card about-who-card--${index + 1} relative h-full overflow-hidden rounded-2xl p-7 shadow-sm`}
     >
-      <h3 className="text-xl font-semibold text-[#0F2A44]">{quality.title}</h3>
-      <p ref={bodyRef} className="about-quality-body mt-3 text-base leading-relaxed text-slate-600">
+      <span ref={numRef} className="about-who-num" aria-hidden="true">
+        {String(index + 1).padStart(2, '0')}
+      </span>
+      <h3 ref={titleRef} className="relative mt-2 text-xl font-semibold text-[#0F2A44]">
+        {quality.title}
+      </h3>
+      <p ref={bodyRef} className="relative mt-3 text-base leading-relaxed text-slate-600">
         {quality.body}
       </p>
     </article>
@@ -316,8 +350,9 @@ const QualityCard = ({ quality, index }) => {
    Main export
    ══════════════════════════════════════════════════ */
 export const About = () => {
-  const heroRef      = useRef(null);
-  const heroTextRef  = useRef(null);
+  const heroRef       = useRef(null);
+  const heroTextRef   = useRef(null);
+  const whoSectionRef = useRef(null);
 
   /* ── Lenis smooth scroll ── */
   useEffect(() => {
@@ -434,11 +469,6 @@ export const About = () => {
         </div>
       </section>
 
-      {/* ── MARQUEE TRUST BAR ── */}
-      <div className="bg-[#F5F7FA] py-2">
-        <Marquee />
-      </div>
-
       {/* ── THE BELIEF ── */}
       <section className="px-6 py-16 sm:py-20">
         <div className="mx-auto grid max-w-6xl gap-10 lg:grid-cols-[0.78fr_1.22fr]">
@@ -548,18 +578,6 @@ export const About = () => {
               </p>
             </FadeUp>
 
-            <FadeUp delay={0.16}>
-              <div className="mt-7 flex flex-col gap-3">
-                {institutionStats.map(({ icon: Icon, label }) => (
-                  <div key={label} className="about-institution-chip flex items-center gap-3 rounded-xl border border-slate-200 bg-white/70 px-4 py-3">
-                    <span className="about-institution-chip-icon flex h-9 w-9 shrink-0 items-center justify-center rounded-lg">
-                      <Icon className="h-4 w-4" aria-hidden="true" />
-                    </span>
-                    <span className="text-sm font-semibold text-[#0F2A44]">{label}</span>
-                  </div>
-                ))}
-              </div>
-            </FadeUp>
           </div>
           <div className="space-y-6 text-lg leading-relaxed text-slate-700">
             <FadeUp delay={0}>
@@ -598,7 +616,7 @@ export const About = () => {
       </section>
 
       {/* ── WHO BELONGS HERE ── */}
-      <section className="bg-white px-6 py-16 sm:py-20">
+      <section className="bg-white px-6 py-16 sm:py-20" ref={(el) => { whoSectionRef.current = el; }}>
         <div className="mx-auto max-w-6xl">
           <div className="max-w-3xl">
             <FadeUp>
@@ -622,17 +640,14 @@ export const About = () => {
 
           <div className="mt-10 grid grid-cols-1 items-stretch gap-5 md:grid-cols-3">
             {qualities.map((quality, i) => (
-              <FadeUp key={quality.title} delay={i * 0.08} className="h-full">
-                <QualityCard quality={quality} index={i} />
-              </FadeUp>
+              <QualityCard key={quality.title} quality={quality} index={i} sectionRef={whoSectionRef} />
             ))}
           </div>
         </div>
       </section>
 
-      {/* ── DARK CTA (WebGL wave background) ── */}
-      <section className="about-dark-section bg-[#0F2A44] px-6 py-18 text-white sm:py-24">
-        <WaveBackground color={[0.3, 0.55, 0.8]} opacity={0.35} />
+      {/* ── DARK CTA ── */}
+      <section className="about-dark-section bg-black px-6 py-18 text-white sm:py-24">
         <div className="relative z-10 mx-auto max-w-6xl">
           <FadeUp>
             <h2 className="mt-5 max-w-4xl text-4xl font-semibold leading-tight sm:text-5xl">

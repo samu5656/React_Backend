@@ -4,12 +4,14 @@ import ShinyText from '../components/FooterCom/ShinyText';
 import Logo from '../assets/images/logo.png'
 import KILogo from '../assets/images/KI.png'
 import { Link } from "react-router-dom";
+import { WaveBackground } from '../components/AboutCom/WaveBackground';
 
 
 const Footer = () => {
   return (
-    <footer className="bg-black text-white pt-20">
-      <div className="max-w-7xl mx-auto px-6">
+    <footer className="bg-black text-white pt-20" style={{ position: 'relative', overflow: 'hidden' }}>
+      <WaveBackground color={[0.3, 0.5, 0.75]} opacity={0.28} />
+      <div className="max-w-7xl mx-auto px-6" style={{ position: 'relative', zIndex: 1 }}>
 
         {/* Top Section */}
         <motion.div

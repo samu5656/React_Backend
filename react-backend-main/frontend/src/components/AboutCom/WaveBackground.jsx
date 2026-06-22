@@ -151,8 +151,15 @@ export const WaveBackground = ({ color = [0.72, 0.72, 0.78], opacity = 1 }) => {
   return (
     <canvas
       ref={canvasRef}
-      className="about-wave-canvas"
-      style={{ opacity }}
+      style={{
+        position: 'absolute',
+        inset: 0,
+        width: '100%',
+        height: '100%',
+        pointerEvents: 'none',
+        zIndex: 0,
+        opacity,
+      }}
       aria-hidden="true"
     />
   );

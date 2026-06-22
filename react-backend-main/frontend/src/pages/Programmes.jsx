@@ -230,21 +230,7 @@ const selectionStages = [
   },
 ];
 
-const cohortLinks = [
-  {
-    label: 'reactfellowship.kumaraguru.in',
-    href: 'https://reactfellowship.kumaraguru.in',
-    Icon: Globe,
-    action: 'link',
-  },
-  {
-    label: 'info.react@kumaraguru.in',
-    href: 'mailto:info.react@kumaraguru.in',
-    Icon: Mail,
-    action: 'copy',
-    copyText: 'info.react@kumaraguru.in',
-  },
-];
+const cohortLinks = [];
 
 // ─────────────────────────────────────────────────────────────
 // UTILITIES
@@ -554,70 +540,400 @@ function ProgrammeModal({ programme, onClose }) {
 }
 
 // ─────────────────────────────────────────────────────────────
-// STAGE CARD — hover tilt + scroll reveal (unchanged)
+// STAGE CARD — static display; energy animation driven externally
 // ─────────────────────────────────────────────────────────────
-function StageCard({ stage, index }) {
-  const ref = useRef(null);
-  const articleRef = useRef(null);
-  const isInView = useInView(ref, { once: true, margin: '-60px' });
+const STAGE_STYLES = [
+  {
+    cardBg:          'linear-gradient(145deg, #FFF7F5 0%, #FFEAE4 55%, #FFF0EE 100%)',
+    topBar:          'linear-gradient(90deg, #E76758 0%, #FF9E80 100%)',
+    iconBg:          'linear-gradient(135deg, #E76758 0%, #FF9E80 100%)',
+    border:          'rgba(231, 103, 88, 0.22)',
+    glow:            'rgba(231, 103, 88, 0.14)',
+    overlayGradient: 'radial-gradient(ellipse at 50% 28%, rgba(231,103,88,0.18) 0%, transparent 72%)',
+  },
+  {
+    cardBg:          'linear-gradient(145deg, #F2F6FF 0%, #DDEAFB 55%, #EEF4FB 100%)',
+    topBar:          'linear-gradient(90deg, #0F2A44 0%, #2D70C8 100%)',
+    iconBg:          'linear-gradient(135deg, #0F2A44 0%, #2D70C8 100%)',
+    border:          'rgba(15, 42, 68, 0.15)',
+    glow:            'rgba(15, 42, 68, 0.10)',
+    overlayGradient: 'radial-gradient(ellipse at 50% 28%, rgba(15,42,68,0.14) 0%, transparent 72%)',
+  },
+  {
+    cardBg:          'linear-gradient(145deg, #FFF8F0 0%, #FFE3C0 55%, #FDF4EE 100%)',
+    topBar:          'linear-gradient(90deg, #C06840 0%, #E8944A 100%)',
+    iconBg:          'linear-gradient(135deg, #C06840 0%, #E8944A 100%)',
+    border:          'rgba(192, 104, 64, 0.20)',
+    glow:            'rgba(192, 104, 64, 0.12)',
+    overlayGradient: 'radial-gradient(ellipse at 50% 28%, rgba(192,104,64,0.16) 0%, transparent 72%)',
+  },
+];
+
+function StageCard({ stage, index, articleRef: externalArticleRef, iconWrapRef, overlayRef }) {
+  const st           = STAGE_STYLES[index] ?? STAGE_STYLES[0];
   const shouldReduce = useReducedMotion();
 
-  function onMouseMove(e) {
-    if (shouldReduce) return;
-    const el = articleRef.current;
-    if (!el) return;
-    const r = el.getBoundingClientRect();
-    const x = ((e.clientX - r.left) / r.width - 0.5) * 2;
-    const y = ((e.clientY - r.top) / r.height - 0.5) * 2;
-    el.style.transform = `perspective(900px) rotateX(${-y * 7}deg) rotateY(${x * 7}deg) translateY(-6px) scale(1.01)`;
-    el.style.boxShadow = '0 24px 56px rgba(0,0,0,0.13), 0 4px 12px rgba(0,0,0,0.06)';
+  const localArtRef  = useRef(null);
+  const frontRef     = useRef(null);
+  const backRef      = useRef(null);
+  const bgNumRef     = useRef(null);
+  const beamRef      = useRef(null);
+  const wmRef        = useRef(null);
+  const tlRef        = useRef(null);
+
+  // Merge external ref (energy animation) with local ref
+  function setArticleRef(el) {
+    localArtRef.current = el;
+    if (typeof externalArticleRef === 'function') externalArticleRef(el);
   }
 
-  function onMouseLeave() {
-    const el = articleRef.current;
-    if (!el) return;
-    el.style.transform = 'perspective(900px) rotateX(0deg) rotateY(0deg) translateY(0px) scale(1)';
-    el.style.boxShadow = '0 4px 20px rgba(0,0,0,0.06), 0 1px 3px rgba(0,0,0,0.04)';
+  useEffect(() => {
+    if (shouldReduce) return;
+
+    const art   = localArtRef.current;
+    const front = frontRef.current;
+    const back  = backRef.current;
+    const bgNum = bgNumRef.current;
+    const wm    = wmRef.current;
+
+    if (!art || !front || !back || !bgNum || !wm) return;
+
+    // Establish initial hidden states for hover layers
+    gsap.set(back,  { yPercent: 106 });
+    gsap.set(bgNum, { opacity: 0 });
+
+    // Single timeline — play() on enter, reverse() on leave
+    // Each phase is precisely staggered to feel like layers reorganising
+    const tl = gsap.timeline({ paused: true, defaults: { ease: 'power2.inOut' } });
+
+    // Phase 1 — front panel lifted mechanically upward
+    // -130% ensures the front layer's bottom clears the article's top padding
+    // zone (28px) before overflow:hidden clips it, regardless of content height.
+    tl.to(front, { yPercent: -130, duration: 0.27 },            0);
+    tl.to(wm,    { opacity: 0,     duration: 0.18 },            0);
+
+    // Phase 2 — back layer rises like an elevator platform
+    tl.to(back,  { yPercent: 0, duration: 0.36, ease: 'power3.out' }, 0.13);
+
+    // Phase 3 — architectural number breathes into existence
+    tl.to(bgNum, { opacity: 0.045, duration: 0.34, ease: 'power1.out' }, 0.27);
+
+    tlRef.current = tl;
+    return () => { tl.kill(); };
+  }, [shouldReduce]);
+
+  function onEnter() {
+    if (shouldReduce) return;
+    tlRef.current?.play();
+
+    // Scan beam — born at the top accent bar, travels to the bottom
+    const art  = localArtRef.current;
+    const beam = beamRef.current;
+    if (!art || !beam) return;
+
+    const h = art.getBoundingClientRect().height;
+    gsap.killTweensOf(beam);
+    gsap.fromTo(
+      beam,
+      { y: 0, opacity: 1 },
+      { y: h + 4, duration: 1.08, ease: 'power1.inOut' }
+    );
+  }
+
+  function onLeave() {
+    if (shouldReduce) return;
+    tlRef.current?.reverse();
+
+    // Fade the beam out wherever it currently is
+    const beam = beamRef.current;
+    if (beam) {
+      gsap.killTweensOf(beam);
+      gsap.to(beam, { opacity: 0, duration: 0.22, ease: 'power1.out' });
+    }
   }
 
   return (
-    <motion.div
-      ref={ref}
-      initial={{ opacity: 0, y: shouldReduce ? 0 : 65 }}
-      animate={isInView ? { opacity: 1, y: 0 } : {}}
-      transition={{ duration: shouldReduce ? 0.15 : 0.72, delay: index * 0.14, ease: [0.22, 1, 0.36, 1] }}
-      onMouseMove={onMouseMove}
-      onMouseLeave={onMouseLeave}
-      className="h-full"
-    >
+    <div className="h-full">
       <article
-        ref={articleRef}
-        className="relative h-full overflow-hidden rounded-2xl border border-slate-100 bg-white p-7"
+        ref={setArticleRef}
+        className="relative h-full overflow-hidden rounded-2xl p-7"
         style={{
-          transition: 'transform 0.22s cubic-bezier(0.22,1,0.36,1), box-shadow 0.22s cubic-bezier(0.22,1,0.36,1)',
-          boxShadow: '0 4px 20px rgba(0,0,0,0.06), 0 1px 3px rgba(0,0,0,0.04)',
+          background: st.cardBg,
+          border:     `1px solid ${st.border}`,
+          boxShadow:  `0 4px 24px ${st.glow}, 0 1px 4px rgba(0,0,0,0.04)`,
         }}
+        onMouseEnter={onEnter}
+        onMouseLeave={onLeave}
       >
+        {/* Energy pulse overlay — animated by SelectionSection idle loop */}
         <div
-          className="w-12 h-12 rounded-2xl flex items-center justify-center mb-5"
-          style={{ background: stage.bg }}
+          ref={overlayRef}
+          className="absolute inset-0 pointer-events-none"
+          style={{ opacity: 0, background: st.overlayGradient, zIndex: 0 }}
+          aria-hidden="true"
+        />
+
+        {/* Static top accent bar — always at z-top */}
+        <div
+          className="absolute top-0 left-0 right-0 h-[3.5px]"
+          style={{ background: st.topBar, zIndex: 22 }}
+        />
+
+        {/* Scan beam — same visual as accent bar, travels top → bottom */}
+        <div
+          ref={beamRef}
+          className="absolute left-0 right-0 pointer-events-none"
+          style={{ top: 0, height: '2px', background: st.topBar, opacity: 0, zIndex: 24 }}
+          aria-hidden="true"
+        />
+
+        {/* Architectural stage number — large, barely visible on hover */}
+        <div
+          ref={bgNumRef}
+          className="absolute inset-0 flex items-center justify-center select-none pointer-events-none overflow-hidden"
+          style={{ zIndex: 1 }}
+          aria-hidden="true"
         >
-          <stage.Icon className="h-5 w-5" style={{ color: stage.color }} aria-hidden="true" />
+          <span
+            style={{
+              fontSize:      '10rem',
+              fontWeight:    900,
+              lineHeight:    1,
+              color:         stage.color,
+              letterSpacing: '-0.05em',
+            }}
+          >
+            {stage.stage}
+          </span>
         </div>
-        <p className="text-[10.5px] font-bold uppercase tracking-[0.24em] mb-2" style={{ color: stage.color }}>
-          Stage {stage.stage}
-        </p>
-        <h3 className="text-lg font-bold text-slate-900 leading-snug mb-3">{stage.title}</h3>
-        <p className="text-[14px] leading-relaxed text-slate-600">{stage.body}</p>
+
+        {/* Resting watermark — fades as hover begins */}
         <div
+          ref={wmRef}
           className="absolute -bottom-2 right-4 text-8xl font-black leading-none select-none pointer-events-none"
-          style={{ color: `${stage.color}0D` }}
+          style={{ color: stage.color, opacity: 0.035, zIndex: 5 }}
           aria-hidden="true"
         >
           {stage.stage}
         </div>
+
+        {/* ── FRONT LAYER ─────────────────────────────────────────────
+            In normal flow — determines card height.
+            Slides upward on hover (mechanical lift). */}
+        <div ref={frontRef} className="relative" style={{ zIndex: 10 }}>
+          <div
+            ref={iconWrapRef}
+            className="w-12 h-12 rounded-2xl flex items-center justify-center mb-5"
+            style={{ background: st.iconBg }}
+          >
+            <stage.Icon className="h-5 w-5 text-white" aria-hidden="true" />
+          </div>
+
+          <p className="text-[10.5px] font-bold uppercase tracking-[0.24em] mb-2" style={{ color: stage.color }}>
+            Stage {stage.stage}
+          </p>
+
+          <h3 className="text-lg font-bold text-slate-900 leading-snug mb-3">
+            {stage.title}
+          </h3>
+
+          <p className="text-[14px] leading-relaxed text-slate-600">
+            {stage.body}
+          </p>
+        </div>
+
+        {/* ── BACK LAYER ──────────────────────────────────────────────
+            Absolutely positioned; starts below the card.
+            Rises like an elevator platform on hover.
+            aria-hidden: same content as front, decorative layer. */}
+        <div
+          ref={backRef}
+          className="absolute inset-0 p-7 flex flex-col"
+          style={{ zIndex: 10 }}
+          aria-hidden="true"
+        >
+          {/* Icon — larger via actual dimensions, not CSS transform scale */}
+          <div
+            className="w-16 h-16 rounded-2xl flex items-center justify-center mb-5 shrink-0"
+            style={{
+              background: st.iconBg,
+              boxShadow:  `0 0 0 8px ${stage.color}14`,
+            }}
+          >
+            <stage.Icon className="h-7 w-7 text-white" aria-hidden="true" />
+          </div>
+
+          <h3 className="text-lg font-bold text-slate-900 leading-snug mb-3">
+            {stage.title}
+          </h3>
+
+          <p className="text-[14px] leading-relaxed text-slate-600">
+            {stage.body}
+          </p>
+
+          {/* Stage progress indicator — bottom of the revealed layer */}
+          <div
+            className="mt-auto pt-4 flex items-center gap-2"
+            style={{ borderTop: `1px solid ${stage.color}22` }}
+          >
+            <span
+              className="text-[10px] font-bold uppercase tracking-[0.22em]"
+              style={{ color: stage.color }}
+            >
+              Stage {stage.stage}
+            </span>
+            <span className="text-[10px] font-medium text-slate-400">of 03</span>
+          </div>
+        </div>
+
       </article>
-    </motion.div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────
+// SELECTION SECTION — "Process Energy Transfer"
+//
+// A continuous pulse is born in Stage 01, travels to Stage 02,
+// then Stage 03, then rests — looping infinitely. The connection
+// between cards is implied through sequential activation rather
+// than any visible line. A faint wave distortion passes across
+// the "SELECT" watermark while the pulse is in transit.
+//
+// Animation is GPU-friendly (opacity + filter only), respects
+// prefers-reduced-motion, and pauses when the section leaves
+// the viewport via IntersectionObserver.
+// ─────────────────────────────────────────────────────────────
+function SelectionSection() {
+  const sectionRef   = useRef(null);
+  const watermarkRef = useRef(null);
+  const artRefs      = useRef([null, null, null]);
+  const iconRefs     = useRef([null, null, null]);
+  const ovRefs       = useRef([null, null, null]);
+  const tlRef        = useRef(null);
+  const observerRef  = useRef(null);
+  const shouldReduce = useReducedMotion();
+
+  useEffect(() => {
+    if (shouldReduce) return;
+
+    const section   = sectionRef.current;
+    const watermark = watermarkRef.current;
+    const arts      = artRefs.current;
+    const icons     = iconRefs.current;
+    const ovs       = ovRefs.current;
+
+    if (
+      !section || !watermark ||
+      arts.some(el => !el) || icons.some(el => !el) || ovs.some(el => !el)
+    ) return;
+
+    // Establish clean initial states so GSAP can interpolate correctly
+    gsap.set(ovs,       { opacity: 0 });
+    gsap.set(icons,     { filter: 'brightness(1)' });
+    gsap.set(arts,      { filter: 'brightness(1)' });
+    gsap.set(watermark, { skewX: 0, filter: 'blur(0px)' });
+
+    // ── Timing constants (seconds) ──────────────────────────────
+    const RISE    = 0.72;   // activation rise
+    const HOLD    = 1.55;   // sustain at full activation
+    const FALL    = 0.92;   // graceful release
+    const TRANSIT = 1.08;   // silence between card-N fall-start and card-(N+1) rise-start
+    const REST    = 3.20;   // pause after Stage 03 before loop
+
+    // Each inter-stage gap = RISE + HOLD + TRANSIT
+    const slot      = RISE + HOLD + TRANSIT;            // 3.35 s
+    const starts    = [0, slot, slot * 2];              // [0, 3.35, 6.70]
+    const cycleEnd  = starts[2] + RISE + HOLD + FALL + REST;  // ≈ 13.09 s
+
+    const tl = gsap.timeline({ repeat: -1, defaults: { ease: 'power2.inOut' } });
+
+    selectionStages.forEach((_, i) => {
+      const t     = starts[i];
+      const fallT = t + RISE + HOLD;
+
+      // Card activates — overlay illuminates, icon brightens, card gains subtle luminosity
+      tl.to(ovs[i],   { opacity: 1,                  duration: RISE        }, t);
+      tl.to(icons[i], { filter: 'brightness(1.38)',   duration: RISE * 0.88 }, t);
+      tl.to(arts[i],  { filter: 'brightness(1.018)',  duration: RISE        }, t);
+
+      // Card releases — everything eases back to rest
+      tl.to(ovs[i],   { opacity: 0,                 duration: FALL }, fallT);
+      tl.to(icons[i], { filter: 'brightness(1)',    duration: FALL }, fallT);
+      tl.to(arts[i],  { filter: 'brightness(1)',    duration: FALL }, fallT);
+
+      // Watermark wave passes while pulse is in transit to the next card
+      if (i < 2) {
+        const waveT = fallT + 0.28;
+        tl.to(watermark, { skewX: 0.55,  filter: 'blur(0.45px)', duration: 0.45, ease: 'sine.inOut' }, waveT);
+        tl.to(watermark, { skewX: 0,     filter: 'blur(0px)',    duration: 0.65, ease: 'sine.inOut' }, waveT + 0.46);
+      }
+    });
+
+    // Anchor the timeline end so the REST period is part of the cycle
+    tl.to({}, { duration: 0.01 }, cycleEnd);
+
+    tlRef.current = tl;
+    tl.pause();
+
+    // Play only while the section is visible
+    observerRef.current = new IntersectionObserver(
+      ([entry]) => { entry.isIntersecting ? tl.play() : tl.pause(); },
+      { threshold: 0.15 }
+    );
+    observerRef.current.observe(section);
+
+    return () => {
+      tl.kill();
+      observerRef.current?.disconnect();
+    };
+  }, [shouldReduce]);
+
+  return (
+    <section ref={sectionRef} className="relative overflow-hidden bg-white px-6 py-16 sm:py-24">
+
+      {/* Watermark — the skewX + blur wave is driven by the energy timeline */}
+      <div
+        className="pointer-events-none absolute inset-0 flex items-center justify-center select-none"
+        aria-hidden="true"
+      >
+        <span
+          ref={watermarkRef}
+          className="text-[clamp(2.5rem,10vw,10rem)] font-black uppercase leading-none tracking-[0.04em] whitespace-nowrap text-slate-900/[0.06]"
+        >
+          SELECT
+        </span>
+      </div>
+
+      <div className="mx-auto max-w-6xl relative z-10">
+        <FadeUp>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-[#E76758] mb-3">
+            Selection Process
+          </p>
+          <h2 className="text-3xl font-semibold tracking-tight text-slate-950 sm:text-4xl">
+            Three stages. Zero compromise.
+          </h2>
+          <p className="mt-4 max-w-2xl text-lg leading-relaxed text-slate-600">
+            The centre selects on quality of thinking and depth of commitment — problem curiosity,
+            cross-context adaptability, collaborative drive. All three visible before any
+            examination result.
+          </p>
+        </FadeUp>
+
+        <div className="mt-10 grid grid-cols-1 gap-6 md:grid-cols-3">
+          {selectionStages.map((stage, i) => (
+            <StageCard
+              key={stage.stage}
+              stage={stage}
+              index={i}
+              articleRef={el  => { artRefs.current[i]  = el; }}
+              iconWrapRef={el => { iconRefs.current[i] = el; }}
+              overlayRef={el  => { ovRefs.current[i]   = el; }}
+            />
+          ))}
+        </div>
+      </div>
+    </section>
   );
 }
 
@@ -1219,31 +1535,8 @@ export const Programmes = () => {
         </div>
       </section>
 
-      {/* ── THREE STAGES (unchanged) ── */}
-      <section className="relative overflow-hidden bg-white px-6 py-16 sm:py-24">
-        <SectionWatermark text="SELECT" />
-        <div className="mx-auto max-w-6xl relative z-10">
-          <FadeUp>
-            <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-[#E76758] mb-3">
-              Selection Process
-            </p>
-            <h2 className="text-3xl font-semibold tracking-tight text-slate-950 sm:text-4xl">
-              Three stages. Zero compromise.
-            </h2>
-            <p className="mt-4 max-w-2xl text-lg leading-relaxed text-slate-600">
-              The centre selects on quality of thinking and depth of commitment — problem curiosity,
-              cross-context adaptability, collaborative drive. All three visible before any
-              examination result.
-            </p>
-          </FadeUp>
-
-          <div className="mt-10 grid grid-cols-1 gap-6 md:grid-cols-3">
-            {selectionStages.map((stage, index) => (
-              <StageCard key={stage.stage} stage={stage} index={index} />
-            ))}
-          </div>
-        </div>
-      </section>
+      {/* ── THREE STAGES ── */}
+      <SelectionSection />
 
       {/* ── COHORT 2 CTA (unchanged) ── */}
       <section className="relative overflow-hidden bg-[#101827] px-6 py-16 text-white sm:py-24">
