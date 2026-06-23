@@ -342,10 +342,8 @@ const cohortTypes = [
 ];
 
 const domainKeywords = [
-  'AgriTech', 'Health Access', 'Water Systems', 'Education', 'Informal Labour',
-  'Food Security', 'Sanitation', 'Rural Mobility', 'Livelihood', 'Primary Care',
-  'Climate Resilience', 'Micro-Finance', 'Waste Management', 'Digital Inclusion',
-  'Urban Governance',
+  'Three Frameworks', 'The Identity Arc', 'The Five Phases in Full', 'Three Venture Types', 'The Gate System',
+  'Weekly Rhythm', 'The REACT Portfolio', 'The Cohort', 
 ];
 
 /* ─────────────────────────────────────────────
@@ -801,7 +799,7 @@ function CTAButton({ to, variant = 'primary', children }) {
    the viewport while the next one scrolls up and
    covers it — the "stacked cards" scroll effect).
 ───────────────────────────────────────────── */
-function PhaseBlock({ phase, index, total }) {
+function PhaseBlock({ phase, index, total, pinnedOffset = 80 }) {
   const cardRef = useRef(null);
   const contentRef = useRef(null);
   const [hovered, setHovered] = useState(false);
@@ -829,13 +827,20 @@ function PhaseBlock({ phase, index, total }) {
       if (index < total - 1) {
         pinTrigger = ScrollTrigger.create({
           trigger: el,
-          start: 'top 80px',
+          start: `top ${pinnedOffset}px`,
           end: 'bottom top',
           pin: true,
           pinSpacing: false,
           invalidateOnRefresh: true,
-          onLeave: () => gsap.to(content, { opacity: 0, scale: 0.97, duration: 0.2, ease: 'power1.in' }),
-          onEnterBack: () => gsap.to(content, { opacity: 1, scale: 1, duration: 0.2, ease: 'power1.out' }),
+          onLeave: () => {
+            gsap.to(content, { opacity: 0, scale: 0.97, duration: 0.2, ease: 'power1.in',
+              onComplete: () => gsap.set(el, { visibility: 'hidden' }),
+            });
+          },
+          onEnterBack: () => {
+            gsap.set(el, { visibility: 'visible' });
+            gsap.to(content, { opacity: 1, scale: 1, duration: 0.2, ease: 'power1.out' });
+          },
         });
       }
     });
@@ -843,7 +848,7 @@ function PhaseBlock({ phase, index, total }) {
       pinTrigger?.kill();
       mm.revert();
     };
-  }, [index, total]);
+  }, [index, total, pinnedOffset]);
 
   return (
     <div
@@ -854,7 +859,7 @@ function PhaseBlock({ phase, index, total }) {
       className="phase-stack-card scroll-mt-24 bg-white rounded-2xl p-5 md:p-7 border border-black/5 relative"
       style={{
         zIndex: index + 1,
-        height: isMobile ? 'auto' : 'calc(100vh - 130px)',
+        height: isMobile ? 'auto' : (index === total - 1 ? 'auto' : `calc(100vh - ${pinnedOffset}px)`),
         overflow: isMobile ? 'visible' : 'hidden',
         transition: 'box-shadow 0.3s ease',
         boxShadow: hovered
@@ -952,18 +957,297 @@ function PhaseBlock({ phase, index, total }) {
 }
 
 /* ─────────────────────────────────────────────
+   PHASE CARD INNER — layout only, no pinning
+───────────────────────────────────────────── */
+function PhaseCardInner({ phase }) {
+  return (
+    <div
+      className="bg-white rounded-2xl p-5 md:p-7 border border-black/5"
+      style={{ boxShadow: '0 2px 12px rgba(0,0,0,0.05)' }}
+    >
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
+        {/* Left — phase identity + description */}
+        <div>
+          <div className="flex items-start justify-between gap-4 mb-5">
+            <div>
+              <div
+                className="text-xs font-bold text-[#E05C3A] mb-1.5"
+                style={{ fontFamily: 'Arial, sans-serif', letterSpacing: '0.15em' }}
+              >
+                {phase.tag}
+              </div>
+              <h3 className="text-xl md:text-2xl font-bold text-[#1a2c4e] leading-tight">
+                {phase.designation}
+              </h3>
+              <p className="text-[#1a2c4e]/55 text-sm mt-1 font-medium">{phase.subtitle}</p>
+            </div>
+            <div
+              className="flex-shrink-0 w-10 h-10 rounded-2xl flex items-center justify-center font-bold text-white text-base"
+              style={{ background: 'linear-gradient(135deg, #1a2c4e 0%, #2d4a7a 100%)' }}
+            >
+              {phase.number}
+            </div>
+          </div>
+          <div className="space-y-3">
+            {phase.paragraphs.map((para, pi) => (
+              <p key={pi} className="text-[#1a2c4e]/70 leading-relaxed text-[0.85rem]">
+                {para}
+              </p>
+            ))}
+          </div>
+        </div>
+
+        {/* Right — courses + gate outputs */}
+        <div>
+          <div className="mb-5">
+            <div
+              className="text-xs font-bold uppercase tracking-widest text-[#1a2c4e]/40 mb-3"
+              style={{ fontFamily: 'Arial, sans-serif' }}
+            >
+              {phase.coursesLabel}
+            </div>
+            <div className="space-y-2.5">
+              {phase.courses.map((course, ci) => (
+                <div
+                  key={ci}
+                  className="flex gap-3 p-3 rounded-xl bg-[#f8f6f3] border border-black/5"
+                >
+                  <div
+                    className="flex-shrink-0 w-5 h-5 rounded-full mt-0.5 flex items-center justify-center"
+                    style={{ background: '#E05C3A' }}
+                  >
+                    <span className="text-white text-[9px] font-bold">{ci + 1}</span>
+                  </div>
+                  <div>
+                    <p className="font-semibold text-[#1a2c4e] text-sm mb-0.5">{course.name}</p>
+                    <p className="text-[#1a2c4e]/60 text-xs leading-relaxed">{course.description}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div
+            className="rounded-xl p-4 border-l-4"
+            style={{ background: 'rgba(26,44,78,0.03)', borderColor: '#E05C3A' }}
+          >
+            <div
+              className="text-xs font-bold uppercase tracking-widest text-[#E05C3A] mb-3"
+              style={{ fontFamily: 'Arial, sans-serif' }}
+            >
+              {phase.gateLabel}
+            </div>
+            <ul className="space-y-2">
+              {phase.gates.map((gate, gi) => (
+                <li key={gi} className="flex gap-2.5 text-[0.83rem] text-[#1a2c4e]/75 leading-relaxed">
+                  <span className="flex-shrink-0 text-[#E05C3A] font-bold mt-0.5">→</span>
+                  {gate}
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ─────────────────────────────────────────────
+   FIVE PHASES SECTION
+   Heading sticks below the navbar. Each phase
+   card scrolls its own content via outer page
+   scroll before the next card appears.
+───────────────────────────────────────────── */
+function FivePhasesSection({ phases }) {
+  /* ── Mobile: plain stacked layout, no JS needed ── */
+  const MobileLayout = (
+    <section id="section-03" className="lg:hidden bg-[#f8f6f3] py-24 px-6 md:px-12">
+      <div className="max-w-7xl mx-auto">
+        <SectionHeading
+          eyebrow="The Five Phases in Full"
+          title="Every phase. Every course. Every gate."
+        />
+        <div className="space-y-6 mt-6">
+          {phases.map((phase) => (
+            <div key={phase.id} id={phase.id} className="scroll-mt-24">
+              <PhaseCardInner phase={phase} />
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+
+  /* ── Desktop: sticky heading + GSAP-driven card scroll ── */
+  const sectionRef   = useRef(null);
+  const cardRefs     = useRef([]);
+  const activeIdxRef = useRef(0);
+  const [activeIndex, setActiveIndex] = useState(0);
+  const NAV_H = 80;
+
+  useEffect(() => {
+    const cleanups = [];
+    cardRefs.current.forEach((el) => {
+      if (!el) return;
+      const handler = (e) => e.preventDefault();
+      el.addEventListener('wheel', handler, { passive: false });
+      cleanups.push(() => el.removeEventListener('wheel', handler));
+    });
+    return () => cleanups.forEach((fn) => fn());
+  }, []);
+
+  useEffect(() => {
+    const section = sectionRef.current;
+    if (!section) return;
+
+    let st;
+    const mm = gsap.matchMedia();
+    mm.add(
+      '(prefers-reduced-motion: no-preference) and (min-width: 1024px)',
+      () => {
+        const SCROLL_PORTION = 0.72;
+        st = ScrollTrigger.create({
+          trigger: section,
+          start: `top ${NAV_H}px`,
+          end: 'bottom bottom',
+          scrub: 1,
+          onUpdate(self) {
+            const raw  = self.progress * phases.length;
+            const idx  = Math.min(Math.floor(raw), phases.length - 1);
+            const frac = raw - idx;
+            const scrollFrac = Math.min(frac / SCROLL_PORTION, 1);
+
+            if (activeIdxRef.current !== idx) {
+              activeIdxRef.current = idx;
+              setActiveIndex(idx);
+            }
+
+            const cardEl = cardRefs.current[idx];
+            if (cardEl) {
+              const maxScroll = cardEl.scrollHeight - cardEl.clientHeight;
+              if (maxScroll > 0) cardEl.scrollTop = scrollFrac * maxScroll;
+            }
+          },
+        });
+        return () => st?.kill();
+      }
+    );
+
+    return () => mm.revert();
+  }, [phases.length]);
+
+  const DesktopLayout = (
+    <section
+      ref={sectionRef}
+      className="hidden lg:block bg-[#f8f6f3]"
+      style={{ height: `${Math.round(phases.length * 140 + 100)}vh`, position: 'relative' }}
+    >
+      <div
+        className="px-6 md:px-12 lg:px-20"
+        style={{
+          position: 'sticky',
+          top: `${NAV_H}px`,
+          height: `calc(100vh - ${NAV_H}px)`,
+          display: 'flex',
+          flexDirection: 'column',
+          zIndex: 20,
+          background: '#f8f6f3',
+        }}
+      >
+        <div className="max-w-7xl w-full mx-auto flex flex-col flex-1 min-h-0">
+          <div style={{ flexShrink: 0, paddingTop: '48px', paddingBottom: '20px' }}>
+            <SectionHeading
+              eyebrow="The Five Phases in Full"
+              title="Every phase. Every course. Every gate."
+            />
+          </div>
+
+          <div style={{ flex: 1, position: 'relative', minHeight: 0 }}>
+            {phases.map((phase, i) => (
+              <motion.div
+                key={phase.id}
+                style={{ position: 'absolute', inset: 0 }}
+                animate={{
+                  opacity: i === activeIndex ? 1 : 0,
+                  scale:   i === activeIndex ? 1 : 0.96,
+                  y:       i === activeIndex ? 0 : (i < activeIndex ? -32 : 32),
+                  filter:  i === activeIndex ? 'blur(0px)' : 'blur(3px)',
+                  pointerEvents: i === activeIndex ? 'auto' : 'none',
+                }}
+                transition={{
+                  type: 'spring',
+                  stiffness: 70,
+                  damping: 18,
+                  mass: 0.9,
+                  opacity: { duration: 0.45, ease: [0.22, 1, 0.36, 1] },
+                  filter:  { duration: 0.45, ease: 'easeOut' },
+                }}
+              >
+                <div
+                  ref={(el) => { cardRefs.current[i] = el; }}
+                  style={{
+                    height: '100%',
+                    overflowY: 'scroll',
+                    scrollbarWidth: 'thin',
+                    scrollbarColor: 'rgba(26,44,78,0.18) transparent',
+                  }}
+                >
+                  <PhaseCardInner phase={phase} />
+                </div>
+              </motion.div>
+            ))}
+          </div>
+
+          <div
+            style={{ flexShrink: 0, paddingTop: '12px', paddingBottom: '16px' }}
+            className="flex items-center gap-4"
+          >
+            <div className="flex gap-1.5">
+              {phases.map((_, i) => (
+                <motion.div
+                  key={i}
+                  animate={{
+                    width: i === activeIndex ? '28px' : '8px',
+                    background: i <= activeIndex ? '#E05C3A' : 'rgba(26,44,78,0.18)',
+                  }}
+                  transition={{ duration: 0.3 }}
+                  style={{ height: '4px', borderRadius: '2px' }}
+                />
+              ))}
+            </div>
+            <span
+              className="text-xs font-bold text-[#1a2c4e]/40 uppercase tracking-widest"
+              style={{ fontFamily: 'Arial, sans-serif' }}
+            >
+              Phase {phases[activeIndex].number} · {phases[activeIndex].designation}
+            </span>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+
+  return (
+    <>
+      {MobileLayout}
+      {DesktopLayout}
+    </>
+  );
+}
+
+/* ─────────────────────────────────────────────
    VENTURE CARD (hover: white → navy, text adapts)
 ───────────────────────────────────────────── */
-function VentureCard({ vt, delay }) {
+function VentureCard({ vt, delay = 0, noFade = false }) {
   const [hovered, setHovered] = useState(false);
-  return (
-    <FadeUp delay={delay} className="h-full">
+
+  const card = (
       <motion.div
         onHoverStart={() => setHovered(true)}
         onHoverEnd={() => setHovered(false)}
         whileHover={{ y: -10, scale: 1.03 }}
         transition={{ type: 'spring', stiffness: 260, damping: 20 }}
-        className="rounded-2xl p-8 flex flex-col cursor-pointer h-full"
+        className="venture-card rounded-2xl p-8 flex flex-col cursor-pointer h-full"
         style={{
           background: hovered ? '#1a2c4e' : '#fff',
           border: hovered ? '1px solid #1a2c4e' : '1px solid rgba(0,0,0,0.08)',
@@ -976,59 +1260,171 @@ function VentureCard({ vt, delay }) {
           WebkitBackfaceVisibility: 'hidden',
         }}
       >
-        <h3
-          className="text-xl font-bold mb-4"
-          style={{ color: hovered ? '#fff' : '#1a2c4e', transition: 'color 0.35s ease' }}
-        >
-          {vt.name}
-        </h3>
-        <p
-          className="text-sm leading-relaxed mb-6 flex-1"
-          style={{
-            color: hovered ? 'rgba(255,255,255,0.72)' : 'rgba(26,44,78,0.65)',
-            transition: 'color 0.35s ease',
-          }}
-        >
-          {vt.definition}
-        </p>
-        <div className="space-y-3">
-          <div>
-            <span
-              className="text-[10px] font-bold uppercase tracking-widest text-[#E05C3A]"
-              style={{ fontFamily: 'Arial, sans-serif' }}
-            >
-              Registered as
-            </span>
-            <p
-              className="text-xs mt-0.5"
-              style={{
-                color: hovered ? 'rgba(255,255,255,0.82)' : 'rgba(26,44,78,0.70)',
-                transition: 'color 0.35s ease',
-              }}
-            >
-              {vt.registeredAs}
-            </p>
-          </div>
-          <div>
-            <span
-              className="text-[10px] font-bold uppercase tracking-widest text-[#E05C3A]"
-              style={{ fontFamily: 'Arial, sans-serif' }}
-            >
-              Examples
-            </span>
-            <p
-              className="text-xs mt-0.5"
-              style={{
-                color: hovered ? 'rgba(255,255,255,0.65)' : 'rgba(26,44,78,0.60)',
-                transition: 'color 0.35s ease',
-              }}
-            >
-              {vt.examples.join(' · ')}
-            </p>
+        {/* z-index: 1 keeps content above the ::before / ::after corner elements */}
+        <div className="flex flex-col flex-1" style={{ position: 'relative', zIndex: 1 }}>
+          <h3
+            className="text-xl font-bold mb-4"
+            style={{ color: hovered ? '#fff' : '#1a2c4e', transition: 'color 0.35s ease' }}
+          >
+            {vt.name}
+          </h3>
+          <p
+            className="text-sm leading-relaxed mb-6 flex-1"
+            style={{
+              color: hovered ? 'rgba(255,255,255,0.72)' : 'rgba(26,44,78,0.65)',
+              transition: 'color 0.35s ease',
+            }}
+          >
+            {vt.definition}
+          </p>
+          <div className="space-y-3">
+            <div>
+              <span
+                className="text-[10px] font-bold uppercase tracking-widest text-[#E05C3A]"
+                style={{ fontFamily: 'Arial, sans-serif' }}
+              >
+                Registered as
+              </span>
+              <p
+                className="text-xs mt-0.5"
+                style={{
+                  color: hovered ? 'rgba(255,255,255,0.82)' : 'rgba(26,44,78,0.70)',
+                  transition: 'color 0.35s ease',
+                }}
+              >
+                {vt.registeredAs}
+              </p>
+            </div>
+            <div>
+              <span
+                className="text-[10px] font-bold uppercase tracking-widest text-[#E05C3A]"
+                style={{ fontFamily: 'Arial, sans-serif' }}
+              >
+                Examples
+              </span>
+              <p
+                className="text-xs mt-0.5"
+                style={{
+                  color: hovered ? 'rgba(255,255,255,0.65)' : 'rgba(26,44,78,0.60)',
+                  transition: 'color 0.35s ease',
+                }}
+              >
+                {vt.examples.join(' · ')}
+              </p>
+            </div>
           </div>
         </div>
       </motion.div>
-    </FadeUp>
+  );
+
+  if (noFade) return card;
+  return <FadeUp delay={delay} className="h-full">{card}</FadeUp>;
+}
+
+/* ─────────────────────────────────────────────
+   VENTURE CARDS GRID — fan/rotate entry animation
+   Cards start fanned from center and unfold to grid.
+───────────────────────────────────────────── */
+const FAN_INIT = [
+  { rotate: -13, x: 30,  y: 18, scale: 0.87, opacity: 0 },
+  { rotate:   0, x:  0,  y: 50, scale: 0.90, opacity: 0 },
+  { rotate:  13, x: -30, y: 18, scale: 0.87, opacity: 0 },
+];
+
+function VentureCardsGrid({ ventureTypes }) {
+  const ref    = useRef(null);
+  const inView = useInView(ref, { once: false, amount: 0.25 });
+
+  return (
+    <div ref={ref} className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+      {ventureTypes.map((vt, i) => (
+        <motion.div
+          key={i}
+          className="h-full"
+          style={{ transformOrigin: 'center bottom' }}
+          animate={
+            inView
+              ? { rotate: 0, x: 0, y: 0, scale: 1, opacity: 1 }
+              : FAN_INIT[i]
+          }
+          transition={{
+            type: 'spring',
+            stiffness: 65,
+            damping: 18,
+            /* expand: left → center → right stagger
+               fold:   right → center → left           */
+            delay: inView ? i * 0.09 : (2 - i) * 0.05,
+          }}
+        >
+          <VentureCard vt={vt} noFade />
+        </motion.div>
+      ))}
+    </div>
+  );
+}
+
+/* ─────────────────────────────────────────────
+   COHORT CARDS GRID — split-apart entry animation
+   Both cards start merged at center and tear apart.
+───────────────────────────────────────────── */
+const SPLIT_INIT = [
+  { x: '52%',  scale: 0.92, opacity: 0 },
+  { x: '-52%', scale: 0.92, opacity: 0 },
+];
+
+function CohortCardsGrid({ cohortTypes }) {
+  const ref    = useRef(null);
+  const inView = useInView(ref, { once: false, amount: 0.25 });
+
+  return (
+    <div ref={ref} className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      {cohortTypes.map((ct, i) => (
+        <motion.div
+          key={i}
+          animate={
+            inView
+              ? { x: 0, scale: 1, opacity: 1 }
+              : SPLIT_INIT[i]
+          }
+          transition={{
+            type: 'spring',
+            stiffness: 58,
+            damping: 18,
+            delay: inView ? i * 0.08 : (1 - i) * 0.05,
+          }}
+        >
+          <motion.div
+            whileHover={{ y: -4, scale: 1.012 }}
+            transition={{ type: 'spring', stiffness: 200, damping: 22 }}
+            className="rounded-2xl p-10 border border-black/5 h-full cursor-default"
+            style={{
+              background: i === 0 ? '#fff' : '#1a2c4e',
+              willChange: 'transform',
+              backfaceVisibility: 'hidden',
+              WebkitBackfaceVisibility: 'hidden',
+            }}
+          >
+            <motion.div
+              whileHover={{ scale: 1.04 }}
+              transition={{ duration: 0.2 }}
+              className="inline-flex px-3 py-1 rounded-full text-xs font-bold mb-6"
+              style={{
+                fontFamily: 'Arial, sans-serif',
+                letterSpacing: '0.1em',
+                background: i === 0 ? 'rgba(224,92,58,0.1)' : 'rgba(224,92,58,0.2)',
+                color: '#E05C3A',
+                willChange: 'transform',
+              }}
+            >
+              {ct.label}
+            </motion.div>
+            <p className={`text-base leading-relaxed ${i === 0 ? 'text-[#1a2c4e]/70' : 'text-white/70'}`}>
+              {ct.description}
+            </p>
+          </motion.div>
+        </motion.div>
+      ))}
+    </div>
   );
 }
 
@@ -1160,6 +1556,289 @@ function WeeklyRhythmCards({ anchors }) {
         </motion.div>
       ))}
     </motion.div>
+  );
+}
+
+/* ─────────────────────────────────────────────
+   PHASE ARC CARDS — stacked → expanded on scroll
+───────────────────────────────────────────── */
+function PhaseArcCards({ cards, activePhaseCard, setActivePhaseCard }) {
+  const gridRef = useRef(null);
+  const inView  = useInView(gridRef, { once: false, amount: 0.35 });
+
+  const [isLg, setIsLg] = useState(
+    () => typeof window !== 'undefined' && window.matchMedia('(min-width: 1024px)').matches
+  );
+  useEffect(() => {
+    const mq      = window.matchMedia('(min-width: 1024px)');
+    const handler = (e) => setIsLg(e.matches);
+    mq.addEventListener('change', handler);
+    return () => mq.removeEventListener('change', handler);
+  }, []);
+
+  // In the stacked (out-of-view) state each card is translated toward the
+  // centre column (index 2).  The x offset as a % of the card's own width
+  // is derived from: step = colWidth + gap ≈ colWidth * 1.07  →  107 % per step.
+  const STACKED = [
+    { x: '214%',  scale: 0.88, opacity: 0.50, zIndex: 1 },
+    { x: '107%',  scale: 0.93, opacity: 0.72, zIndex: 2 },
+    { x: '0%',    scale: 1.00, opacity: 1.00, zIndex: 5 },
+    { x: '-107%', scale: 0.93, opacity: 0.72, zIndex: 2 },
+    { x: '-214%', scale: 0.88, opacity: 0.50, zIndex: 1 },
+  ];
+
+  const arcElevations = ['lg:mt-6', 'lg:mt-3', 'lg:mt-0', 'lg:mt-3', 'lg:mt-6'];
+
+  return (
+    <div ref={gridRef} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+      {cards.map((card, i) => {
+        const isActive       = activePhaseCard === i;
+        const distFromCenter = Math.abs(i - 2);
+
+        return (
+          <motion.button
+            key={card.id}
+            id={`arc-card-${card.number}`}
+            onClick={() => {
+              setActivePhaseCard(isActive ? null : i);
+              scrollTo(card.id);
+            }}
+            aria-label={`Go to Phase ${card.number}: ${card.designation}`}
+            /* Desktop: start stacked, animate to grid on enter, stack back on leave */
+            initial={
+              isLg
+                ? { x: STACKED[i].x, scale: STACKED[i].scale, opacity: STACKED[i].opacity, zIndex: STACKED[i].zIndex }
+                : { opacity: 0, y: 24 }
+            }
+            animate={
+              isLg
+                ? inView
+                  ? { x: '0%', scale: 1, opacity: 1, zIndex: 1 }
+                  : { x: STACKED[i].x, scale: STACKED[i].scale, opacity: STACKED[i].opacity, zIndex: STACKED[i].zIndex }
+                : { opacity: 1, y: 0 }
+            }
+            transition={
+              isLg
+                ? {
+                    type: 'spring',
+                    stiffness: 60,
+                    damping: 18,
+                    /* expand: centre first then outward; collapse: outer first */
+                    delay: inView
+                      ? distFromCenter * 0.09
+                      : (2 - distFromCenter) * 0.05,
+                  }
+                : { type: 'spring', stiffness: 150, damping: 24, mass: 0.9, delay: i * 0.07 }
+            }
+            whileHover={{ y: -6, scale: 1.03, boxShadow: '0 20px 40px rgba(26,44,78,0.22)' }}
+            whileTap={{ scale: 0.97 }}
+            className={`
+              group text-left rounded-2xl p-6 border transition-colors duration-300 cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#E05C3A]/50
+              ${arcElevations[i]}
+              ${isActive
+                ? 'bg-[#1a2c4e] border-[#1a2c4e] shadow-xl text-white'
+                : 'bg-[#f8f6f3] border-black/5 hover:bg-[#1a2c4e] hover:border-[#1a2c4e] hover:text-white'
+              }
+            `}
+            style={{
+              willChange: 'transform',
+              backfaceVisibility: 'hidden',
+              WebkitBackfaceVisibility: 'hidden',
+              transformStyle: 'preserve-3d',
+              position: 'relative',
+            }}
+          >
+            <div
+              className="text-xs font-bold mb-4 text-[#E05C3A]"
+              style={{ fontFamily: 'Arial, sans-serif', letterSpacing: '0.1em' }}
+            >
+              PHASE {card.number}
+            </div>
+            <div className={`text-lg font-bold mb-1 leading-snug ${isActive ? 'text-white' : 'text-[#1a2c4e] group-hover:text-white'}`}>
+              {card.designation}
+            </div>
+            <div
+              className={`text-xs mb-3 ${isActive ? 'text-white/60' : 'text-[#1a2c4e]/50 group-hover:text-white/60'}`}
+              style={{ fontFamily: 'Arial, sans-serif' }}
+            >
+              {card.duration}
+            </div>
+            <div
+              className={`text-xs font-semibold uppercase tracking-wider ${isActive ? 'text-white/70' : 'text-[#1a2c4e]/60 group-hover:text-white/70'}`}
+              style={{ fontFamily: 'Arial, sans-serif' }}
+            >
+              {card.focus}
+            </div>
+          </motion.button>
+        );
+      })}
+    </div>
+  );
+}
+
+/* ─────────────────────────────────────────────
+   FRAMEWORK CARDS GRID
+   Cards converge (stacked) when outside the
+   viewport and expand to grid when scrolled in.
+   Reverses back on scroll-out (once: false).
+───────────────────────────────────────────── */
+const FW_HOVER_SHADOWS = [
+  '0 22px 50px rgba(59,130,246,0.42), 0 -14px 34px rgba(59,130,246,0.28), 18px 0 34px rgba(59,130,246,0.28), -18px 0 34px rgba(59,130,246,0.28)',
+  '0 22px 50px rgba(224,92,58,0.45), 0 -14px 34px rgba(224,92,58,0.30), 18px 0 34px rgba(224,92,58,0.30), -18px 0 34px rgba(224,92,58,0.30)',
+  '0 22px 50px rgba(139,92,246,0.42), 0 -14px 34px rgba(139,92,246,0.28), 18px 0 34px rgba(139,92,246,0.28), -18px 0 34px rgba(139,92,246,0.28)',
+];
+
+/* Converged (stacked) positions for 3 cards.
+   Cards 0 & 2 are offset ≈ 1 col-width toward the centre card.
+   107 % ≈ col-width + gap relative to the card itself.             */
+const FW_STACKED = [
+  { x: '107%',  scale: 0.90, opacity: 0.55, zIndex: 1 },
+  { x: '0%',    scale: 1.00, opacity: 1.00, zIndex: 3 },
+  { x: '-107%', scale: 0.90, opacity: 0.55, zIndex: 1 },
+];
+
+function FrameworkCardsGrid({ frameworks }) {
+  const gridRef = useRef(null);
+  const inView  = useInView(gridRef, { once: false, amount: 0.3 });
+
+  const [isMd, setIsMd] = useState(
+    () => typeof window !== 'undefined' && window.matchMedia('(min-width: 768px)').matches
+  );
+  useEffect(() => {
+    const mq      = window.matchMedia('(min-width: 768px)');
+    const handler = (e) => setIsMd(e.matches);
+    mq.addEventListener('change', handler);
+    return () => mq.removeEventListener('change', handler);
+  }, []);
+
+  return (
+    <div
+      ref={gridRef}
+      className="grid grid-cols-1 md:grid-cols-3 gap-6"
+      style={{ perspective: '1400px' }}
+    >
+      {frameworks.map((fw, i) => {
+        const dist = Math.abs(i - 1); // 0 = centre card, 1 = side cards
+
+        return (
+          <motion.div
+            key={fw.id}
+            className="h-full"
+            style={{ position: 'relative' }}
+            initial={
+              isMd
+                ? { x: FW_STACKED[i].x, scale: FW_STACKED[i].scale, opacity: FW_STACKED[i].opacity, zIndex: FW_STACKED[i].zIndex }
+                : { opacity: 0, y: 24 }
+            }
+            animate={
+              isMd
+                ? inView
+                  ? { x: '0%', scale: 1, opacity: 1, zIndex: 1 }
+                  : { x: FW_STACKED[i].x, scale: FW_STACKED[i].scale, opacity: FW_STACKED[i].opacity, zIndex: FW_STACKED[i].zIndex }
+                : { opacity: 1, y: 0 }
+            }
+            transition={
+              isMd
+                ? {
+                    type: 'spring',
+                    stiffness: 60,
+                    damping: 18,
+                    /* expand:   centre card first, sides follow */
+                    /* converge: sides retract first, centre last */
+                    delay: inView ? dist * 0.10 : (1 - dist) * 0.06,
+                  }
+                : { type: 'spring', stiffness: 150, damping: 24, mass: 0.9, delay: i * 0.08 }
+            }
+          >
+            <motion.div
+              whileHover={{ y: -8, scale: 1.03, boxShadow: FW_HOVER_SHADOWS[i] }}
+              transition={{ type: 'spring', stiffness: 260, damping: 20 }}
+              className="bg-white rounded-2xl p-8 border border-black/5 shadow-sm flex flex-col cursor-pointer h-full"
+              style={{
+                willChange: 'transform',
+                backfaceVisibility: 'hidden',
+                WebkitBackfaceVisibility: 'hidden',
+                transformStyle: 'preserve-3d',
+                boxShadow: '0 2px 12px rgba(0,0,0,0.05)',
+              }}
+            >
+              <div
+                className="w-10 h-10 rounded-xl flex items-center justify-center mb-6"
+                style={{ background: 'rgba(224,92,58,0.1)' }}
+              >
+                <span className="text-[#E05C3A] font-bold text-sm">{String(i + 1).padStart(2, '0')}</span>
+              </div>
+              <h3 className="text-lg font-bold text-[#1a2c4e] mb-3 leading-snug">{fw.name}</h3>
+              <p className="text-[#1a2c4e]/65 text-sm leading-relaxed flex-1">{fw.description}</p>
+              <div className="mt-6 pt-5 border-t border-black/5">
+                <span
+                  className="text-xs font-semibold uppercase tracking-widest"
+                  style={{ fontFamily: 'Arial, sans-serif', color: '#E05C3A' }}
+                >
+                  Active in:
+                </span>
+                <p className="text-[#1a2c4e] text-sm font-medium mt-0.5">{fw.active}</p>
+              </div>
+            </motion.div>
+          </motion.div>
+        );
+      })}
+    </div>
+  );
+}
+
+/* ─────────────────────────────────────────────
+   GATE COLUMNS GRID — directional clip-path reveal
+   useInView + animate is more reliable than whileInView+initial
+   because initial always clips the content on mount.
+───────────────────────────────────────────── */
+const GATE_CLIP_FROM = [
+  'inset(0 100% 0 0)',  // panel 0: sweeps left → right
+  'inset(0 0 100% 0)',  // panel 1: sweeps top  → bottom
+  'inset(0 0 0 100%)',  // panel 2: sweeps right → left
+];
+
+function GateColumnsGrid({ gateColumns }) {
+  const ref    = useRef(null);
+  const inView = useInView(ref, { once: false, amount: 0.15 });
+
+  return (
+    <div
+      ref={ref}
+      className="grid grid-cols-1 md:grid-cols-3 gap-px bg-white/10 rounded-2xl overflow-hidden"
+    >
+      {gateColumns.map((col, i) => (
+        <motion.div
+          key={i}
+          animate={
+            inView
+              ? { clipPath: 'inset(0 0 0 0)', opacity: 1 }
+              : { clipPath: GATE_CLIP_FROM[i], opacity: 0.4 }
+          }
+          transition={{
+            duration: 0.65,
+            ease: [0.22, 1, 0.36, 1],
+            delay: inView ? i * 0.14 : (2 - i) * 0.06,
+          }}
+        >
+          <motion.div
+            whileHover={{ scale: 1.018 }}
+            transition={{ type: 'spring', stiffness: 260, damping: 20 }}
+            className="bg-[#1e3460] p-8 md:p-10 h-full cursor-default"
+            style={{ willChange: 'transform' }}
+          >
+            <div
+              className="w-8 h-8 rounded-lg flex items-center justify-center mb-6"
+              style={{ background: 'rgba(224,92,58,0.2)' }}
+            >
+              <span className="text-[#E05C3A] font-bold text-xs">{String(i + 1).padStart(2, '0')}</span>
+            </div>
+            <h3 className="text-base font-bold text-white mb-4 leading-snug">{col.title}</h3>
+            <p className="text-white/60 text-sm leading-relaxed">{col.body}</p>
+          </motion.div>
+        </motion.div>
+      ))}
+    </div>
   );
 }
 
@@ -1374,55 +2053,7 @@ export function Journey() {
           subtitle="The REACT methodology is built on three proprietary frameworks that run through the programme from the first day of field immersion to the final venture registration. Every fellow uses all three. They are what separates a REACT-trained problem solver from everyone else."
         />
 
-        <div
-          className="grid grid-cols-1 md:grid-cols-3 gap-6"
-          style={{ perspective: '1400px' }}
-        >
-          {(() => {
-            const hoverShadows = [
-              '0 22px 50px rgba(59,130,246,0.42), 0 -14px 34px rgba(59,130,246,0.28), 18px 0 34px rgba(59,130,246,0.28), -18px 0 34px rgba(59,130,246,0.28)',
-              '0 22px 50px rgba(224,92,58,0.45), 0 -14px 34px rgba(224,92,58,0.30), 18px 0 34px rgba(224,92,58,0.30), -18px 0 34px rgba(224,92,58,0.30)',
-              '0 22px 50px rgba(139,92,246,0.42), 0 -14px 34px rgba(139,92,246,0.28), 18px 0 34px rgba(139,92,246,0.28), -18px 0 34px rgba(139,92,246,0.28)',
-            ];
-            return frameworks.map((fw, i) => (
-            <FadeUp key={fw.id} delay={i * 0.1} className="h-full">
-              <motion.div
-                whileHover={{ y: -8, scale: 1.03, boxShadow: hoverShadows[i] }}
-                transition={{ type: 'spring', stiffness: 260, damping: 20 }}
-                className="bg-white rounded-2xl p-8 border border-black/5 shadow-sm flex flex-col cursor-pointer h-full"
-                style={{
-                  willChange: 'transform',
-                  backfaceVisibility: 'hidden',
-                  WebkitBackfaceVisibility: 'hidden',
-                  transformStyle: 'preserve-3d',
-                  boxShadow: '0 2px 12px rgba(0,0,0,0.05)',
-                }}
-                whileHover-extra={{
-                  boxShadow: '0 14px 28px rgba(0,0,0,0.10), 0 4px 8px rgba(0,0,0,0.07)',
-                }}
-              >
-                <div
-                  className="w-10 h-10 rounded-xl flex items-center justify-center mb-6"
-                  style={{ background: 'rgba(224,92,58,0.1)' }}
-                >
-                  <span className="text-[#E05C3A] font-bold text-sm">{String(i + 1).padStart(2, '0')}</span>
-                </div>
-                <h3 className="text-lg font-bold text-[#1a2c4e] mb-3 leading-snug">{fw.name}</h3>
-                <p className="text-[#1a2c4e]/65 text-sm leading-relaxed flex-1">{fw.description}</p>
-                <div className="mt-6 pt-5 border-t border-black/5">
-                  <span
-                    className="text-xs font-semibold uppercase tracking-widest"
-                    style={{ fontFamily: 'Arial, sans-serif', color: '#E05C3A' }}
-                  >
-                    Active in:
-                  </span>
-                  <p className="text-[#1a2c4e] text-sm font-medium mt-0.5">{fw.active}</p>
-                </div>
-              </motion.div>
-            </FadeUp>
-          ));
-          })()}
-        </div>
+        <FrameworkCardsGrid frameworks={frameworks} />
       </Section>
 
       {/* ═══════════════════════════════════
@@ -1435,83 +2066,18 @@ export function Journey() {
           subtitle="Across two years, fellows do more than complete tasks. They earn designations that mark a real shift in capability. Each phase has its own focus, its own courses, its own outputs, and its own gate. The arc moves from unlearning to founding."
         />
 
-        {/* Phase cards arc */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-          {phaseCards.map((card, i) => {
-            const arcElevations = ['lg:mt-6', 'lg:mt-3', 'lg:mt-0', 'lg:mt-3', 'lg:mt-6'];
-            const isActive = activePhaseCard === i;
-            return (
-              <motion.button
-                key={card.id}
-                id={`arc-card-${card.number}`}
-                onClick={() => {
-                  setActivePhaseCard(isActive ? null : i);
-                  scrollTo(card.id);
-                }}
-                aria-label={`Go to Phase ${card.number}: ${card.designation}`}
-                initial={{ opacity: 0, y: 24 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, amount: 0.2 }}
-                transition={{ type: 'spring', stiffness: 150, damping: 24, mass: 0.9, delay: i * 0.07 }}
-                whileHover={{ y: -6, scale: 1.03, boxShadow: '0 20px 40px rgba(26,44,78,0.22)' }}
-                whileTap={{ scale: 0.97 }}
-                className={`
-                  group text-left rounded-2xl p-6 border transition-colors duration-300 cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#E05C3A]/50
-                  ${arcElevations[i]}
-                  ${isActive
-                    ? 'bg-[#1a2c4e] border-[#1a2c4e] shadow-xl text-white'
-                    : 'bg-[#f8f6f3] border-black/5 hover:bg-[#1a2c4e] hover:border-[#1a2c4e] hover:text-white'
-                  }
-                `}
-                style={{
-                  willChange: 'transform',
-                  backfaceVisibility: 'hidden',
-                  WebkitBackfaceVisibility: 'hidden',
-                  transformStyle: 'preserve-3d',
-                }}
-              >
-                <div
-                  className={`text-xs font-bold mb-4 text-[#E05C3A]`}
-                  style={{ fontFamily: 'Arial, sans-serif', letterSpacing: '0.1em' }}
-                >
-                  PHASE {card.number}
-                </div>
-                <div className={`text-lg font-bold mb-1 leading-snug ${isActive ? 'text-white' : 'text-[#1a2c4e] group-hover:text-white'}`}>
-                  {card.designation}
-                </div>
-                <div
-                  className={`text-xs mb-3 ${isActive ? 'text-white/60' : 'text-[#1a2c4e]/50 group-hover:text-white/60'}`}
-                  style={{ fontFamily: 'Arial, sans-serif' }}
-                >
-                  {card.duration}
-                </div>
-                <div
-                  className={`text-xs font-semibold uppercase tracking-wider ${isActive ? 'text-white/70' : 'text-[#1a2c4e]/60 group-hover:text-white/70'}`}
-                  style={{ fontFamily: 'Arial, sans-serif' }}
-                >
-                  {card.focus}
-                </div>
-              </motion.button>
-            );
-          })}
-        </div>
+        {/* Phase cards arc — stacked → expanded scroll animation */}
+        <PhaseArcCards
+          cards={phaseCards}
+          activePhaseCard={activePhaseCard}
+          setActivePhaseCard={setActivePhaseCard}
+        />
       </Section>
 
       {/* ═══════════════════════════════════
           SECTION 03  ·  FIVE PHASES IN FULL
       ═══════════════════════════════════ */}
-      <Section id="section-03" className="bg-[#f8f6f3]">
-        <SectionHeading
-          eyebrow="The Five Phases in Full"
-          title="Every phase. Every course. Every gate."
-        />
-
-        <div className="relative">
-          {phases.map((phase, pi) => (
-            <PhaseBlock key={phase.id} phase={phase} index={pi} total={phases.length} />
-          ))}
-        </div>
-      </Section>
+      <FivePhasesSection phases={phases} />
 
       {/* ═══════════════════════════════════
           SECTION 04  ·  THREE VENTURE TYPES
@@ -1523,11 +2089,7 @@ export function Journey() {
           subtitle="The venture type emerges from the nature of the problem and the fellow's chosen approach to creating lasting change. All three are built with equal rigour. All three are expected to demonstrate, with measurable evidence, that the problem they address is genuinely better because the fellow worked on it."
         />
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-          {ventureTypes.map((vt, i) => (
-            <VentureCard key={i} vt={vt} delay={i * 0.1} />
-          ))}
-        </div>
+        <VentureCardsGrid ventureTypes={ventureTypes} />
 
         {/* Credential line */}
         <FadeUp>
@@ -1559,27 +2121,7 @@ export function Journey() {
           subtitle="Every phase ends with a gate. A panel review of demonstrated work against a published standard — the fellow's assigned mentor and at least one external reviewer with no stake in being lenient."
         />
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-px bg-white/10 rounded-2xl overflow-hidden">
-          {gateColumns.map((col, i) => (
-            <FadeUp key={i} delay={i * 0.1}>
-              <motion.div
-                whileHover={{ scale: 1.018 }}
-                transition={{ type: 'spring', stiffness: 260, damping: 20 }}
-                className="bg-[#1e3460] p-8 md:p-10 h-full cursor-default"
-                style={{ willChange: 'transform' }}
-              >
-                <div
-                  className="w-8 h-8 rounded-lg flex items-center justify-center mb-6"
-                  style={{ background: 'rgba(224,92,58,0.2)' }}
-                >
-                  <span className="text-[#E05C3A] font-bold text-xs">{String(i + 1).padStart(2, '0')}</span>
-                </div>
-                <h3 className="text-base font-bold text-white mb-4 leading-snug">{col.title}</h3>
-                <p className="text-white/60 text-sm leading-relaxed">{col.body}</p>
-              </motion.div>
-            </FadeUp>
-          ))}
-        </div>
+        <GateColumnsGrid gateColumns={gateColumns} />
       </Section>
 
       {/* ═══════════════════════════════════
@@ -1662,41 +2204,7 @@ export function Journey() {
           subtitle="Every cohort is assembled with deliberate diversity — across disciplines, domains, and backgrounds — so that the fellow working on agricultural market access and the fellow working on primary health diagnostics are learning from each other across two years."
         />
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {cohortTypes.map((ct, i) => (
-            <FadeUp key={i} delay={i * 0.12}>
-              <motion.div
-                whileHover={{ y: -4, scale: 1.012 }}
-                transition={{ type: 'spring', stiffness: 200, damping: 22 }}
-                className="rounded-2xl p-10 border border-black/5 h-full cursor-default"
-                style={{
-                  background: i === 0 ? '#fff' : '#1a2c4e',
-                  willChange: 'transform',
-                  backfaceVisibility: 'hidden',
-                  WebkitBackfaceVisibility: 'hidden',
-                }}
-              >
-                <motion.div
-                  whileHover={{ scale: 1.04 }}
-                  transition={{ duration: 0.2 }}
-                  className="inline-flex px-3 py-1 rounded-full text-xs font-bold mb-6"
-                  style={{
-                    fontFamily: 'Arial, sans-serif',
-                    letterSpacing: '0.1em',
-                    background: i === 0 ? 'rgba(224,92,58,0.1)' : 'rgba(224,92,58,0.2)',
-                    color: '#E05C3A',
-                    willChange: 'transform',
-                  }}
-                >
-                  {ct.label}
-                </motion.div>
-                <p className={`text-base leading-relaxed ${i === 0 ? 'text-[#1a2c4e]/70' : 'text-white/70'}`}>
-                  {ct.description}
-                </p>
-              </motion.div>
-            </FadeUp>
-          ))}
-        </div>
+        <CohortCardsGrid cohortTypes={cohortTypes} />
       </Section>
 
       {/* ═══════════════════════════════════
@@ -1761,7 +2269,7 @@ export function Journey() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, amount: 0.3 }}
               transition={{ type: 'spring', damping: 60, stiffness: 350, mass: 1, delay: 0.24 }}
-              className="flex flex-wrap justify-center gap-4 mb-14"
+              className="flex flex-wrap justify-center gap-4"
             >
               <motion.div
                 whileHover={{ y: -2, scale: 1.035 }}
@@ -1793,21 +2301,6 @@ export function Journey() {
                 </Link>
               </motion.div>
             </motion.div>
-
-            {/* Contact */}
-            <div className="border-t border-white/10 pt-10">
-              <p
-                className="text-white/35 text-xs uppercase tracking-widest mb-4 font-semibold"
-                style={{ fontFamily: 'Arial, sans-serif' }}
-              >
-                Contact
-              </p>
-              <div className="flex flex-wrap justify-center gap-3">
-                {contactItems.map((item) => (
-                  <ContactLink key={item.label} item={item} />
-                ))}
-              </div>
-            </div>
           </FadeUp>
         </div>
       </section>
