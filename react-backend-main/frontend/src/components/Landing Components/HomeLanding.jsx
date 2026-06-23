@@ -1642,19 +1642,27 @@ function RecognitionSection() {
         />
         {/* Inner mask */}
         <div style={{ position: 'absolute', inset: '5px', borderRadius: '11px', background: '#00111f', zIndex: 1 }} />
-        {/* Content — single compact row */}
-        <div className="relative flex items-center gap-5 px-8 py-5" style={{ zIndex: 2 }}>
-          <div style={{ fontSize: '1.8rem', lineHeight: 1, flexShrink: 0 }}>🌐</div>
+        {/* Content — stacked on mobile, single row on sm+ */}
+        <div className="relative flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-5 px-5 sm:px-8 py-5" style={{ zIndex: 2 }}>
+          {/* Icon + label — shown as a row on mobile, icon-only on desktop */}
+          <div className="flex items-center gap-3 sm:block">
+            <div style={{ fontSize: '1.8rem', lineHeight: 1, flexShrink: 0 }}>🌐</div>
+            <span className="sm:hidden text-xs tracking-[0.18em] uppercase font-bold" style={{ color: '#38bdf8' }}>
+              Global Recognition
+            </span>
+          </div>
+          {/* Main text — full width on mobile */}
           <div className="flex-1 min-w-0">
-            <p className="text-white font-medium leading-snug" style={{ fontSize: 'clamp(0.85rem, 1.2vw, 0.98rem)' }}>
-              <span className="text-xs tracking-[0.18em] uppercase font-bold mr-3" style={{ color: '#38bdf8' }}>Global Recognition</span>
+            <p className="text-white font-medium leading-relaxed text-sm sm:leading-snug" style={{ fontSize: 'clamp(0.85rem, 1.2vw, 0.98rem)' }}>
+              <span className="hidden sm:inline text-xs tracking-[0.18em] uppercase font-bold mr-3" style={{ color: '#38bdf8' }}>Global Recognition</span>
               The centre's work is{' '}
               <span className="font-black" style={{ color: '#7dd3fc' }}>featured in</span>{' '}
               the YOUNGO Youth Project Compilation on Food, Agriculture and Climate Action (Vol. 1, 2025),
               published by the official Youth Constituency of the United Nations Framework Convention on Climate Change.
             </p>
           </div>
-          <div className="flex items-center gap-2 flex-shrink-0">
+          {/* Badges */}
+          <div className="flex items-center gap-2 flex-shrink-0 flex-wrap">
             {['YOUNGO', 'UNFCCC', '2025'].map((label, i) => (
               <span
                 key={label}
