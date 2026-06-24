@@ -1,0 +1,5 @@
+@import "tailwindcss";
+
+/* Bespoke Khyora design system. Loaded after Tailwind so its (unlayered)
+   rules win over Tailwind's @layer base preflight where they overlap. */
+@import "./styles/khyora.css";
