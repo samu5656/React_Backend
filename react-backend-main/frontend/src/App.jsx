@@ -87,11 +87,6 @@ import RiskMNewSubmission from './riskm/pages/RiskMNewSubmission';
 // =====================================================
 // AppContent handles conditional layout rendering
 // =====================================================
-function ProgrammeSlugRedirect() {
-  const { slug } = useParams();
-  return <Navigate to={`/fellowship/${encodeURIComponent(String(slug || '').trim())}`} replace />;
-}
-
 function ProgrammesSlugRedirect() {
   const { slug } = useParams();
   return <Navigate to={`/fellowship/${encodeURIComponent(String(slug || '').trim())}`} replace />;
@@ -125,10 +120,10 @@ function AppContent() {
         <Route path="/" element={<Landing />} />
         <Route path="/about" element={<About />} />
         <Route path="/people" element={<People />} />
-        <Route path="/programme" element={<Programmes />} />
+        <Route path="/programme" element={<Navigate to="/programmes" replace />} />
         <Route path="/programmes" element={<Programmes />} />
         <Route path="/programmes/:slug" element={<ProgrammesSlugRedirect />} />
-        <Route path="/programme/:slug" element={<ProgrammeSlugRedirect />} />
+        <Route path="/programme/:slug" element={<Navigate to="/programmes" replace />} />
         <Route path="/projects" element={<Projects />} />
         <Route path="/why-india?" element={<WhyIndia />} />
         <Route path="/explore-us" element={<ExploreUS />} />

@@ -1184,13 +1184,13 @@ function ProgrammeStackSection({ externalRef, setSelectedProgramme }) {
                     <dd className="text-[13.5px] text-slate-600 leading-snug">{p.applicationWindow}</dd>
                   </div>
                 </dl>
-                <div
-                  className="relative z-10 mt-auto pt-4 border-t border-slate-100 flex items-center gap-2 text-[15px] font-semibold group-hover:gap-3 transition-all"
-                  style={{ color: p.accent }}
-                >
-                  <span>View Programme</span>
-                  <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" aria-hidden="true" />
-                </div>
+              </div>
+              <div
+                className="relative z-10 shrink-0 px-5 xl:px-7 py-4 border-t border-slate-100 flex items-center gap-2 text-[15px] font-semibold group-hover:gap-3 transition-all"
+                style={{ color: p.accent }}
+              >
+                <span>View Programme</span>
+                <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" aria-hidden="true" />
               </div>
               {i >= 2 && (
                 <div

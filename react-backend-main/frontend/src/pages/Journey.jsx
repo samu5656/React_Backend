@@ -2034,7 +2034,7 @@ export function Journey() {
             <CTAButton to="/apply" variant="primary">
               Apply Now
             </CTAButton>
-            <CTAButton to="/programme" variant="secondary">
+            <CTAButton to="/programmes" variant="secondary">
               See the Programmes
             </CTAButton>
           </motion.div>
@@ -2308,7 +2308,7 @@ export function Journey() {
                 style={{ willChange: 'transform' }}
               >
                 <Link
-                  to="/programme"
+                  to="/programmes"
                   id="cta-programme-bottom"
                   className="inline-flex items-center gap-2 px-8 py-4 rounded-full border border-white/20 text-white font-semibold text-sm transition-all duration-300 hover:bg-white/10"
                 >
