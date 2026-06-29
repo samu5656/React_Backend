@@ -1,5 +1,5 @@
 const WEBAPP_URL =
-  "https://script.google.com/macros/s/AKfycbyBZ5NhPYCdCSMv4GmpZLuwn64juM68qWdCL7CWRKcMnQt0oI1lxwtXMWUCny3rGEvIAA/exec";
+  "https://script.google.com/macros/s/AKfycbx9wQXkZ1ahXWlIjoub-XJdmjzt892rRCO81kKU6lYB1nkjhCCuuPoLiuIqLuhqow3HOQ/exec";
 
 function fileToBase64(file) {
   return new Promise((resolve, reject) => {
@@ -59,6 +59,33 @@ export async function submitInternshipForm(formData) {
       additionalInfo: formData.additionalInfo,
       resume: resumeData,
       coverLetter: coverLetterData
+    };
+
+    await fetch(WEBAPP_URL, {
+      method: "POST",
+      mode: "no-cors",
+      headers: {
+        "Content-Type": "text/plain"
+      },
+      body: JSON.stringify(payload)
+    });
+
+    return { success: true };
+  } catch (error) {
+    console.error(error);
+    return {
+      success: false,
+      error: error.message
+    };
+  }
+}
+
+export async function submitSocialImpactFellowshipForm(application) {
+  try {
+    const payload = {
+      formType: "Social Impact Fellowship",
+      submittedAt: new Date().toISOString(),
+      ...application
     };
 
     await fetch(WEBAPP_URL, {

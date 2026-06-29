@@ -22,6 +22,7 @@ import { FellowShip } from './components/FellowShip/FellowShip';
 import FellowForm from './components/FellowShip/FellowForm';
 import FellowshipTrackPage from './pages/FellowshipTrackPage';
 import FellowshipTrackFormPage from './pages/FellowshipTrackFormPage';
+import { SocialImpactFellowshipForm } from './pages/SocialImpactFellowshipForm';
 import Error404 from './pages/Error';
 import { EntrepreneurIndex } from './pages/EntrepreneurIndex';
 import { Journey } from './pages/Journey';
@@ -144,6 +145,7 @@ function AppContent() {
         <Route path="/fellowship/venture-fellowship" element={<Navigate to="/programmes" replace />} />
         <Route path="/fellowship/:slug/forms" element={<FellowshipTrackFormPage />} />
         <Route path="/fellowship/:slug/form" element={<FellowshipFormLegacyRedirect />} />
+        <Route path="/fellowship/social-impact-fellowship/apply" element={<SocialImpactFellowshipForm />} />
         <Route path="/fellowship/:slug" element={<FellowshipTrackPage />} />
         <Route path="/fellowship" element={<FellowShip />} />
         <Route path="/apply" element={<FellowForm />} />
