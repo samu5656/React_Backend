@@ -1137,7 +1137,7 @@ function ProgrammeStackSection({ externalRef, setSelectedProgramme }) {
           <div
             key={p.id}
             ref={el => { cardRefs.current[i] = el; }}
-            style={{ transformStyle: 'preserve-3d', willChange: 'transform', position: 'relative', aspectRatio: '1/1' }}
+            style={{ transformStyle: 'preserve-3d', willChange: 'transform', position: 'relative' }}
           >
             <button
               type="button"
@@ -1149,7 +1149,7 @@ function ProgrammeStackSection({ externalRef, setSelectedProgramme }) {
                 className="h-1.5 w-full shrink-0"
                 style={{ background: `linear-gradient(90deg, ${p.gradientFrom}, ${p.gradientTo})` }}
               />
-              <div className="prog-detail relative flex flex-col flex-1 p-5 xl:p-7 overflow-hidden">
+              <div className="prog-detail relative flex flex-col flex-1 p-5 xl:p-7">
                 <span
                   className="absolute top-3 right-4 font-black leading-none select-none pointer-events-none"
                   style={{ fontSize: '8rem', color: `${p.accent}10` }}
