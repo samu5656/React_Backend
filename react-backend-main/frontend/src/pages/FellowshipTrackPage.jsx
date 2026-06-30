@@ -135,7 +135,7 @@ export default function FellowshipTrackPage() {
 
   /* ——— Static fellowship template ——— */
   const track = staticTrack;
-  const formPath = `/fellowship/${encodeURIComponent(track.slug)}/forms`;
+  const formPath = track.applyPath || `/fellowship/${encodeURIComponent(track.slug)}/forms`;
 
   return (
     <main className="min-h-screen overflow-x-hidden bg-[#F4F6F8] text-[#0F172A]">

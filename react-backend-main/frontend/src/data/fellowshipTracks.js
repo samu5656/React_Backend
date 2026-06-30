@@ -8,24 +8,28 @@ export const FELLOWSHIP_TRACKS = [
     slug: 'social-innovation-fellowship',
     title: 'The Social Innovation Fellowship',
     heroFor:
-      '[One sentence — who this track is for, e.g. MSW students at KCLAS building social ventures.]',
-    accent: '#7D5BBE',
+      'UG students from second year onward and PG students at KCT, KCTBS, and KCLAS — building a venture inside a degree, not after it.',
+    accent: '#E76758',
     outputs: [
-      '[Output — e.g. research paper to publication standard]',
-      '[Output — e.g. working proof of concept + MVP]',
-      '[Output — e.g. verified social impact report]',
-      '[Output — e.g. registered entity]',
+      'A published or submitted research paper',
+      'A filed patent or documented IP record',
+      'A working proof of concept, tested and documented in the field',
+      'A minimum viable product tested with real users in real conditions',
+      'A submitted grant proposal',
+      'An investor pitch deck presented at a public Demo Day',
+      'A registered or actively developing social venture with a verified community impact report',
     ],
     milestones: [
-      { title: '[Milestone title — team to edit]', date: '[Date TBC]' },
-      { title: '[Milestone title — team to edit]', date: '[Date TBC]' },
-      { title: '[Milestone title — team to edit]', date: '[Date TBC]' },
-      { title: '[Milestone title — team to edit]', date: '[Date TBC]' },
+      { title: 'Application opens', date: 'February' },
+      { title: 'Application closes', date: 'July' },
+      { title: 'Field immersion begins', date: 'Cohort start' },
+      { title: 'Mid-programme review', date: 'End of Year 1' },
+      { title: 'Demo Day', date: 'End of Year 2' },
     ],
     eligibility:
-      '[Eligibility — one paragraph. Replace with who can apply, prerequisites, and partner institution notes.]',
+      'UG students from second year onward and PG students at KCT, KCTBS, and KCLAS — any branch, any discipline. Students already enrolled at Kumaraguru apply directly. Applicants from outside institutions are admitted to the degree programme as part of the same process.',
     admission:
-      '[Admission — one paragraph, keep high level.] Timelines and requirements may vary by intake. Reach out and we will walk you through it.',
+      'Two years, full-time, embedded inside a partner degree — BE / BTech / ME / MTech at KCT, MBA in Entrepreneurship at KCTBS, or MSW in Community Development / MA / BSc / BA at KCLAS. 40 credits across 4 semesters. Cohort of 30 fellows per batch. Applications open February to July, once a year. Reach out and we will walk you through the process.',
     externalFormUrl: '',
   },
   {
@@ -98,6 +102,7 @@ export const FELLOWSHIP_TRACKS = [
     admission:
       'One year, full-time, immersive. 40 credits. Intake once a year, February to July application window. Reach out and we will walk you through the process.',
     externalFormUrl: '',
+    applyPath: '/fellowship/social-impact-fellowship/apply',
   },
   {
     slug: 'social-innovation-certification',
