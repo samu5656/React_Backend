@@ -9,6 +9,7 @@
  * This script can be bound to the Google Sheet where submissions should be stored.
  */
 
+const SPREADSHEET_ID = "1x1RGnU3zR0lirrWPe4H9hbKdqpX1rKZgFmHiCQ7GJxM";
 const SHEET_NAME = "Social Impact Fellowship";
 
 const HEADERS = [
@@ -76,7 +77,7 @@ function doPost(e) {
 }
 
 function getOrCreateSheet_() {
-  const spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
+  const spreadsheet = SpreadsheetApp.openById(SPREADSHEET_ID);
   let sheet = spreadsheet.getSheetByName(SHEET_NAME);
   if (!sheet) sheet = spreadsheet.insertSheet(SHEET_NAME);
   return sheet;
