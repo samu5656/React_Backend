@@ -113,7 +113,7 @@ const programmes = [
     applyLabel: 'Apply for the Social Impact Fellowship',
     learnLabel: 'Learn more about this programme',
     learnHref: '/fellowship/social-impact-fellowship',
-    applyHref: '/apply',
+    applyHref: '/fellowship/social-impact-fellowship/apply',
   },
   {
     id: 'social-innovation-certification',
