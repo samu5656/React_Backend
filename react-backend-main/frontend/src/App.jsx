@@ -55,9 +55,7 @@ import { InterestInfo } from './components/WorkCom/InterestInfo';
 import { InterestForm } from './components/WorkCom/InterestForm';
 
 // ================= Project Specific =================
-import { Khyora } from './pages/projects/Khyora';
 import { VisionX } from './pages/projects/VisionX';
-import { ShrimpFeeder } from './pages/projects/ShrimpFeeder';
 import { Therbal } from './pages/projects/Therbal';
 import { CardioGuard } from './pages/projects/CardioGuard';
 import { BioPod } from './pages/projects/BioPod';
@@ -85,6 +83,10 @@ import RiskMAdmin from './riskm/pages/RiskMAdmin';
 import RiskMViewPage from './riskm/pages/RiskMViewPage';
 import RiskMNewSubmission from './riskm/pages/RiskMNewSubmission';
 
+const KhyoraMain = React.lazy(() => import('./pages/projects/KhyoraMain'));
+const ShrimpFeederMain = React.lazy(() => import('./pages/projects/ShrimpFeederMain'));
+const FlowSyncMain = React.lazy(() => import('./pages/projects/FlowSyncMain'));
+
 // =====================================================
 // AppContent handles conditional layout rendering
 // =====================================================
@@ -98,14 +100,19 @@ function FellowshipFormLegacyRedirect() {
   return <Navigate to={`/fellowship/${encodeURIComponent(String(slug || '').trim())}/forms`} replace />;
 }
 
+function StandaloneProject({ children }) {
+  return <React.Suspense fallback={null}>{children}</React.Suspense>;
+}
+
 function AppContent() {
   const location = useLocation();
-  const isKhyoraPage = location.pathname === '/khyora' || location.pathname === '/projects/khyora';
+  const isKhyoraPage = location.pathname === '/projects/khyora';
   const isVisionXPage = location.pathname === '/projects/vision-x';
-  const isShrimpFeederPage = location.pathname === '/projects/shrimp-feeder';
+  const isShrimpFeederPage = location.pathname === '/projects/shrimpfeeder';
   const isTherbalPage = location.pathname === '/projects/therbal';
   const isCardioGuardPage = location.pathname === '/projects/cardioguard';
   const isBioPodPage = location.pathname.startsWith('/projects/biopod');
+  const isFlowSyncPage = location.pathname.startsWith('/projects/flowsync');
   const isWorkplace = location.pathname.startsWith('/workplace');
 
   return (
@@ -113,7 +120,7 @@ function AppContent() {
       <ScrollToTop />
 
       {/* Hide Navbar on standalone project pages and workplace (includes admin sidebar) */}
-      {!isKhyoraPage && !isVisionXPage && !isShrimpFeederPage && !isTherbalPage && !isCardioGuardPage && !isBioPodPage && !isWorkplace && <Navbar />}
+      {!isKhyoraPage && !isVisionXPage && !isShrimpFeederPage && !isTherbalPage && !isCardioGuardPage && !isBioPodPage && !isFlowSyncPage && !isWorkplace && <Navbar />}
 
       <Routes>
 
@@ -233,13 +240,13 @@ function AppContent() {
         <Route path="/riskm/*" element={<Navigate to="/workplace/riskm/submissions" replace />} />
 
         {/* ================= Standalone Project Route ================= */}
-        <Route path="/projects/khyora" element={<Khyora />} />
+        <Route path="/projects/khyora" element={<StandaloneProject><KhyoraMain /></StandaloneProject>} />
         <Route path="/projects/vision-x" element={<VisionX />} />
-        <Route path="/projects/shrimp-feeder" element={<ShrimpFeeder />} />
+        <Route path="/projects/shrimpfeeder" element={<StandaloneProject><ShrimpFeederMain /></StandaloneProject>} />
         <Route path="/projects/therbal" element={<Therbal />} />
         <Route path="/projects/cardioguard" element={<CardioGuard />} />
         <Route path="/projects/biopod/*" element={<BioPod />} />
-        <Route path="/khyora" element={<Navigate to="/projects/khyora" replace />} />
+        <Route path="/projects/flowsync/*" element={<StandaloneProject><FlowSyncMain /></StandaloneProject>} />
 
         {/* ================= Fallback ================= */}
         <Route path="*" element={<Error404 />} />
@@ -247,7 +254,7 @@ function AppContent() {
       </Routes>
 
       {/* Hide Footer on standalone project pages and workplace */}
-      {!isKhyoraPage && !isVisionXPage && !isShrimpFeederPage && !isTherbalPage && !isCardioGuardPage && !isBioPodPage && !isWorkplace && <Footer />}
+      {!isKhyoraPage && !isVisionXPage && !isShrimpFeederPage && !isTherbalPage && !isCardioGuardPage && !isBioPodPage && !isFlowSyncPage && !isWorkplace && <Footer />}
     </>
   );
 }

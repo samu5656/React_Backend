@@ -1,12 +1,24 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 
+export const FLOWSYNC_BASE = '/projects/flowsync';
+
+export function flowSyncPath(path = '/') {
+  if (!path || path === '/') return FLOWSYNC_BASE;
+  if (path.startsWith('http') || path.startsWith('#')) return path;
+  return `${FLOWSYNC_BASE}${path.startsWith('/') ? '' : '/'}${path}`;
+}
+
+export function flowSyncAsset(path) {
+  return new URL(`../public/assets/${path}`, import.meta.url).href;
+}
+
 export const navLinks = [
-  ['Home', '/'],
-  ['Features', '/#features'],
-  ['How It Works', '/how-it-works'],
-  ['Benefits', '/benefits'],
-  ['Applications', '/applications'],
+  ['Home', flowSyncPath('/')],
+  ['Features', flowSyncPath('/#features')],
+  ['How It Works', flowSyncPath('/how-it-works')],
+  ['Benefits', flowSyncPath('/benefits')],
+  ['Applications', flowSyncPath('/applications')],
 ];
 
 export function Logo({ small = false }) {
@@ -551,16 +563,17 @@ export function ScrollManager() {
 export function Nav() {
   const [open, setOpen] = useState(false);
   const { pathname } = useLocation();
+  const normalize = (value) => value.replace(/\/$/, '') || '/';
   const isActive = (href) => {
     const path = href.split('#')[0] || '/';
-    if (path === '/') return pathname === '/' && !href.includes('#');
-    return pathname === path;
+    if (path === FLOWSYNC_BASE) return normalize(pathname) === FLOWSYNC_BASE && !href.includes('#');
+    return normalize(pathname) === normalize(path);
   };
   return (
     <>
       <nav className="nav">
         <div className="wrap">
-          <Link to="/" className="brand" onClick={() => setOpen(false)}>
+          <Link to={FLOWSYNC_BASE} className="brand" onClick={() => setOpen(false)}>
             <Logo />
             <b>Flow<span>Sync</span></b>
           </Link>
@@ -570,7 +583,7 @@ export function Nav() {
             ))}
           </div>
           <div className="nav-cta">
-            <Link to="/#demo" className="btn btn-primary" data-magnetic>Request a Demo <ArrowIcon /></Link>
+            <Link to={flowSyncPath('/#demo')} className="btn btn-primary" data-magnetic>Request a Demo <ArrowIcon /></Link>
           </div>
           <button className={`burger ${open ? 'open' : ''}`} aria-label="Menu" onClick={() => setOpen(!open)}>
             <span /><span /><span />
@@ -579,7 +592,7 @@ export function Nav() {
       </nav>
       <div className={`mobile-menu ${open ? 'open' : ''}`}>
         {navLinks.map(([label, href]) => <Link to={href} key={label} onClick={() => setOpen(false)}>{label}</Link>)}
-        <Link to="/#demo" className="mm-cta" onClick={() => setOpen(false)}>Request a Demo -&gt;</Link>
+        <Link to={flowSyncPath('/#demo')} className="mm-cta" onClick={() => setOpen(false)}>Request a Demo -&gt;</Link>
       </div>
     </>
   );
@@ -587,9 +600,9 @@ export function Nav() {
 
 export function Footer() {
   const columns = [
-    ['Platform', [['What is FlowSync', '/#features'], ['How It Works', '/how-it-works'], ['Features', '/#features'], ['Technology', '/how-it-works#technology']]],
-    ['Solutions', [['Hospitals', '/applications'], ['OPD', '/applications'], ['Diagnostics', '/applications'], ['Emergency', '/applications'], ['Networks', '/applications']]],
-    ['Company', [['About', '/'], ['Careers', '#'], ['News', '#'], ['Contact', '/#demo']]],
+    ['Platform', [['What is FlowSync', flowSyncPath('/#features')], ['How It Works', flowSyncPath('/how-it-works')], ['Features', flowSyncPath('/#features')], ['Technology', flowSyncPath('/how-it-works#technology')]]],
+    ['Solutions', [['Hospitals', flowSyncPath('/applications')], ['OPD', flowSyncPath('/applications')], ['Diagnostics', flowSyncPath('/applications')], ['Emergency', flowSyncPath('/applications')], ['Networks', flowSyncPath('/applications')]]],
+    ['Company', [['About', flowSyncPath('/')], ['Careers', '#'], ['News', '#'], ['Contact', flowSyncPath('/#demo')]]],
     ['Legal', [['Privacy', '#'], ['Terms', '#'], ['Security', '#'], ['Compliance', '#']]],
   ];
   return (

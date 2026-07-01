@@ -5,13 +5,18 @@ import aboutHtml from "./pages/about.html?raw";
 import teamHtml from "./pages/team.html?raw";
 
 // Base path the Bio Pod micro-site is mounted under inside the main site.
-const BASE = "/projects/biopod";
+const BASE = "/biopod";
+const LEGACY_BASE = "/projects/biopod";
 
 const pages = {
   [BASE]: { html: homeHtml, title: "Bio Pod - Clean Fuel. Cleaner Future." },
   [`${BASE}/`]: { html: homeHtml, title: "Bio Pod - Clean Fuel. Cleaner Future." },
   [`${BASE}/about`]: { html: aboutHtml, title: "About - Bio Pod" },
   [`${BASE}/team`]: { html: teamHtml, title: "Team - Bio Pod" },
+  [LEGACY_BASE]: { html: homeHtml, title: "Bio Pod - Clean Fuel. Cleaner Future." },
+  [`${LEGACY_BASE}/`]: { html: homeHtml, title: "Bio Pod - Clean Fuel. Cleaner Future." },
+  [`${LEGACY_BASE}/about`]: { html: aboutHtml, title: "About - Bio Pod" },
+  [`${LEGACY_BASE}/team`]: { html: teamHtml, title: "Team - Bio Pod" },
 };
 
 function extractBody(html) {
@@ -37,10 +42,12 @@ function extractStyles(html) {
 const pageStyles = rewriteAssetUrls([homeHtml, aboutHtml, teamHtml].map(extractStyles).join("\n"));
 
 function normalizePath(pathname) {
-  if (pathname === `${BASE}/index.html`) return BASE;
-  if (pathname === `${BASE}/`) return BASE;
-  if (pathname === `${BASE}/about.html`) return `${BASE}/about`;
-  if (pathname === `${BASE}/team.html`) return `${BASE}/team`;
+  if (pathname === `${BASE}/index.html` || pathname === `${LEGACY_BASE}/index.html`) return BASE;
+  if (pathname === `${BASE}/` || pathname === `${LEGACY_BASE}/`) return BASE;
+  if (pathname === `${BASE}/about.html` || pathname === `${LEGACY_BASE}/about.html`) return `${BASE}/about`;
+  if (pathname === `${BASE}/team.html` || pathname === `${LEGACY_BASE}/team.html`) return `${BASE}/team`;
+  if (pathname === LEGACY_BASE) return BASE;
+  if (pathname === `${LEGACY_BASE}/about` || pathname === `${LEGACY_BASE}/team`) return pathname.replace(LEGACY_BASE, BASE);
   return pages[pathname] ? pathname : BASE;
 }
 
@@ -63,7 +70,7 @@ function useRoute() {
 
       const url = new URL(href, window.location.origin + window.location.pathname);
       const nextPath = normalizePath(url.pathname);
-      const isPageLink = [BASE, `${BASE}/about`, `${BASE}/team`].includes(nextPath);
+      const isPageLink = [BASE, `${BASE}/about`, `${BASE}/team`, LEGACY_BASE, `${LEGACY_BASE}/about`, `${LEGACY_BASE}/team`].includes(nextPath);
       if (!isPageLink && !href.startsWith("#")) return;
 
       event.preventDefault();

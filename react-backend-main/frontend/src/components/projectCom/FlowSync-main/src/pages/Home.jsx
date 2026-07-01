@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowIcon, FeatureIcon, LinkedInIcon, useCanvasOrb, useSpotNet } from '../shared.jsx';
+import { ArrowIcon, FeatureIcon, LinkedInIcon, flowSyncAsset, flowSyncPath, useCanvasOrb, useSpotNet } from '../shared.jsx';
 
 const features = [
   ['Real-Time Monitoring', 'Continuous visibility into healthcare operations and patient flow activities - every department, every movement, as it happens.', 'wide'],
@@ -13,28 +13,28 @@ const features = [
 
 const team = [
   {
-    src: '/assets/team-1.jpg',
+    src: flowSyncAsset('team-1.jpg'),
     name: 'Naseeha Nafrin N M',
     role: 'Healthcare Technology Strategist',
     bio: 'Drives the design and development of smart healthcare solutions by integrating healthcare workflows, digital technologies, IoT systems, and operational intelligence frameworks. Focuses on creating scalable and innovative solutions for predictive hospital management and patient flow optimization.',
     linkedin: 'https://www.linkedin.com/in/naseeha-nafrin-nm-274745327',
   },
   {
-    src: '/assets/team-2.jpg',
+    src: flowSyncAsset('team-2.jpg'),
     name: 'Navin R',
     role: 'Healthcare Analytics Strategist',
     bio: 'Develops intelligent analytics and decision-support solutions through predictive modeling, workflow optimization, real-time monitoring, and data-driven healthcare intelligence systems.',
     linkedin: 'https://www.linkedin.com/in/navin-r-071898327',
   },
   {
-    src: '/assets/team-3.jpg',
+    src: flowSyncAsset('team-3.jpg'),
     name: 'Brathikan VM',
     role: 'Innovation Expert',
     bio: 'Identifies technological opportunities, evaluates novelty, strengthens intellectual property potential, and guides innovation strategy to ensure scalability, practical impact, and long-term technology adoption.',
     linkedin: 'https://www.linkedin.com/in/brathikan',
   },
   {
-    src: '/assets/team-4.jpg',
+    src: flowSyncAsset('team-4.jpg'),
     name: 'Krisnan K',
     role: 'Mechanical Engineer · Engineering Lead',
     bio: 'Designs and optimizes wearable tracking devices, hardware modules, power management systems, and deployment-ready physical infrastructure for continuous healthcare monitoring applications.',
@@ -58,7 +58,7 @@ function Hero() {
           <p className="sec-line">Gain real-time insight into hospital activity, identify operational inefficiencies, and make better decisions for improved patient experiences.</p>
           <div className="hero-actions">
             <a href="#demo" className="btn btn-primary btn-lg" data-magnetic>Request a Demo <ArrowIcon /></a>
-            <Link to="/how-it-works" className="btn btn-ghost btn-lg">See How It Works</Link>
+            <Link to={flowSyncPath('/how-it-works')} className="btn btn-ghost btn-lg">See How It Works</Link>
           </div>
           <div className="trust">
             {['Secure by design', 'Real-time telemetry', 'Predictive analytics'].map((item) => <div className="t" key={item}><span className="dot-live" />{item}</div>)}
@@ -82,7 +82,7 @@ function Hero() {
             </div>
           </div>
           <div className="wear-card float">
-            <img src="/assets/wearable-xray.jpg" alt="FlowSync smart wearable internal architecture" />
+            <img src={flowSyncAsset('wearable-xray.jpg')} alt="FlowSync smart wearable internal architecture" />
             <span className="cap">FlowSync Smart Wearable</span>
           </div>
         </div>
