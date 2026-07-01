@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { ArrowIcon } from '../shared.jsx';
+import { ArrowIcon, flowSyncAsset, flowSyncPath } from '../shared.jsx';
 
 const ArrowGlyph = () => (
   <span className="arrow"><svg viewBox="0 0 24 24" fill="none"><path d="M5 12h14M13 6l6 6-6 6" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg></span>
@@ -55,7 +55,7 @@ export default function Applications() {
             <p className="lead">FlowSync is designed to support a wide range of healthcare environments — from a single outpatient department to multi-site healthcare networks.</p>
           </div>
           <div className="feature-img" data-reveal="scale">
-            <img src="/assets/applications.jpg" alt="FlowSync applications across hospitals, OPD, emergency, inpatient wards, networks and smart infrastructure" loading="lazy" />
+            <img src={flowSyncAsset('applications.jpg')} alt="FlowSync applications across hospitals, OPD, emergency, inpatient wards, networks and smart infrastructure" loading="lazy" />
           </div>
         </div>
       </header>
@@ -65,7 +65,7 @@ export default function Applications() {
           <div className="app-grid">
             {tiles.map((tile) => (
               <Link
-                to="/#demo"
+              to={flowSyncPath('/#demo')}
                 className={`app-tile ${tile.lg ? 'lg' : ''}`}
                 data-tilt={tile.tilt}
                 data-reveal
@@ -89,7 +89,7 @@ export default function Applications() {
         <div className="wrap" data-reveal>
           <span className="eyebrow" style={{ justifyContent: 'center' }}>One platform, every setting</span>
           <h2 className="h-xl" style={{ margin: '16px auto 22px', maxWidth: '20ch' }}>Find the right fit for your facility</h2>
-          <Link to="/#demo" className="btn btn-primary btn-lg" data-magnetic>Request a Demo <ArrowIcon /></Link>
+          <Link to={flowSyncPath('/#demo')} className="btn btn-primary btn-lg" data-magnetic>Request a Demo <ArrowIcon /></Link>
         </div>
       </section>
     </>

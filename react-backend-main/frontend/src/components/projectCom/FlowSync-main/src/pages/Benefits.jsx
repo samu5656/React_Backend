@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { ArrowIcon } from '../shared.jsx';
+import { ArrowIcon, flowSyncPath } from '../shared.jsx';
 
 const stats = [
   ['40', '%', '↓ operational delays'],
@@ -148,7 +148,7 @@ export default function Benefits() {
         <div className="wrap" data-reveal>
           <span className="eyebrow" style={{ justifyContent: 'center' }}>Outcomes that compound</span>
           <h2 className="h-xl" style={{ margin: '16px auto 22px', maxWidth: '20ch' }}>Put these numbers to work in your facility</h2>
-          <Link to="/#demo" className="btn btn-primary btn-lg" data-magnetic>Request a Demo <ArrowIcon /></Link>
+          <Link to={flowSyncPath('/#demo')} className="btn btn-primary btn-lg" data-magnetic>Request a Demo <ArrowIcon /></Link>
         </div>
       </section>
     </>

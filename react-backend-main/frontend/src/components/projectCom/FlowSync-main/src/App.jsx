@@ -1,5 +1,5 @@
 import { Routes, Route, useLocation } from 'react-router-dom';
-import { Nav, Footer, ScrollManager, useInteractions } from './shared.jsx';
+import { FLOWSYNC_BASE, Nav, Footer, ScrollManager, useInteractions } from './shared.jsx';
 import Home from './pages/Home.jsx';
 import HowItWorks from './pages/HowItWorks.jsx';
 import Benefits from './pages/Benefits.jsx';
@@ -15,10 +15,10 @@ export default function App() {
       <Nav />
       <main key={pathname}>
         <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/how-it-works" element={<HowItWorks />} />
-          <Route path="/benefits" element={<Benefits />} />
-          <Route path="/applications" element={<Applications />} />
+          <Route path={FLOWSYNC_BASE} element={<Home />} />
+          <Route path={`${FLOWSYNC_BASE}/how-it-works`} element={<HowItWorks />} />
+          <Route path={`${FLOWSYNC_BASE}/benefits`} element={<Benefits />} />
+          <Route path={`${FLOWSYNC_BASE}/applications`} element={<Applications />} />
           <Route path="*" element={<Home />} />
         </Routes>
       </main>

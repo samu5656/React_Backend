@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowIcon } from '../shared.jsx';
+import { ArrowIcon, flowSyncAsset, flowSyncPath } from '../shared.jsx';
 
 const steps = [
   ['Smart Identification', 'Patients are provided with smart wearable devices that enable secure identification and operational monitoring throughout the healthcare environment.'],
@@ -179,20 +179,20 @@ export default function HowItWorks() {
             <p className="lead">From RFID + BLE wristbands through edge nodes and a secure central server to the AI analytics engine and admin dashboard.</p>
           </div>
           <div className="arch-feature" data-reveal="scale">
-            <img src="/assets/checkpoint-arch.jpg" alt="FlowSync smart checkpoint architecture — intelligent patient tracking and data flow" loading="lazy" />
+            <img src={flowSyncAsset('checkpoint-arch.jpg')} alt="FlowSync smart checkpoint architecture — intelligent patient tracking and data flow" loading="lazy" />
             <div className="arch-cap"><b>Smart Checkpoint Architecture</b><span>RFID · BLE · ESP32 edge · secure server · AI engine · dashboard</span></div>
           </div>
           <div className="arch-feature" data-reveal="scale" style={{ marginTop: 22 }}>
-            <img src="/assets/system-flow.jpg" alt="FlowSync end-to-end system flow across hospital departments" loading="lazy" />
+            <img src={flowSyncAsset('system-flow.jpg')} alt="FlowSync end-to-end system flow across hospital departments" loading="lazy" />
             <div className="arch-cap"><b>End-to-End System Flow</b><span>Patient journey → sensing → processing → insight → admin action</span></div>
           </div>
           <div className="arch-two">
             <div className="ac" data-reveal data-delay="0">
-              <img src="/assets/wearable-exploded.jpg" alt="FlowSync wearable exploded view with labeled components" loading="lazy" />
+              <img src={flowSyncAsset('wearable-exploded.jpg')} alt="FlowSync wearable exploded view with labeled components" loading="lazy" />
               <div className="acc"><b>Smart Wearable — Exploded View</b><span>BLE SoC · RFID coil · thin-film battery · adaptive antenna</span></div>
             </div>
             <div className="ac" data-reveal data-delay="120">
-              <img src="/assets/checkpoint-cutaway.jpg" alt="Ceiling-mounted RFID-BLE smart checkpoint cutaway" loading="lazy" />
+              <img src={flowSyncAsset('checkpoint-cutaway.jpg')} alt="Ceiling-mounted RFID-BLE smart checkpoint cutaway" loading="lazy" />
               <div className="acc"><b>Ceiling-Mounted Checkpoint</b><span>Directional RFID · BLE array · ESP32 · hospital Wi-Fi</span></div>
             </div>
           </div>
@@ -203,7 +203,7 @@ export default function HowItWorks() {
         <div className="wrap" data-reveal>
           <span className="eyebrow" style={{ justifyContent: 'center' }}>See it live</span>
           <h2 className="h-xl" style={{ margin: '16px auto 22px', maxWidth: '18ch' }}>Ready to see FlowSync inside your facility?</h2>
-          <Link to="/#demo" className="btn btn-primary btn-lg" data-magnetic>Request a Demo <ArrowIcon /></Link>
+          <Link to={flowSyncPath('/#demo')} className="btn btn-primary btn-lg" data-magnetic>Request a Demo <ArrowIcon /></Link>
         </div>
       </section>
     </>

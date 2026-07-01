@@ -13,7 +13,7 @@ const PROJECTS = [
     domain: 'Health and Wellbeing',
     tags: ['Biodegradable', 'Biotech', "Women's Health"],
     description: 'A Flushable sanitary pad developed using natural fibers and a biodegradable bio-superabsorbent system to replace plastic-based materials. It provides effective absorbency, comfort, and leakage protection while safely degrading after disposal, reducing menstrual waste pollution and supporting eco-friendly menstrual hygiene.',
-    website: 'https://khyora.vercel.app/',
+    website: '/projects/khyora',
     accent: '#0d9488', lightBg: '#f0fdfa', Icon: Leaf,
   },
   {
@@ -32,7 +32,7 @@ const PROJECTS = [
     domain: 'Agriculture and Food Systems',
     tags: ['Precision Feeding', 'IoT', 'Aquaculture'],
     description: 'An intelligent feeding solution for shrimp farms that delivers precise and timely feed distribution by tracking real-time shrimp behaviour and health indicators, reducing feed waste and improving overall pond health and harvest productivity.',
-    website: 'https://shrimpfeeder.vercel.app/',
+    website: '/projects/shrimpfeeder',
     accent: '#0284c7', lightBg: '#f0f9ff', Icon: Waves,
   },
   {
@@ -50,7 +50,7 @@ const PROJECTS = [
     domain: 'Agriculture and Food Systems',
     tags: ['Biogas', 'Circular Economy', 'Waste-to-Energy'],
     description: 'An advanced two-stage bioreactor that converts food waste into high-purity methane through optimised anaerobic digestion, providing a scalable clean energy solution for households and small institutions while reducing organic waste disposal.',
-    website: 'https://react.kct.ac.in/projects/biopod',
+    website: '/projects/biopod',
     accent: '#16a34a', lightBg: '#f0fdf4', Icon: Flame,
   },
   {
@@ -59,7 +59,7 @@ const PROJECTS = [
     domain: 'Health and Wellbeing',
     tags: ['AI', 'IoT', 'Hospital Management'],
     description: 'An intelligent hospital management system that uses wearable patient wristbands, real-time tracking, and AI analytics to monitor patient movement and predict bottlenecks, improving care delivery and reducing emergency wait times.',
-    website: 'https://flow-sync-lilac.vercel.app/',
+    website: '/projects/flowsync',
     accent: '#0891b2', lightBg: '#ecfeff', Icon: Brain,
   },
   {

@@ -232,7 +232,7 @@ const featuredProjects = [
     domain: 'Agriculture and Food Systems',
     domainColor: 'bg-orange-100 text-orange-800',
     desc: 'An automated shrimp feeding system built with coastal farming communities to reduce waste and increase yield.',
-    link: '/projects/shrimp-feeder',
+    link: '/projects/shrimpfeeder',
     accentColor: '#9A3412',
     stack: ['Embedded Systems', 'Automation', 'Sensor Hardware'],
     pastel: '#ffedd5',
@@ -406,7 +406,7 @@ const heroHeading = {
 /* ── S01: Hero ── */
 function HeroSection() {
   const [shimmerReady, setShimmerReady] = useState(false);
-  const breathControls  = useAnimation();
+  const breathControls = useAnimation();
 
   // cubic-bezier(0.22, 1, 0.36, 1) — smooth overshoot-free ease-out
   const E = [0.22, 1, 0.36, 1];
@@ -473,7 +473,7 @@ function HeroSection() {
               {/* LINE 1 */}
               <motion.span
                 initial={{ opacity: 0, y: 80, scale: 0.45, filter: 'blur(30px)' }}
-                animate={{ opacity: 1, y: 0,  scale: 1,    filter: 'blur(0px)'  }}
+                animate={{ opacity: 1, y: 0, scale: 1, filter: 'blur(0px)' }}
                 transition={{ duration: 0.95, delay: 0.3, ease: E }}
                 style={{ display: 'block', textShadow: '0 4px 48px rgba(0,0,0,0.7)' }}
               >
@@ -495,11 +495,11 @@ function HeroSection() {
                   ],
                 }}
                 transition={{
-                  opacity:    { duration: 0.95, delay: 0.48, ease: E },
-                  y:          { duration: 0.95, delay: 0.48, ease: E },
-                  scale:      { duration: 0.95, delay: 0.48, ease: E },
-                  filter:     { duration: 0.95, delay: 0.48, ease: E },
-                  textShadow: { duration: 2.6,  delay: 0.48, ease: 'easeOut', times: [0, 0.28, 1] },
+                  opacity: { duration: 0.95, delay: 0.48, ease: E },
+                  y: { duration: 0.95, delay: 0.48, ease: E },
+                  scale: { duration: 0.95, delay: 0.48, ease: E },
+                  filter: { duration: 0.95, delay: 0.48, ease: E },
+                  textShadow: { duration: 2.6, delay: 0.48, ease: 'easeOut', times: [0, 0.28, 1] },
                 }}
                 style={{ display: 'block', color: '#D97706' }}
               >
@@ -509,7 +509,7 @@ function HeroSection() {
               {/* LINE 3 — fires breathing + shimmer when complete */}
               <motion.span
                 initial={{ opacity: 0, y: 80, scale: 0.45, filter: 'blur(30px)' }}
-                animate={{ opacity: 1, y: 0,  scale: 1,    filter: 'blur(0px)'  }}
+                animate={{ opacity: 1, y: 0, scale: 1, filter: 'blur(0px)' }}
                 transition={{ duration: 0.95, delay: 0.66, ease: E }}
                 style={{ display: 'block', textShadow: '0 4px 48px rgba(0,0,0,0.7)' }}
                 onAnimationComplete={onLine3Done}
@@ -538,7 +538,7 @@ function HeroSection() {
         {/* Sub-headline */}
         <motion.p
           initial={{ opacity: 0, y: 28, filter: 'blur(8px)' }}
-          animate={{ opacity: 1, y: 0,  filter: 'blur(0px)' }}
+          animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
           transition={{ duration: 0.9, delay: 1.3, ease: E }}
           className="max-w-3xl text-base sm:text-lg text-white/70 leading-relaxed mb-12"
         >
@@ -550,7 +550,7 @@ function HeroSection() {
         {/* CTA buttons */}
         <motion.div
           initial={{ opacity: 0, y: 28, filter: 'blur(8px)' }}
-          animate={{ opacity: 1, y: 0,  filter: 'blur(0px)' }}
+          animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
           transition={{ duration: 0.9, delay: 1.5, ease: E }}
           className="flex flex-col sm:flex-row gap-4 items-center"
         >
@@ -559,7 +559,7 @@ function HeroSection() {
               className="px-9 py-4 font-black text-sm uppercase tracking-widest rounded-full transition-all duration-300 hover:bg-white hover:text-black hover:-translate-y-1"
               style={{ background: '#D97706', color: '#000', boxShadow: '0 8px 28px rgba(217,119,6,0.35)' }}
               onMouseOver={(e) => { e.currentTarget.style.boxShadow = '0 8px 28px rgba(255,255,255,0.2)'; }}
-              onMouseOut={(e)  => { e.currentTarget.style.boxShadow = '0 8px 28px rgba(217,119,6,0.35)'; }}
+              onMouseOut={(e) => { e.currentTarget.style.boxShadow = '0 8px 28px rgba(217,119,6,0.35)'; }}
             >
               Apply Now
             </button>
@@ -608,24 +608,28 @@ const reactPrinciples = [
 /* ── Variants for REACT principle rows — three named states so variant
      propagation carries "hovered" down to the letter span automatically ── */
 const rowVariants = {
-  hidden:   { opacity: 0, x: -32, backgroundColor: 'rgba(255,255,255,0)' },
-  rest:     { opacity: 1, x: 0,   backgroundColor: 'rgba(255,255,255,0)' },
-  hovered:  { opacity: 1, x: 8,   backgroundColor: 'rgba(251,191,36,0.07)',
-               transition: { duration: 0.28, ease: [0.16, 1, 0.3, 1] } },
+  hidden: { opacity: 0, x: -32, backgroundColor: 'rgba(255,255,255,0)' },
+  rest: { opacity: 1, x: 0, backgroundColor: 'rgba(255,255,255,0)' },
+  hovered: {
+    opacity: 1, x: 8, backgroundColor: 'rgba(251,191,36,0.07)',
+    transition: { duration: 0.28, ease: [0.16, 1, 0.3, 1] }
+  },
 };
 
 const letterVariants = {
-  hidden:   { scale: 1 },
-  rest:     { scale: 1,    textShadow: '0 0 0px rgba(217,119,6,0)' },
+  hidden: { scale: 1 },
+  rest: { scale: 1, textShadow: '0 0 0px rgba(217,119,6,0)' },
   // scale 1.15 — visible emphasis without overflowing into adjacent text or rows.
   // textShadow compensates for the smaller scale with a brighter orange glow.
-  hovered:  { scale: 1.15, textShadow: '0 0 22px rgba(217,119,6,0.9)',
-               transition: { duration: 0.28, ease: [0.16, 1, 0.3, 1] } },
+  hovered: {
+    scale: 1.15, textShadow: '0 0 22px rgba(217,119,6,0.9)',
+    transition: { duration: 0.28, ease: [0.16, 1, 0.3, 1] }
+  },
 };
 
 const descVariants = {
-  hidden:  { color: '#4B5563' },
-  rest:    { color: '#4B5563' },
+  hidden: { color: '#4B5563' },
+  rest: { color: '#4B5563' },
   hovered: { color: '#1F2937', transition: { duration: 0.22 } },
 };
 
@@ -649,7 +653,7 @@ function WhatReactIsSection() {
           className="text-2xl md:text-3xl lg:text-4xl font-black text-gray-950 mb-4 leading-tight"
           style={{ letterSpacing: '-0.02em' }}
         >
-          A discipline of building. A way of working. A field of action. A way of working.
+          A field of action. A way of working.
         </motion.h2>
         <p className="text-lg text-amber-700 font-bold mb-10 italic">
           Real World Engineering and Application through Collaborative Transformation. Every word is a principle.
@@ -970,7 +974,7 @@ function ReactFellowSection() {
           className="text-3xl md:text-4xl lg:text-5xl font-black text-white mb-10 leading-tight"
           style={{ letterSpacing: '-0.02em' }}
         >
-          Not everyone who completes the programme<br className="hidden md:block" /> becomes a REACT Fellow.
+          Beyond completion lies the distinction <br className="hidden md:block" />of becoming a REACT Fellow.
         </motion.h2>
 
         <div className="text-left space-y-5 text-gray-300 text-base leading-relaxed mb-14 max-w-3xl mx-auto">
@@ -1002,7 +1006,7 @@ function ReactFellowSection() {
         >
           <p className="text-xl md:text-2xl lg:text-3xl font-black text-white italic leading-relaxed"
             style={{ letterSpacing: '-0.01em' }}>
-            "The institution does not determine the designation. The venture does."
+            "The degree recognizes your journey. The venture defines your designation."
           </p>
         </motion.blockquote>
       </div>
@@ -1112,7 +1116,7 @@ function ProjectCarousel3DCard({ p, angle, radius, width, height, rotation }) {
   // Cards are invisible until they near the front (facing > 0.3), then fade in sharply.
   // At ±72° (facing ≈ 0.31) cards are nearly invisible; only the front card shows clearly.
   const opacity = useTransform(facing, [-1, 0.25, 0.65, 1], [0, 0, 1, 1], { clamp: true });
-  const scale  = useTransform(facing, [-1, 0.25, 0.65, 1], [0.55, 0.55, 0.9, 1], { clamp: true });
+  const scale = useTransform(facing, [-1, 0.25, 0.65, 1], [0.55, 0.55, 0.9, 1], { clamp: true });
   const zIndex = useTransform(facing, (f) => Math.round(f * 100));
   const pointerEvents = useTransform(facing, (f) => (f > 0.6 ? 'auto' : 'none'));
   // Full project details only reveal once this card has rotated close to front-facing.
@@ -1205,12 +1209,12 @@ function ProjectsSection() {
   // Hold for 88% of the segment, snap in the final 12% so each scroll = one card.
   const seg = 1 / n;
   const transitionFrac = 0.12; // 12% of each segment = transition; rest = hold
-  const inputStops  = [0];
+  const inputStops = [0];
   const outputStops = [0];
   for (let i = 0; i < n; i++) {
-    const holdEnd   = (i + 1) * seg - transitionFrac * seg;
-    const snapEnd   = (i + 1) * seg;
-    inputStops.push(holdEnd,        snapEnd);
+    const holdEnd = (i + 1) * seg - transitionFrac * seg;
+    const snapEnd = (i + 1) * seg;
+    inputStops.push(holdEnd, snapEnd);
     outputStops.push(i * angleStep, (i + 1) * angleStep);
   }
   const rawRotation = useTransform(scrollYProgress, inputStops, outputStops);
@@ -1449,9 +1453,9 @@ function StaticTestimonialsList({ testimonials }) {
 // variable heights + offsets to create overlap and rhythm between cards.
 const TESTIMONIAL_SLOTS = [
   { justify: 'flex-start', minHeight: 'clamp(160px, 20vh, 240px)', marginTop: '0vh' },
-  { justify: 'flex-end',   minHeight: 'clamp(160px, 20vh, 240px)', marginTop: '3vh' },
+  { justify: 'flex-end', minHeight: 'clamp(160px, 20vh, 240px)', marginTop: '3vh' },
   { justify: 'flex-start', minHeight: 'clamp(160px, 20vh, 240px)', marginTop: '3vh' },
-  { justify: 'flex-end',   minHeight: 'clamp(160px, 20vh, 240px)', marginTop: '3vh' },
+  { justify: 'flex-end', minHeight: 'clamp(160px, 20vh, 240px)', marginTop: '3vh' },
   { justify: 'flex-start', minHeight: 'clamp(160px, 20vh, 240px)', marginTop: '3vh' },
 ];
 
@@ -1569,49 +1573,49 @@ function ScrollDrivenTestimonials({ testimonials }) {
       {/* Card overlay — scrolls over the pinned background */}
       <div style={{ position: 'relative', zIndex: 2, marginTop: '-100vh', pointerEvents: 'none' }}>
         <div style={{ maxWidth: '860px', margin: '0 auto', paddingBottom: '10rem' }}>
-        {testimonials.map((item, i) => {
-          const slot = TESTIMONIAL_SLOTS[i % TESTIMONIAL_SLOTS.length];
-          return (
-            <div
-              key={i}
-              ref={(el) => (slotRefs.current[i] = el)}
-              className="px-6"
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: slot.justify,
-                minHeight: slot.minHeight,
-                marginTop: slot.marginTop,
-              }}
-            >
+          {testimonials.map((item, i) => {
+            const slot = TESTIMONIAL_SLOTS[i % TESTIMONIAL_SLOTS.length];
+            return (
               <div
-                ref={(el) => (cardRefs.current[i] = el)}
+                key={i}
+                ref={(el) => (slotRefs.current[i] = el)}
+                className="px-6"
                 style={{
-                  position: 'relative',
-                  width: 'min(460px, 90vw)',
-                  transformStyle: 'preserve-3d',
-                  willChange: 'transform, opacity',
-                  pointerEvents: 'auto',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: slot.justify,
+                  minHeight: slot.minHeight,
+                  marginTop: slot.marginTop,
                 }}
               >
-                <TestimonialDarkCard item={item} />
                 <div
-                  ref={(el) => (frostRefs.current[i] = el)}
+                  ref={(el) => (cardRefs.current[i] = el)}
                   style={{
-                    position: 'absolute',
-                    inset: 0,
-                    borderRadius: 16,
-                    backdropFilter: 'blur(9px)',
-                    WebkitBackdropFilter: 'blur(9px)',
-                    pointerEvents: 'none',
-                    maskImage: 'linear-gradient(to top, rgba(0,0,0,1) 0%, rgba(0,0,0,0) 50%)',
-                    WebkitMaskImage: 'linear-gradient(to top, rgba(0,0,0,1) 0%, rgba(0,0,0,0) 50%)',
+                    position: 'relative',
+                    width: 'min(460px, 90vw)',
+                    transformStyle: 'preserve-3d',
+                    willChange: 'transform, opacity',
+                    pointerEvents: 'auto',
                   }}
-                />
+                >
+                  <TestimonialDarkCard item={item} />
+                  <div
+                    ref={(el) => (frostRefs.current[i] = el)}
+                    style={{
+                      position: 'absolute',
+                      inset: 0,
+                      borderRadius: 16,
+                      backdropFilter: 'blur(9px)',
+                      WebkitBackdropFilter: 'blur(9px)',
+                      pointerEvents: 'none',
+                      maskImage: 'linear-gradient(to top, rgba(0,0,0,1) 0%, rgba(0,0,0,0) 50%)',
+                      WebkitMaskImage: 'linear-gradient(to top, rgba(0,0,0,1) 0%, rgba(0,0,0,0) 50%)',
+                    }}
+                  />
+                </div>
               </div>
-            </div>
-          );
-        })}
+            );
+          })}
         </div>
       </div>
     </div>
