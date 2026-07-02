@@ -10,6 +10,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="../Stylesheets/biopod.css">
 <style>
+@scope (.biopod-page) {
 .subhero{position:relative;overflow:hidden;padding-top:calc(var(--nav-h) + clamp(40px,7vw,90px));padding-bottom:clamp(40px,6vw,70px)}
 .subhero-bg{position:absolute;inset:0;z-index:0}
 .subhero-bg .blob{position:absolute;border-radius:50%;filter:blur(50px);opacity:.5}
@@ -69,6 +70,7 @@
 .closing .btn-primary::after{background:linear-gradient(100deg,var(--lime),var(--leaf))}
 .closing .btn-primary:hover{color:var(--ink)}
 .over-label{display:inline-flex;align-items:center;gap:.6em;font-family:var(--display);font-size:.78rem;font-weight:600;letter-spacing:.22em;text-transform:uppercase;color:var(--leaf);margin-bottom:18px}
+}
 </style>
 </head>
 <body>

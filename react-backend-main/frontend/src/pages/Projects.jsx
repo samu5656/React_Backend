@@ -13,7 +13,7 @@ const PROJECTS = [
     domain: 'Health and Wellbeing',
     tags: ['Biodegradable', 'Biotech', "Women's Health"],
     description: 'A Flushable sanitary pad developed using natural fibers and a biodegradable bio-superabsorbent system to replace plastic-based materials. It provides effective absorbency, comfort, and leakage protection while safely degrading after disposal, reducing menstrual waste pollution and supporting eco-friendly menstrual hygiene.',
-    website: '/projects/khyora',
+    website: 'https://khyora.vercel.app/',
     accent: '#0d9488', lightBg: '#f0fdfa', Icon: Leaf,
   },
   {
@@ -32,7 +32,7 @@ const PROJECTS = [
     domain: 'Agriculture and Food Systems',
     tags: ['Precision Feeding', 'IoT', 'Aquaculture'],
     description: 'An intelligent feeding solution for shrimp farms that delivers precise and timely feed distribution by tracking real-time shrimp behaviour and health indicators, reducing feed waste and improving overall pond health and harvest productivity.',
-    website: '/projects/shrimpfeeder',
+    website: 'https://shrimpfeeder.vercel.app/',
     accent: '#0284c7', lightBg: '#f0f9ff', Icon: Waves,
   },
   {

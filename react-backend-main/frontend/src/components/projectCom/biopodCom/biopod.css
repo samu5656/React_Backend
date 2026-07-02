@@ -3,7 +3,7 @@
    Clean Fuel. Cleaner Future.
    ============================================================ */
 
-:root{
+.biopod-page{
   /* color */
   --green:#1B7A43;
   --green-deep:#0F5C30;
@@ -44,13 +44,8 @@
   --maxw:1240px;
   --gut:clamp(20px,5vw,72px);
   --nav-h:74px;
-}
 
-*{box-sizing:border-box;margin:0;padding:0}
-html{scroll-behavior:smooth}
-@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
-
-body{
+  /* Base look (scoped — replaces the source's global html/body rules) */
   font-family:var(--body);
   background:var(--bg);
   color:var(--ink);
@@ -61,12 +56,17 @@ body{
   overflow-x:hidden;
 }
 
-img{display:block;max-width:100%}
-a{color:inherit;text-decoration:none}
-::selection{background:var(--lime);color:var(--ink)}
+.biopod-page,
+.biopod-page *{box-sizing:border-box;margin:0;padding:0}
+
+.biopod-page img{display:block;max-width:100%}
+.biopod-page a{color:inherit;text-decoration:none}
+.biopod-page ::selection{background:var(--lime);color:var(--ink)}
 
 /* ---------- type ---------- */
-h1,h2,h3,h4{font-family:var(--display);font-weight:600;line-height:1.04;letter-spacing:-.02em;color:var(--ink)}
+.biopod-page h1,.biopod-page h2,.biopod-page h3,.biopod-page h4{font-family:var(--display);font-weight:600;line-height:1.04;letter-spacing:-.02em;color:var(--ink)}
+@scope (.biopod-page) {
+
 .display{font-size:clamp(2.6rem,6.4vw,5.2rem);font-weight:600;letter-spacing:-.035em;line-height:.98}
 .h-xl{font-size:clamp(2.1rem,4.6vw,3.6rem);letter-spacing:-.03em}
 .h-lg{font-size:clamp(1.7rem,3vw,2.6rem)}
@@ -293,7 +293,9 @@ section{position:relative}
   .adv-list{grid-template-columns:1fr}
 }
 @media (max-width:560px){
-  body{font-size:16px}
+  :scope{font-size:16px}
   .card{padding:24px}
   .footer-top{grid-template-columns:1fr}
+}
+
 }

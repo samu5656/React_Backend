@@ -1,3 +1,9 @@
+/* Scoped under .therbal-page (Therbal.jsx's wrapper) — this file was never
+   scoped, so its generic class names (.eyebrow in particular) were leaking
+   into every other page bundled in the same build, since Therbal is loaded
+   eagerly rather than lazily. */
+@scope (.therbal-page) {
+
 .section-shell {
   width: min(1180px, calc(100% - 32px));
   margin: 0 auto;
@@ -76,4 +82,6 @@
   .section-shell {
     width: min(100% - 24px, 1180px);
   }
+}
+
 }

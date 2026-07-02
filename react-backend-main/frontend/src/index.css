@@ -173,6 +173,62 @@ html {
 }
 
 /* =========================================================================
+   ShrimpFeeder page (shrimpfeeder-main) — Tailwind token mappings (ADDITIVE).
+   Translates shrimpfeeder-main's own tailwind.config.js (Tailwind v3,
+   unused by this v4 build) into a v4 @theme block. Colour values are
+   var-indirected and defined scoped on `.shrimpfeeder-page` (in
+   shrimpfeeder-main/src/index.css), so these utilities resolve only inside
+   that page. `--color-paper` and `--color-accent` reuse the same
+   indirection names already registered above (therbal/khyora blocks); the
+   shrimpfeeder-page wrapper defines its own local values for those vars,
+   so no existing page's rendering changes.
+   ========================================================================= */
+@theme inline {
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-steel: var(--steel);
+  --color-steel-soft: var(--steel-soft);
+  --color-paper: var(--paper);
+  --color-paper-2: var(--paper-2);
+  --color-silver-1: var(--silver-1);
+  --color-silver-2: var(--silver-2);
+  --color-accent: var(--accent);
+  --color-accent-br: var(--accent-br);
+  --color-accent-ink: var(--accent-ink);
+  --color-on-dark: var(--on-dark);
+  --color-on-dark-mut: var(--on-dark-mut);
+  --color-on-light: var(--on-light);
+  --color-on-light-mut: var(--on-light-mut);
+
+  --shadow-soft: 0 24px 60px -28px rgba(0, 0, 0, 0.55);
+
+  --container-site: 1240px;
+
+  --ease-smooth: cubic-bezier(0.22, 0.61, 0.36, 1);
+
+  --animate-cue: cue 2.4s cubic-bezier(0.22, 0.61, 0.36, 1) infinite;
+  --animate-spin-slow: spin-sf 22s linear infinite;
+  --animate-float: floatBob-sf 8s ease-in-out infinite;
+  --animate-glow: glowPulse-sf 6s ease-in-out infinite;
+}
+
+@keyframes cue {
+  0% { transform: translateY(0); }
+  60%, 100% { transform: translateY(80px); }
+}
+@keyframes spin-sf {
+  to { transform: rotate(360deg); }
+}
+@keyframes floatBob-sf {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-16px); }
+}
+@keyframes glowPulse-sf {
+  0%, 100% { opacity: 0.55; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.06); }
+}
+
+/* =========================================================================
    Modern custom scrollbars — modal panels
    ========================================================================= */
 
