@@ -102,7 +102,6 @@ export const FELLOWSHIP_TRACKS = [
     admission:
       'One year, full-time, immersive. 40 credits. Intake once a year, February to July application window. Reach out and we will walk you through the process.',
     externalFormUrl: '',
-    applyPath: '/fellowship/social-impact-fellowship/apply',
   },
   {
     slug: 'social-innovation-certification',

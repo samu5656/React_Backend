@@ -581,27 +581,27 @@ const reactPrinciples = [
   {
     letter: 'R',
     word: 'eal world',
-    desc: '— because the field is the classroom.',
+    desc: 'because the field is the classroom.',
   },
   {
     letter: 'E',
     word: 'ngineering',
-    desc: '— the disciplined application of knowledge to build something that functions.',
+    desc: 'the disciplined application of knowledge to build something that functions.',
   },
   {
     letter: 'A',
     word: 'pplication',
-    desc: '— because knowledge that can be used on a real problem is complete.',
+    desc: 'because knowledge that can be used on a real problem is complete.',
   },
   {
     letter: 'C',
     word: 'ollaborative',
-    desc: '— because every meaningful social problem has been solved by people working together.',
+    desc: 'because every meaningful social problem has been solved by people working together.',
   },
   {
     letter: 'T',
     word: 'ransformation',
-    desc: '— because the measure of the work is whether something genuinely changed for the people it was built for.',
+    desc: 'because the measure of the work is whether something genuinely changed for the people it was built for.',
   },
 ];
 
@@ -673,7 +673,7 @@ function WhatReactIsSection() {
             className="flex flex-col justify-between rounded-2xl p-8"
             style={{ border: '2px solid #D97706' }}
           >
-            <div className="space-y-3 text-base leading-relaxed">
+            <div className="space-y-5 sm:space-y-3 text-base leading-relaxed">
               {reactPrinciples.map(({ letter, word, desc }, i) => (
                 <motion.div
                   key={letter}
@@ -683,7 +683,7 @@ function WhatReactIsSection() {
                   whileHover="hovered"
                   viewport={{ once: true }}
                   transition={{ duration: 0.5, delay: 0.25 + i * 0.1, ease: [0.16, 1, 0.3, 1] }}
-                  className="flex items-baseline gap-0 cursor-default rounded-lg px-2 py-1"
+                  className="flex flex-wrap items-baseline gap-0 cursor-default rounded-lg px-2 py-1"
                 >
                   <motion.span
                     variants={letterVariants}
@@ -702,7 +702,7 @@ function WhatReactIsSection() {
                     {letter}
                   </motion.span>
                   <span className="font-bold text-gray-900">{word}</span>
-                  <motion.span variants={descVariants} className="ml-1 text-gray-600">{desc}</motion.span>
+                  <motion.span variants={descVariants} className="sm:ml-1 text-gray-600 w-full sm:w-auto mt-1 sm:mt-0 text-sm sm:text-base leading-snug">{desc}</motion.span>
                 </motion.div>
               ))}
             </div>
