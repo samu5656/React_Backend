@@ -392,9 +392,9 @@ export default function BioPodApp() {
   return (
     <>
       {/* Styles are kept inline so they unmount with the page and never leak
-          into the rest of the site (Bio Pod ships global body/* resets). */}
+          into the rest of the site; every rule is scoped under .biopod-page. */}
       <style>{biopodCss + "\n" + pageStyles}</style>
-      <div dangerouslySetInnerHTML={{ __html: body }} />
+      <div className="biopod-page" dangerouslySetInnerHTML={{ __html: body }} />
     </>
   );
 }

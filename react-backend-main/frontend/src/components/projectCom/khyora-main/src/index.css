@@ -1,1 +1,7 @@
+/* Khyora's required webfonts. Standalone builds load these via a <link>
+   in index.html's <head>, which never runs when this file is imported
+   directly into the parent app — without this import, --serif/--sans
+   silently fall back to Georgia/system-ui, changing glyph metrics and
+   therefore line-wrapping and layout throughout the page. */
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,500&family=Hanken+Grotesk:wght@400;500;600;700&display=swap');
 @import "./styles/khyora.css";
